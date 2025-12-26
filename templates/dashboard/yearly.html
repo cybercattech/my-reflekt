@@ -1,0 +1,689 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load analytics_tags %}
+{% load subscription_tags %}
+
+{% block title %}{{ year }} Year in Review{% endblock %}
+
+{% block dashboard_css %}
+<style>
+.premium-content-locked {
+    position: relative;
+    min-height: 500px;
+}
+.premium-content-locked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+}
+.premium-unlock-banner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 11;
+    text-align: center;
+    background: white;
+    padding: 3rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+}
+.entry-item:hover {
+    background-color: #f8f9fa;
+}
+.entry-content {
+    line-height: 1.7;
+    font-size: 1rem;
+}
+.entry-content h1, .entry-content h2, .entry-content h3,
+.entry-content h4, .entry-content h5, .entry-content h6 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+.entry-content h1 { font-size: 1.5rem; }
+.entry-content h2 { font-size: 1.35rem; }
+.entry-content h3 { font-size: 1.2rem; }
+.entry-content p {
+    margin-bottom: 0.75rem;
+}
+.entry-content ul, .entry-content ol {
+    margin-bottom: 0.75rem;
+    padding-left: 1.5rem;
+}
+.entry-content blockquote {
+    border-left: 3px solid #dee2e6;
+    padding-left: 1rem;
+    margin: 0.75rem 0;
+    color: #6c757d;
+}
+.entry-content code {
+    background-color: #f8f9fa;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+}
+.entry-content pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    overflow-x: auto;
+}
+.entry-content pre code {
+    background: none;
+    padding: 0;
+}
+.entry-content strong, .entry-content b {
+    font-weight: 600;
+}
+.entry-content em, .entry-content i {
+    font-style: italic;
+}
+.entry-content hr {
+    margin: 1rem 0;
+    border-top: 1px solid #dee2e6;
+}
+.entry-content a {
+    color: #0d6efd;
+    text-decoration: none;
+}
+.entry-content a:hover {
+    text-decoration: underline;
+}
+.entry-content .admonition {
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+}
+.entry-content .admonition-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-calendar-check me-2"></i>{{ year }} Year in Review</h1>
+    </div>
+
+    {% if not is_premium %}
+    <!-- Free user: Show locked overlay -->
+    <div class="premium-content-locked">
+        <!-- Blurred preview content -->
+        <div style="filter: blur(5px); opacity: 0.3; pointer-events: none;">
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <h3 class="display-5 text-primary">124</h3>
+                            <p class="text-muted mb-0">Total Entries</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <h3 class="display-5 text-success">45,678</h3>
+                            <p class="text-muted mb-0">Words Written</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <h3 class="display-5 text-success">+0.45</h3>
+                            <p class="text-muted mb-0">Avg Sentiment</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <h3 class="display-5">😊</h3>
+                            <p class="text-muted mb-0">Dominant Mood</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upgrade banner -->
+        <div class="premium-unlock-banner">
+            <div class="mb-3">
+                <i class="bi bi-star-fill text-warning" style="font-size: 3rem;"></i>
+            </div>
+            <h3 class="mb-3">Unlock Your Year in Review</h3>
+            <p class="text-muted mb-4">
+                See your complete {{ year }} journey with detailed insights, trends, and highlights from all your journal entries.
+            </p>
+            <a href="{% url 'accounts:upgrade' %}" class="btn btn-warning btn-lg text-dark">
+                <i class="bi bi-unlock me-2"></i>Upgrade to Premium
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <!-- Premium user: Show actual content -->
+    </div>
+
+    {% if review %}
+    <!-- Overview Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-5 text-primary">{{ review.total_entries }}</h3>
+                    <p class="text-muted mb-0">Total Entries</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-5 text-success">{{ review.total_words|floatformat:0 }}</h3>
+                    <p class="text-muted mb-0">Words Written</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-5 {% if review.avg_sentiment > 0 %}text-success{% elif review.avg_sentiment < 0 %}text-danger{% else %}text-secondary{% endif %}">
+                        {% if review.avg_sentiment > 0 %}+{% endif %}{{ review.avg_sentiment|floatformat:2 }}
+                    </h3>
+                    <p class="text-muted mb-0">Avg Sentiment</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-5">
+                        {% if review.dominant_mood == 'ecstatic' %}🤩
+                        {% elif review.dominant_mood == 'happy' %}😊
+                        {% elif review.dominant_mood == 'neutral' %}😐
+                        {% elif review.dominant_mood == 'sad' %}😢
+                        {% elif review.dominant_mood == 'angry' %}😠
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">{{ review.dominant_mood|title }} Year</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mood Distribution -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart me-2"></i>Mood Distribution
+                </div>
+                <div class="card-body">
+                    {% for mood, count in review.mood_distribution.items %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>
+                                {% if mood == 'ecstatic' %}🤩
+                                {% elif mood == 'happy' %}😊
+                                {% elif mood == 'neutral' %}😐
+                                {% elif mood == 'sad' %}😢
+                                {% elif mood == 'angry' %}😠
+                                {% endif %}
+                                {{ mood|title }}
+                            </span>
+                            <span>{{ count }} days</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-{% if mood == 'ecstatic' %}purple{% elif mood == 'happy' %}success{% elif mood == 'neutral' %}secondary{% elif mood == 'sad' %}info{% else %}danger{% endif %}"
+                                 style="width: {% widthratio count review.total_entries 100 %}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-graph-up me-2"></i>Monthly Sentiment Trend
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyTrendChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Themes -->
+    {% if review.top_themes %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-tags me-2"></i>Top Themes This Year
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                {% for theme in review.top_themes %}
+                <span class="badge bg-primary fs-6 p-2">
+                    {{ theme|title }}
+                    {% if theme in review.theme_sentiments %}
+                    <small class="ms-1 {% if review.theme_sentiments|get_item:theme > 0 %}text-success{% elif review.theme_sentiments|get_item:theme < 0 %}text-danger{% endif %}">
+                        ({% if review.theme_sentiments|get_item:theme > 0 %}+{% endif %}{{ review.theme_sentiments|get_item:theme|floatformat:2 }})
+                    </small>
+                    {% endif %}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Highlights & Lowlights -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white">
+                    <i class="bi bi-star me-2"></i>Top Highlights
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for day in review.highlights|slice:":5" %}
+                    <li class="list-group-item entry-item" data-entry-id="{{ day.id }}" style="cursor: pointer;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ day.date }}</strong>
+                                <span class="ms-2">
+                                    {% if day.mood == 'ecstatic' %}🤩
+                                    {% elif day.mood == 'happy' %}😊
+                                    {% elif day.mood == 'neutral' %}😐
+                                    {% elif day.mood == 'sad' %}😢
+                                    {% elif day.mood == 'angry' %}😠
+                                    {% endif %}
+                                </span>
+                                <p class="mb-0 text-muted small mt-1">{{ day.preview|truncatewords:20 }}</p>
+                            </div>
+                            <span class="badge bg-success">+{{ day.sentiment|floatformat:2 }}</span>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted text-center">No highlights yet</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-secondary h-100">
+                <div class="card-header bg-secondary text-white">
+                    <i class="bi bi-cloud-rain me-2"></i>Challenging Days
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for day in review.lowlights|slice:":5" %}
+                    <li class="list-group-item entry-item" data-entry-id="{{ day.id }}" style="cursor: pointer;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ day.date }}</strong>
+                                <span class="ms-2">
+                                    {% if day.mood == 'ecstatic' %}🤩
+                                    {% elif day.mood == 'happy' %}😊
+                                    {% elif day.mood == 'neutral' %}😐
+                                    {% elif day.mood == 'sad' %}😢
+                                    {% elif day.mood == 'angry' %}😠
+                                    {% endif %}
+                                </span>
+                                <p class="mb-0 text-muted small mt-1">{{ day.preview|truncatewords:20 }}</p>
+                            </div>
+                            <span class="badge bg-secondary">{{ day.sentiment|floatformat:2 }}</span>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted text-center">No data</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    {% if review.insights %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-lightbulb me-2"></i>Key Insights
+        </div>
+        <div class="card-body">
+            <ul class="mb-0">
+                {% for insight in review.insights %}
+                <li class="mb-2">{{ insight }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Regenerate -->
+    <div class="text-center mt-4">
+        <form method="post" action="{% url 'analytics:regenerate_yearly' year %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-clockwise me-1"></i>Regenerate Review
+            </button>
+        </form>
+        <p class="text-muted small mt-2">Last generated: {{ review.generated_at|date:"F j, Y g:i a" }}</p>
+    </div>
+
+    {% else %}
+    <!-- No Review Yet -->
+    <div class="text-center py-5">
+        <div class="display-1 text-muted mb-3">
+            <i class="bi bi-calendar-x"></i>
+        </div>
+        <h3>No Review Available</h3>
+        <p class="text-muted mb-4">
+            You need analyzed journal entries from {{ year }} to generate a year-in-review.
+        </p>
+        <a href="{% url 'journal:entry_create' %}" class="btn btn-primary">
+            Start Writing
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Entry View/Edit Modal -->
+<div class="modal fade" id="entryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title mb-0" id="entryModalDate"></h5>
+                    <small class="text-muted" id="entryModalMeta"></small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- View Mode -->
+                <div id="entryViewMode">
+                    <div id="entryContent" class="entry-content"></div>
+
+                    <!-- Analysis Info -->
+                    <div id="entryAnalysis" class="mt-4 pt-3 border-top" style="display: none;">
+                        <div class="row g-3">
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark">
+                                    <i class="bi bi-emoji-smile me-1"></i>
+                                    <span id="analysisMood"></span>
+                                </span>
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark">
+                                    <i class="bi bi-graph-up me-1"></i>
+                                    Sentiment: <span id="analysisSentiment"></span>
+                                </span>
+                            </div>
+                            <div class="col-12" id="analysisThemesContainer" style="display: none;">
+                                <small class="text-muted">Themes: </small>
+                                <span id="analysisThemes"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Mode -->
+                <div id="entryEditMode" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Title (optional)</label>
+                        <input type="text" class="form-control" id="editEntryTitle" placeholder="Entry title...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Content</label>
+                        <textarea class="form-control" id="editEntryContent" rows="15" style="font-family: inherit;"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mood</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="editMood" id="moodEcstatic" value="ecstatic">
+                            <label class="btn btn-outline-secondary" for="moodEcstatic">🤩</label>
+                            <input type="radio" class="btn-check" name="editMood" id="moodHappy" value="happy">
+                            <label class="btn btn-outline-secondary" for="moodHappy">😊</label>
+                            <input type="radio" class="btn-check" name="editMood" id="moodNeutral" value="neutral">
+                            <label class="btn btn-outline-secondary" for="moodNeutral">😐</label>
+                            <input type="radio" class="btn-check" name="editMood" id="moodSad" value="sad">
+                            <label class="btn btn-outline-secondary" for="moodSad">😢</label>
+                            <input type="radio" class="btn-check" name="editMood" id="moodAngry" value="angry">
+                            <label class="btn btn-outline-secondary" for="moodAngry">😠</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="currentEntryId">
+
+                <!-- View Mode Buttons -->
+                <div id="viewModeButtons">
+                    <a href="#" id="openEntryLink" class="btn btn-outline-secondary me-auto">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Open Full
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="editEntryBtn">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </button>
+                </div>
+
+                <!-- Edit Mode Buttons -->
+                <div id="editModeButtons" style="display: none;">
+                    <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveEntryBtn">
+                        <i class="bi bi-check-lg me-1"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %} <!-- End premium check -->
+</div> <!-- End container-fluid -->
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+{% if review and monthly_trend_json %}
+<script>
+// Monthly Trend Chart
+const ctx = document.getElementById('monthlyTrendChart');
+if (ctx) {
+    const trend = {{ monthly_trend_json|safe }};
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: trend.map(t => t.month_name),
+            datasets: [{
+                label: 'Sentiment',
+                data: trend.map(t => t.sentiment),
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { min: -1, max: 1 }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
+// Entry Modal Handling
+document.addEventListener('DOMContentLoaded', function() {
+    const entryModal = new bootstrap.Modal(document.getElementById('entryModal'));
+    let currentEntryData = null;
+
+    // Click handlers for entry items
+    document.querySelectorAll('.entry-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const entryId = this.dataset.entryId;
+            loadEntry(entryId);
+        });
+    });
+
+    // Load entry details
+    async function loadEntry(entryId) {
+        try {
+            const resp = await fetch(`/journal/api/entry/${entryId}/detail/`);
+            if (!resp.ok) throw new Error('Failed to load entry');
+
+            const data = await resp.json();
+            currentEntryData = data;
+            document.getElementById('currentEntryId').value = data.id;
+
+            // Populate view mode
+            document.getElementById('entryModalDate').textContent = data.entry_date_display;
+            document.getElementById('entryModalMeta').textContent =
+                `${data.mood_emoji} ${data.word_count} words`;
+
+            // Use rendered HTML if available, fallback to raw content
+            const contentEl = document.getElementById('entryContent');
+            if (data.content_html) {
+                contentEl.innerHTML = data.content_html;
+            } else {
+                // Fallback: escape HTML and preserve line breaks
+                contentEl.innerHTML = data.content
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\n/g, '<br>');
+            }
+
+            document.getElementById('openEntryLink').href = data.detail_url;
+
+            // Show analysis if available
+            const analysisEl = document.getElementById('entryAnalysis');
+            if (data.analysis) {
+                analysisEl.style.display = 'block';
+                document.getElementById('analysisMood').textContent =
+                    data.analysis.detected_mood.charAt(0).toUpperCase() + data.analysis.detected_mood.slice(1);
+
+                const sentiment = data.analysis.sentiment_score;
+                document.getElementById('analysisSentiment').textContent =
+                    (sentiment >= 0 ? '+' : '') + sentiment.toFixed(2);
+
+                // Themes
+                const themesContainer = document.getElementById('analysisThemesContainer');
+                if (data.analysis.themes && data.analysis.themes.length > 0) {
+                    themesContainer.style.display = 'block';
+                    document.getElementById('analysisThemes').innerHTML =
+                        data.analysis.themes.map(t =>
+                            `<span class="badge bg-primary me-1">${t}</span>`
+                        ).join('');
+                } else {
+                    themesContainer.style.display = 'none';
+                }
+            } else {
+                analysisEl.style.display = 'none';
+            }
+
+            // Reset to view mode
+            showViewMode();
+            entryModal.show();
+
+        } catch (e) {
+            console.error('Error loading entry:', e);
+            alert('Failed to load entry');
+        }
+    }
+
+    // Switch to edit mode
+    document.getElementById('editEntryBtn').addEventListener('click', function() {
+        if (!currentEntryData) return;
+
+        // Populate edit fields
+        document.getElementById('editEntryTitle').value = currentEntryData.title || '';
+        document.getElementById('editEntryContent').value = currentEntryData.content;
+
+        // Set mood radio
+        if (currentEntryData.mood) {
+            const moodRadio = document.querySelector(`input[name="editMood"][value="${currentEntryData.mood}"]`);
+            if (moodRadio) moodRadio.checked = true;
+        }
+
+        showEditMode();
+    });
+
+    // Cancel edit
+    document.getElementById('cancelEditBtn').addEventListener('click', function() {
+        showViewMode();
+    });
+
+    // Save changes
+    document.getElementById('saveEntryBtn').addEventListener('click', async function() {
+        const entryId = document.getElementById('currentEntryId').value;
+        const mood = document.querySelector('input[name="editMood"]:checked')?.value || '';
+
+        const data = {
+            title: document.getElementById('editEntryTitle').value,
+            content: document.getElementById('editEntryContent').value,
+            mood: mood
+        };
+
+        try {
+            const resp = await fetch(`/journal/api/entry/${entryId}/update/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (resp.ok) {
+                // Update the view with new content
+                currentEntryData.content = data.content;
+                currentEntryData.title = data.title;
+                currentEntryData.mood = data.mood;
+
+                document.getElementById('entryContent').textContent = data.content;
+                showViewMode();
+
+                // Show success feedback
+                const btn = document.getElementById('saveEntryBtn');
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Saved!';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save Changes';
+                }, 1500);
+            } else {
+                alert('Failed to save changes');
+            }
+        } catch (e) {
+            console.error('Error saving:', e);
+            alert('Failed to save changes');
+        }
+    });
+
+    function showViewMode() {
+        document.getElementById('entryViewMode').style.display = 'block';
+        document.getElementById('entryEditMode').style.display = 'none';
+        document.getElementById('viewModeButtons').style.display = 'flex';
+        document.getElementById('editModeButtons').style.display = 'none';
+    }
+
+    function showEditMode() {
+        document.getElementById('entryViewMode').style.display = 'none';
+        document.getElementById('entryEditMode').style.display = 'block';
+        document.getElementById('viewModeButtons').style.display = 'none';
+        document.getElementById('editModeButtons').style.display = 'flex';
+    }
+});
+</script>
+{% endif %}
+{% endblock dashboard_js %}

@@ -1,0 +1,622 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Fitness Dashboard{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    /* GitHub-style contribution heatmap */
+    .heatmap-container {
+        overflow-x: auto;
+        padding: 10px 0;
+    }
+    .heatmap {
+        display: flex;
+        gap: 3px;
+    }
+    .heatmap-week {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .heatmap-day {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        background-color: #ebedf0;
+    }
+    .heatmap-day[data-count="1"] { background-color: #9be9a8; }
+    .heatmap-day[data-count="2"] { background-color: #40c463; }
+    .heatmap-day[data-count="3"] { background-color: #30a14e; }
+    .heatmap-day[data-count="4"],
+    .heatmap-day[data-count="5"] { background-color: #216e39; }
+    .heatmap-months {
+        display: flex;
+        font-size: 10px;
+        color: #6b7280;
+        margin-bottom: 5px;
+        padding-left: 30px;
+    }
+    .heatmap-months span {
+        flex: 1;
+    }
+    .heatmap-days {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 10px;
+        color: #6b7280;
+        margin-right: 5px;
+    }
+    .heatmap-days span {
+        height: 12px;
+        line-height: 12px;
+    }
+    .heatmap-legend {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        color: #6b7280;
+        margin-top: 10px;
+    }
+    .heatmap-legend .heatmap-day {
+        width: 10px;
+        height: 10px;
+    }
+    .workout-row:hover {
+        background-color: #f3f4f6;
+        cursor: pointer;
+    }
+</style>
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <!-- Header with Year Selector -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'analytics:captures' %}">Captures</a></li>
+                    <li class="breadcrumb-item active">Fitness</li>
+                </ol>
+            </nav>
+            <h1><i class="bi bi-activity me-2"></i>Fitness</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label for="yearSelect" class="form-label mb-0 text-muted">Year:</label>
+            <select id="yearSelect" class="form-select form-select-sm" style="width: auto;" onchange="window.location.href='?year=' + this.value">
+                {% for y in available_years %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="opacity-75">Total Workouts</h6>
+                            <h2 class="mb-0">{{ total_workouts }}</h2>
+                            <small class="opacity-75">in {{ year }}</small>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-activity"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Total Duration</h6>
+                            <h2 class="mb-0">{{ total_duration }}<small class="text-white-50"> min</small></h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Avg Duration</h6>
+                            <h2 class="mb-0">{{ avg_duration }}<small class="text-white-50"> min</small></h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Per Week Avg</h6>
+                            <h2 class="mb-0">
+                                {% widthratio total_workouts 52 1 %}
+                            </h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-calendar-week"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Heatmap -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-calendar-check me-2"></i>Activity Heatmap ({{ year }})
+        </div>
+        <div class="card-body">
+            <div class="heatmap-months" id="heatmapMonths"></div>
+            <div class="d-flex">
+                <div class="heatmap-days">
+                    <span></span>
+                    <span>Mon</span>
+                    <span></span>
+                    <span>Wed</span>
+                    <span></span>
+                    <span>Fri</span>
+                    <span></span>
+                </div>
+                <div class="heatmap-container">
+                    <div class="heatmap" id="heatmap"></div>
+                </div>
+            </div>
+            <div class="heatmap-legend">
+                <span>Less</span>
+                <div class="heatmap-day" data-count="0"></div>
+                <div class="heatmap-day" data-count="1"></div>
+                <div class="heatmap-day" data-count="2"></div>
+                <div class="heatmap-day" data-count="3"></div>
+                <div class="heatmap-day" data-count="4"></div>
+                <span>More</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Monthly Chart -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart me-2"></i>Workouts by Month
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout Types -->
+        <div class="col-lg-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-pie-chart me-2"></i>By Type
+                </div>
+                <div class="card-body">
+                    {% if by_type %}
+                    <canvas id="typeChart" height="250"></canvas>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-pie-chart display-4"></i>
+                        <p class="mt-2">No data yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Intensity Breakdown -->
+        <div class="col-lg-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-speedometer me-2"></i>By Intensity
+                </div>
+                <div class="card-body">
+                    {% if by_intensity %}
+                    <canvas id="intensityChart" height="250"></canvas>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-speedometer display-4"></i>
+                        <p class="mt-2">No data yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Workouts -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="bi bi-list me-2"></i>Recent Workouts
+        </div>
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-hover mb-0">
+                <thead class="sticky-top bg-white">
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Duration</th>
+                        <th>Intensity</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for workout in workouts %}
+                    <tr class="workout-row" data-workout-id="{{ workout.pk }}">
+                        <td>{{ workout.entry.entry_date|date:"M j" }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ workout.data.type|default:"workout"|title }}</span>
+                        </td>
+                        <td>
+                            {% if workout.data.duration %}
+                            {{ workout.data.duration }} min
+                            {% else %}
+                            --
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% with intensity=workout.data.intensity|default:"medium" %}
+                            <span class="badge bg-{% if intensity == 'low' %}success{% elif intensity == 'high' %}danger{% else %}warning text-dark{% endif %}">
+                                {{ intensity|title }}
+                            </span>
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% if workout.data.notes %}
+                            <small class="text-muted">{{ workout.data.notes|truncatewords:10 }}</small>
+                            {% else %}
+                            --
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No workouts logged in {{ year }}. Use <code>/workout</code> to track!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Workout Edit Modal -->
+<div class="modal fade" id="workoutEditModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-activity me-2"></i>Edit Workout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editWorkoutId">
+                <div class="mb-3">
+                    <label class="form-label">Type</label>
+                    <input type="text" class="form-control" id="editWorkoutType" placeholder="e.g., run, gym, yoga, swim">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Duration (minutes)</label>
+                    <input type="number" class="form-control" id="editWorkoutDuration" min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Intensity</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="workoutIntensity" id="intensityLow" value="low">
+                        <label class="btn btn-outline-success" for="intensityLow">
+                            <i class="bi bi-emoji-smile me-1"></i>Low
+                        </label>
+                        <input type="radio" class="btn-check" name="workoutIntensity" id="intensityMedium" value="medium">
+                        <label class="btn btn-outline-warning" for="intensityMedium">
+                            <i class="bi bi-emoji-neutral me-1"></i>Medium
+                        </label>
+                        <input type="radio" class="btn-check" name="workoutIntensity" id="intensityHigh" value="high">
+                        <label class="btn btn-outline-danger" for="intensityHigh">
+                            <i class="bi bi-emoji-dizzy me-1"></i>High
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control" id="editWorkoutNotes" rows="3" placeholder="How was your workout?"></textarea>
+                </div>
+                <div class="text-muted small">
+                    <i class="bi bi-calendar me-1"></i>
+                    <span id="workoutDate"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger me-auto" id="deleteWorkoutBtn">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveWorkoutBtn">
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Workout Edit Modal
+    const workoutModal = new bootstrap.Modal(document.getElementById('workoutEditModal'));
+    let currentWorkoutId = null;
+
+    document.querySelectorAll('.workout-row').forEach(row => {
+        row.addEventListener('click', function() {
+            currentWorkoutId = this.dataset.workoutId;
+            loadWorkoutDetails(currentWorkoutId);
+        });
+    });
+
+    async function loadWorkoutDetails(workoutId) {
+        try {
+            const resp = await fetch(`/dashboard/api/workout/${workoutId}/`);
+            const data = await resp.json();
+
+            document.getElementById('editWorkoutId').value = data.id;
+            document.getElementById('editWorkoutType').value = data.type || '';
+            document.getElementById('editWorkoutDuration').value = data.duration || '';
+            document.getElementById('editWorkoutNotes').value = data.notes || '';
+
+            // Set intensity
+            const intensityRadio = document.querySelector(`input[name="workoutIntensity"][value="${data.intensity || 'medium'}"]`);
+            if (intensityRadio) intensityRadio.checked = true;
+
+            // Show date
+            document.getElementById('workoutDate').textContent = data.entry_date ? `Logged on ${data.entry_date}` : '';
+
+            workoutModal.show();
+        } catch (e) {
+            console.error('Failed to load workout:', e);
+            alert('Failed to load workout details');
+        }
+    }
+
+    document.getElementById('saveWorkoutBtn').addEventListener('click', async function() {
+        const intensity = document.querySelector('input[name="workoutIntensity"]:checked')?.value || 'medium';
+
+        const data = {
+            type: document.getElementById('editWorkoutType').value,
+            duration: document.getElementById('editWorkoutDuration').value,
+            intensity: intensity,
+            notes: document.getElementById('editWorkoutNotes').value
+        };
+
+        try {
+            const resp = await fetch(`/dashboard/api/workout/${currentWorkoutId}/update/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (resp.ok) {
+                workoutModal.hide();
+                location.reload();
+            } else {
+                alert('Failed to save changes');
+            }
+        } catch (e) {
+            console.error('Save failed:', e);
+            alert('Failed to save changes');
+        }
+    });
+
+    document.getElementById('deleteWorkoutBtn').addEventListener('click', async function() {
+        if (!confirm('Delete this workout? This cannot be undone.')) return;
+
+        try {
+            const resp = await fetch(`/dashboard/api/workout/${currentWorkoutId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+
+            if (resp.ok) {
+                workoutModal.hide();
+                location.reload();
+            } else {
+                alert('Failed to delete');
+            }
+        } catch (e) {
+            console.error('Delete failed:', e);
+            alert('Failed to delete');
+        }
+    });
+});
+
+// Heatmap generation
+const heatmapData = {{ heatmap_data|safe }};
+const year = {{ year }};
+
+function generateHeatmap() {
+    const heatmap = document.getElementById('heatmap');
+    const monthsContainer = document.getElementById('heatmapMonths');
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31);
+
+    // Adjust start to Sunday of the first week
+    const firstDay = startDate.getDay();
+    startDate.setDate(startDate.getDate() - firstDay);
+
+    let currentDate = new Date(startDate);
+    let currentMonth = -1;
+    let weekCount = 0;
+
+    while (currentDate <= endDate || currentDate.getDay() !== 0) {
+        if (currentDate.getDay() === 0) {
+            const week = document.createElement('div');
+            week.className = 'heatmap-week';
+            heatmap.appendChild(week);
+            weekCount++;
+
+            // Track month changes for labels
+            if (currentDate.getMonth() !== currentMonth && currentDate.getFullYear() === year) {
+                currentMonth = currentDate.getMonth();
+            }
+        }
+
+        const day = document.createElement('div');
+        day.className = 'heatmap-day';
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const count = heatmapData[dateStr] || 0;
+        day.setAttribute('data-count', Math.min(count, 4));
+        day.title = `${dateStr}: ${count} workout${count !== 1 ? 's' : ''}`;
+
+        const week = heatmap.lastChild;
+        week.appendChild(day);
+
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Add month labels
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    months.forEach(month => {
+        const span = document.createElement('span');
+        span.textContent = month;
+        monthsContainer.appendChild(span);
+    });
+}
+
+generateHeatmap();
+
+// Monthly Chart
+const monthlyCtx = document.getElementById('monthlyChart');
+if (monthlyCtx) {
+    const monthlyCounts = {{ monthly_counts|safe }};
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Workouts',
+                data: monthlyCounts,
+                backgroundColor: '#f59e0b',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// Type Chart
+const typeCtx = document.getElementById('typeChart');
+if (typeCtx) {
+    {% if by_type %}
+    const typeData = {{ by_type|safe }};
+    const typeLabels = Object.keys(typeData).map(t => t.charAt(0).toUpperCase() + t.slice(1));
+    const typeValues = Object.values(typeData).map(d => d.count);
+    const typeColors = ['#4f46e5', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+    new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: typeLabels,
+            datasets: [{
+                data: typeValues,
+                backgroundColor: typeColors.slice(0, typeLabels.length)
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+}
+
+// Intensity Chart
+const intensityCtx = document.getElementById('intensityChart');
+if (intensityCtx) {
+    {% if by_intensity %}
+    const intensityData = {{ by_intensity|safe }};
+    const intensityLabels = Object.keys(intensityData).map(i => i.charAt(0).toUpperCase() + i.slice(1));
+    const intensityValues = Object.values(intensityData);
+    const intensityColors = {
+        'Low': '#22c55e',
+        'Medium': '#f59e0b',
+        'High': '#ef4444'
+    };
+
+    new Chart(intensityCtx, {
+        type: 'doughnut',
+        data: {
+            labels: intensityLabels,
+            datasets: [{
+                data: intensityValues,
+                backgroundColor: intensityLabels.map(l => intensityColors[l] || '#6b7280')
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+}
+</script>
+{% endblock dashboard_js %}

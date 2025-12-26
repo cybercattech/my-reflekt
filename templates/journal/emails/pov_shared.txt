@@ -1,0 +1,15 @@
+New POV Added to Your Journal
+==============================
+
+{{ author_name }} shared their point of view with you! It's been added to your journal entry for {{ entry_date|date:"F j, Y" }}.
+
+---
+{{ pov_preview }}
+---
+
+Open your journal to see it and share your POV back!
+
+{{ view_url }}
+
+---
+This email was sent by Reflekt.

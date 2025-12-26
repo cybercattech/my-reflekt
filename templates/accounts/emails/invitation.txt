@@ -1,0 +1,23 @@
+You're Invited to Reflekt!
+===========================
+
+Hi there,
+
+{{ sender_name }} ({{ sender_email }}) has invited you to join Reflekt, a personal journaling app for reflection and growth.
+
+{% if message %}
+They wrote: "{{ message }}"
+
+{% endif %}
+With Reflekt, you can:
+- Keep a private daily journal
+- Track habits and goals
+- Share thoughts with friends using POV
+- Reflect on your journey over time
+
+Join Reflekt: {{ signup_url }}
+
+This invitation expires in 30 days.
+
+---
+If you don't want to join, you can safely ignore this email.

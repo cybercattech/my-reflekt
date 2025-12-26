@@ -1,0 +1,130 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Upgrade to Premium{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <i class="bi bi-star-fill text-warning" style="font-size: 4rem;"></i>
+                <h1 class="display-5 fw-bold mt-3 mb-3">Upgrade to Premium</h1>
+                <p class="lead text-muted">Unlock all features and supercharge your self-reflection journey</p>
+            </div>
+
+            <!-- Benefits Section -->
+            <div class="card shadow-lg mb-4">
+                <div class="card-body p-5">
+                    <h3 class="mb-4">What You'll Get:</h3>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-bullseye text-success fs-3"></i>
+                                </div>
+                                <div>
+                                    <h5>Goals Tracking</h5>
+                                    <p class="text-muted mb-0">Set, track, and achieve your personal goals with progress monitoring</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-repeat text-success fs-3"></i>
+                                </div>
+                                <div>
+                                    <h5>Habits Tracking</h5>
+                                    <p class="text-muted mb-0">Build better habits with streaks, patterns, and insights</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-moon-stars text-success fs-3"></i>
+                                </div>
+                                <div>
+                                    <h5>Moon Phase Insights</h5>
+                                    <p class="text-muted mb-0">Discover how lunar cycles influence your mood and writing</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-star text-success fs-3"></i>
+                                </div>
+                                <div>
+                                    <h5>Zodiac & Horoscope</h5>
+                                    <p class="text-muted mb-0">Personal astrological insights integrated into your analysis</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-collection text-success fs-3"></i>
+                                </div>
+                                <div>
+                                    <h5>Advanced Captures</h5>
+                                    <p class="text-muted mb-0">Track books, media, people mentions, and fitness data</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-calendar-check text-success fs-3"></i>
+                                </div>
+                                <div>
+                                    <h5>Year & Month Reviews</h5>
+                                    <p class="text-muted mb-0">Beautiful retrospectives of your journey over time</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pricing -->
+                    <div class="bg-light p-4 rounded text-center mb-4">
+                        <h2 class="display-4 mb-2">
+                            $9<span class="fs-5 text-muted">/month</span>
+                        </h2>
+                        <p class="text-muted mb-0">Cancel anytime. Your data stays with you.</p>
+                    </div>
+
+                    <!-- Upgrade Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg text-dark fw-semibold py-3">
+                                <i class="bi bi-star-fill me-2"></i>
+                                Upgrade to Premium Now
+                            </button>
+                        </div>
+                    </form>
+
+                    <p class="text-center text-muted small mt-3 mb-0">
+                        <i class="bi bi-shield-check me-1"></i>
+                        14-day money-back guarantee
+                    </p>
+                </div>
+            </div>
+
+            <!-- Back Link -->
+            <div class="text-center">
+                <a href="{% url 'analytics:dashboard' %}" class="text-muted">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}

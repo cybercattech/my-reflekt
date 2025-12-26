@@ -1,0 +1,13 @@
+You're Now Connected on Reflekt!
+=================================
+
+Hi {{ sender_name }},
+
+Great news! {{ recipient_name }} ({{ recipient_email }}) has accepted your friend request on Reflekt.
+
+You're now connected and can share journal entries with each other using the POV feature.
+
+View your friends: {{ profile_url }}
+
+---
+This email was sent by Reflekt.

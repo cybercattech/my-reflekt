@@ -1,0 +1,179 @@
+<!-- Calendar -->
+<div class="card calendar-card">
+    <div class="calendar-header">
+        {% if prev_month and next_month %}
+        <a href="?year={{ prev_year }}&month={{ prev_month }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}"
+           class="calendar-nav">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% endif %}
+        <h5>{{ cal_month_name }} {{ cal_year }}</h5>
+        {% if prev_month and next_month %}
+        <a href="?year={{ next_year }}&month={{ next_month }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}"
+           class="calendar-nav">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    <div class="calendar-grid">
+        <div class="calendar-weekdays">
+            <span>Su</span>
+            <span>Mo</span>
+            <span>Tu</span>
+            <span>We</span>
+            <span>Th</span>
+            <span>Fr</span>
+            <span>Sa</span>
+        </div>
+        <div class="calendar-days">
+            {% for week in calendar_weeks %}
+                {% for day in week %}
+                    {% if day.has_entry %}
+                        <a href="{% url 'journal:entry_list' %}?date={{ day.date|date:'Y-m-d' }}"
+                           class="calendar-day {% if not day.in_month %}other-month{% endif %} {% if day.is_today %}today{% endif %} has-entry {% if selected_date == day.date|date:'Y-m-d' %}selected{% endif %}"
+                           title="View entry for {{ day.date|date:'M j, Y' }}">
+                            {{ day.day }}
+                        </a>
+                    {% else %}
+                        <span class="calendar-day {% if not day.in_month %}other-month{% endif %} {% if day.is_today %}today{% endif %}">
+                            {{ day.day }}
+                        </span>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mt-3 border-0 shadow-sm">
+    <div class="card-body">
+        <a href="{% url 'journal:entry_create' %}" class="btn btn-primary w-100 mb-2">
+            <i class="bi bi-plus-circle me-2"></i>New Entry
+        </a>
+        <a href="{% url 'journal:entry_list' %}" class="btn btn-outline-secondary w-100 mb-2">
+            <i class="bi bi-journal-text me-2"></i>All Entries
+        </a>
+        <a href="{% url 'journal:import_entries' %}" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-upload me-2"></i>Import Entries
+        </a>
+    </div>
+</div>
+
+<!-- 30-Day Insights -->
+{% if writing_mood_stats or perceived_mood_stats or top_themes or top_keywords %}
+<div class="card mt-3 border-0 shadow-sm">
+    <div class="card-header bg-transparent border-0 pb-0">
+        <h6 class="text-muted mb-0">
+            <i class="bi bi-graph-up me-2"></i>Last 30 Days
+        </h6>
+    </div>
+    <div class="card-body pt-2">
+        <!-- Writing Mood -->
+        {% if writing_mood_stats %}
+        <div class="mb-3">
+            <small class="text-uppercase text-muted fw-semibold d-block mb-2">Your Mood</small>
+            <div class="mood-stats">
+                {% for stat in writing_mood_stats %}
+                <div class="mood-stat-item d-flex align-items-center justify-content-between mb-1">
+                    <span>
+                        <span class="me-1">{{ stat.emoji }}</span>
+                        <span class="small">{{ stat.label }}</span>
+                    </span>
+                    <span class="badge bg-primary-subtle text-primary">{{ stat.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Perceived Mood (AI detected) -->
+        {% if perceived_mood_stats %}
+        <div class="mb-3">
+            <small class="text-uppercase text-muted fw-semibold d-block mb-2">
+                <i class="bi bi-robot me-1"></i>AI Detected
+            </small>
+            <div class="mood-stats">
+                {% for stat in perceived_mood_stats %}
+                <div class="mood-stat-item d-flex align-items-center justify-content-between mb-1">
+                    <span>
+                        <span class="me-1">{{ stat.emoji }}</span>
+                        <span class="small">{{ stat.label }}</span>
+                    </span>
+                    <span class="badge bg-purple-subtle text-purple">{{ stat.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Themes -->
+        {% if top_themes %}
+        <div class="mb-3">
+            <small class="text-uppercase text-muted fw-semibold d-block mb-2">
+                <i class="bi bi-bookmark me-1"></i>Themes
+            </small>
+            <div class="theme-tags">
+                {% for theme in top_themes %}
+                <span class="badge bg-light text-dark me-1 mb-1">
+                    {{ theme.name }}
+                    <span class="text-muted">({{ theme.count }})</span>
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Keywords -->
+        {% if top_keywords %}
+        <div>
+            <small class="text-uppercase text-muted fw-semibold d-block mb-2">
+                <i class="bi bi-hash me-1"></i>Keywords
+            </small>
+            <div class="keyword-tags">
+                {% for kw in top_keywords %}
+                <span class="badge bg-info-subtle text-info me-1 mb-1">{{ kw.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% elif writing_mood_stats %}
+<!-- Simple mood stats only -->
+<div class="card mt-3 border-0 shadow-sm">
+    <div class="card-header bg-transparent border-0 pb-0">
+        <small class="text-uppercase text-muted fw-semibold">
+            <i class="bi bi-graph-up me-1"></i>Last 30 Days
+        </small>
+    </div>
+    <div class="card-body pt-2">
+        {% for stat in writing_mood_stats %}
+        <div class="d-flex align-items-center justify-content-between mb-1">
+            <span>
+                <span class="me-1">{{ stat.emoji }}</span>
+                <span class="small">{{ stat.label }}</span>
+            </span>
+            <span class="badge bg-primary-subtle text-primary">{{ stat.count }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Daily Prompt -->
+{% if daily_prompt %}
+<div class="card mt-3 border-0 shadow-sm sidebar-prompt">
+    <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+            <i class="{{ daily_prompt.icon }} text-purple me-2"></i>
+            <small class="text-muted">{{ daily_prompt.category }}</small>
+        </div>
+        <p class="prompt-text mb-2">{{ daily_prompt.prompt }}</p>
+        <a href="{% url 'journal:entry_create' %}?prompt={{ daily_prompt.prompt|urlencode }}"
+           class="btn btn-sm btn-outline-primary w-100">
+            <i class="bi bi-pen me-1"></i>Write About This
+        </a>
+    </div>
+</div>
+{% endif %}

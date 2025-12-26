@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Email Verification Required{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5 text-center">
+                    <!-- Warning Icon -->
+                    <div class="mb-4">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2.5rem;"></i>
+                        </div>
+                    </div>
+
+                    <h1 class="h3 mb-3">Email Verification Required</h1>
+
+                    <p class="text-muted mb-4">
+                        You need to verify your email address before you can access Reflekt.
+                    </p>
+
+                    <div class="alert alert-warning border-warning mb-4">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-shield-exclamation me-3 mt-1"></i>
+                            <div class="text-start small">
+                                <p class="mb-2"><strong>Why verify your email?</strong></p>
+                                <ul class="mb-0 ps-3">
+                                    <li>Secures your account</li>
+                                    <li>Enables password recovery</li>
+                                    <li>Ensures you receive important notifications</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="mb-4">
+                        <a href="{% url 'account_email' %}" class="btn btn-primary">
+                            <i class="bi bi-envelope me-2"></i>Send Verification Email
+                        </a>
+                    </p>
+
+                    <hr class="my-4">
+
+                    <p class="text-muted small mb-0">
+                        Already verified? <a href="{% url 'account_login' %}">Log in here</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'account_logout' %}" class="text-muted text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i>Sign Out
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+Your Friend Joined Reflekt!
+============================
+
+Hi {{ sender_name }},
+
+Great news! {{ recipient_email }} has joined Reflekt and accepted your friend invitation.
+
+You're now connected and can share journal entries with each other using the POV feature.
+
+View your friends: {{ profile_url }}
+
+---
+This email was sent by Reflekt.

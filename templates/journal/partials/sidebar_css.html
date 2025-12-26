@@ -1,0 +1,369 @@
+<!-- Sidebar CSS - Shared styles for calendar and insights -->
+<style>
+    /* Left Calendar Sidebar - Continuous Scroll (White Style) */
+    .calendar-sidebar-left {
+        width: 280px;
+        min-width: 280px;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        border-right: 1px solid #e5e7eb;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+    }
+
+    /* Header Bar */
+    .calendar-header-bar {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    /* Today Button */
+    .calendar-header-bar #todayBtn {
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.9);
+        color: #4f46e5;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .calendar-header-bar #todayBtn:hover {
+        background: white;
+        transform: scale(1.05);
+    }
+
+    /* Fixed Weekday Header */
+    .calendar-weekday-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #6b7280;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* Scrollable Container */
+    .calendar-scroll-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 0.75rem;
+    }
+
+    .calendar-scroll-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .calendar-scroll-container::-webkit-scrollbar-track {
+        background: #f3f4f6;
+    }
+
+    .calendar-scroll-container::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 3px;
+    }
+
+    .calendar-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+
+    /* Month Section */
+    .calendar-month-section {
+        margin-bottom: 0.5rem;
+    }
+
+    .month-header {
+        padding: 1rem 0 0.5rem;
+        font-size: 1rem;
+        color: #1f2937;
+    }
+
+    .month-header strong {
+        font-weight: 700;
+    }
+
+    /* Calendar Days Grid */
+    .calendar-days-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+
+    /* Calendar Day Cell */
+    .cal-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        border-radius: 50%;
+        text-decoration: none;
+        color: #374151;
+        transition: all 0.15s ease;
+        background: transparent;
+    }
+
+    .cal-day.empty {
+        background: transparent;
+        pointer-events: none;
+    }
+
+    .cal-day.today {
+        font-weight: 700;
+        border: 2px solid #4f46e5;
+    }
+
+    /* Days WITH entries - purple style */
+    .cal-day.has-entry {
+        background: #4f46e5;
+        color: white;
+        font-weight: 600;
+    }
+
+    .cal-day.has-entry:hover {
+        background: #4338ca;
+        transform: scale(1.1);
+    }
+
+    .cal-day.has-entry.other-month {
+        background: #a5b4fc;
+        color: white;
+    }
+
+    .cal-day.selected {
+        background: #7c3aed !important;
+        color: white;
+        box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+    }
+
+    /* Days without entries */
+    .cal-day:not(.has-entry):not(.other-month):hover {
+        background: #f3f4f6;
+    }
+
+    /* Quick Actions */
+    .calendar-quick-actions {
+        padding: 0.75rem;
+        border-top: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    /* Right Insights Sidebar */
+    .insights-sidebar-right {
+        width: 320px;
+        min-width: 320px;
+        background: white;
+        border-left: 1px solid #e5e7eb;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: width 0.3s, min-width 0.3s;
+    }
+
+    .insights-sidebar-right.collapsed {
+        width: 48px;
+        min-width: 48px;
+    }
+
+    .insights-toggle {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #7c3aed;
+        color: white;
+        border: none;
+        padding: 0.75rem 0.5rem;
+        border-radius: 0 8px 8px 0;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+    }
+
+    .insights-toggle:hover {
+        background: #6d28d9;
+    }
+
+    .insights-toggle .toggle-text {
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .insights-toggle .toggle-arrow {
+        transition: transform 0.3s;
+    }
+
+    .insights-sidebar-right.collapsed .toggle-arrow {
+        transform: rotate(180deg);
+    }
+
+    .insights-content {
+        flex: 1;
+        padding: 1rem 1rem 1rem 2.5rem;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    .insights-sidebar-right.collapsed .insights-content {
+        display: none;
+    }
+
+    .insight-card {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .insight-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #374151;
+        margin-bottom: 0.75rem;
+    }
+
+    .insight-header i {
+        font-size: 1rem;
+    }
+
+    /* Prompt Card */
+    .prompt-card {
+        background: linear-gradient(135deg, #faf5ff 0%, #ede9fe 100%);
+        border-left: 3px solid #7c3aed;
+    }
+
+    .prompt-text {
+        font-size: 0.9rem;
+        color: #1f2937;
+        line-height: 1.5;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Stats */
+    .stat-section {
+        margin-top: 0.5rem;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.3rem 0;
+        font-size: 0.85rem;
+    }
+
+    /* Tag Cloud */
+    .tag-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .tag {
+        display: inline-block;
+        padding: 0.3rem 0.6rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .theme-tag {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .keyword-tag {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+    .bg-purple-subtle {
+        background-color: #ede9fe !important;
+    }
+
+    .text-purple {
+        color: #7c3aed !important;
+    }
+
+    .bg-primary-subtle {
+        background-color: #e0e7ff !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 1400px) {
+        .insights-sidebar-right {
+            width: 280px;
+            min-width: 280px;
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .insights-sidebar-right {
+            width: 48px;
+            min-width: 48px;
+        }
+        .insights-sidebar-right .insights-content {
+            display: none;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .calendar-sidebar-left {
+            width: 240px;
+            min-width: 240px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .calendar-sidebar-left {
+            width: 100%;
+            min-width: 100%;
+            height: auto;
+            max-height: 50vh;
+            position: relative;
+            top: 0;
+        }
+        .calendar-scroll-container {
+            max-height: 40vh;
+        }
+        .insights-sidebar-right {
+            display: none;
+        }
+    }
+</style>

@@ -1,0 +1,94 @@
+<!-- Right Insights Sidebar (Collapsible) -->
+<div class="insights-sidebar-right">
+    <button class="insights-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#insightsPanel" aria-expanded="true">
+        <i class="bi bi-bar-chart-line"></i>
+        <span class="toggle-text">Insights</span>
+        <i class="bi bi-chevron-left toggle-arrow"></i>
+    </button>
+
+    <div class="collapse show" id="insightsPanel">
+        <div class="insights-content">
+            <!-- Daily Prompt -->
+            {% if daily_prompt %}
+            <div class="insight-card prompt-card">
+                <div class="insight-header">
+                    <i class="{{ daily_prompt.icon }} text-purple"></i>
+                    <span>{{ daily_prompt.category }}</span>
+                </div>
+                <p class="prompt-text">{{ daily_prompt.prompt }}</p>
+                <a href="{% url 'journal:entry_create' %}?prompt={{ daily_prompt.prompt|urlencode }}"
+                   class="btn btn-sm btn-outline-primary w-100">
+                    <i class="bi bi-pen me-1"></i>Write
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Last 30 Days Stats -->
+            {% if writing_mood_stats or perceived_mood_stats %}
+            <div class="insight-card">
+                <div class="insight-header">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Last 30 Days</span>
+                </div>
+
+                {% if writing_mood_stats %}
+                <div class="stat-section">
+                    <small class="stat-label">Your Mood</small>
+                    {% for stat in writing_mood_stats %}
+                    <div class="stat-row">
+                        <span>{{ stat.emoji }} {{ stat.label }}</span>
+                        <span class="badge bg-primary-subtle text-primary">{{ stat.count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if perceived_mood_stats %}
+                <div class="stat-section mt-3">
+                    <small class="stat-label"><i class="bi bi-robot me-1"></i>AI Detected</small>
+                    {% for stat in perceived_mood_stats %}
+                    <div class="stat-row">
+                        <span>{{ stat.emoji }} {{ stat.label }}</span>
+                        <span class="badge bg-purple-subtle text-purple">{{ stat.count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Themes -->
+            {% if top_themes %}
+            <div class="insight-card">
+                <div class="insight-header">
+                    <i class="bi bi-bookmark"></i>
+                    <span>Themes</span>
+                </div>
+                <div class="tag-cloud">
+                    {% for theme in top_themes %}
+                    <span class="tag theme-tag">
+                        {{ theme.name }}
+                        <small>({{ theme.count }})</small>
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Keywords -->
+            {% if top_keywords %}
+            <div class="insight-card">
+                <div class="insight-header">
+                    <i class="bi bi-hash"></i>
+                    <span>Keywords</span>
+                </div>
+                <div class="tag-cloud">
+                    {% for kw in top_keywords %}
+                    <span class="tag keyword-tag">{{ kw.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

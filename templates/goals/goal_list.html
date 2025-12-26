@@ -1,0 +1,145 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Goals{% endblock %}
+
+{% block dashboard_css %}
+{% include 'goals/partials/_goals_css.html' %}
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="goals-container px-4 py-4">
+    <div class="goals-main">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-bullseye text-primary me-2"></i>My Goals
+                </h1>
+                <p class="text-muted mb-0">Track your SMART goals and achieve more</p>
+            </div>
+            <a href="{% url 'goals:goal_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>New Goal
+            </a>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total }}</div>
+                <div class="stat-label">Total Goals</div>
+            </div>
+            <div class="stat-card active">
+                <div class="stat-value">{{ stats.active }}</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card completed">
+                <div class="stat-value">{{ stats.completed }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card overdue">
+                <div class="stat-value">{{ stats.overdue }}</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="get" class="filter-bar">
+            <div class="input-group" style="max-width: 250px;">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" class="form-control" placeholder="Search goals..."
+                       value="{{ current_filters.q|default:'' }}">
+            </div>
+            <select name="status" class="form-select">
+                <option value="">All Status</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+            <select name="category" class="form-select">
+                <option value="">All Categories</option>
+                {% for value, label in category_choices %}
+                <option value="{{ value }}" {% if current_filters.category == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+            <select name="priority" class="form-select">
+                <option value="">All Priorities</option>
+                {% for value, label in priority_choices %}
+                <option value="{{ value }}" {% if current_filters.priority == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-funnel me-1"></i>Filter
+            </button>
+            {% if current_filters.status or current_filters.category or current_filters.priority or current_filters.q %}
+            <a href="{% url 'goals:goal_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg me-1"></i>Clear
+            </a>
+            {% endif %}
+        </form>
+
+        <!-- Active Goals Section -->
+        {% if active_goals %}
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-lightning-charge text-primary me-2"></i>Active Goals
+            </h2>
+            <span class="badge bg-primary">{{ active_goals|length }}</span>
+        </div>
+        <div class="goals-grid mb-4">
+            {% for goal in active_goals %}
+            {% include 'goals/partials/_goal_card.html' %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Completed Goals Section -->
+        {% if completed_goals %}
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-check-circle text-success me-2"></i>Completed
+            </h2>
+            <span class="badge bg-success">{{ completed_goals|length }}</span>
+        </div>
+        <div class="goals-grid mb-4">
+            {% for goal in completed_goals %}
+            {% include 'goals/partials/_goal_card.html' %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- On Hold / Abandoned Goals -->
+        {% if on_hold_goals %}
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-pause-circle text-warning me-2"></i>On Hold / Abandoned
+            </h2>
+            <span class="badge bg-secondary">{{ on_hold_goals|length }}</span>
+        </div>
+        <div class="goals-grid">
+            {% for goal in on_hold_goals %}
+            {% include 'goals/partials/_goal_card.html' %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Empty State -->
+        {% if not goals %}
+        <div class="empty-state">
+            <i class="bi bi-bullseye d-block"></i>
+            <h4>No goals yet</h4>
+            <p class="text-muted">Start by creating your first SMART goal</p>
+            <a href="{% url 'goals:goal_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Create Your First Goal
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock dashboard_content %}

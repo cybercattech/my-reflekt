@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <h1 class="mb-4">Privacy Policy</h1>
+            <p class="text-muted mb-4"><strong>Last Updated:</strong> December 25, 2025</p>
+
+            <div class="alert alert-info">
+                <strong>Your Privacy Matters</strong><br>
+                Reflekt is built on trust. Your journal entries are your most private thoughts, and we take protecting them seriously. This policy explains exactly how we handle your data.
+            </div>
+
+            <h2 class="mt-5 mb-3">1. Information We Collect</h2>
+
+            <h3 class="h5 mt-4">1.1 Account Information</h3>
+            <p>When you create an account, we collect:</p>
+            <ul>
+                <li><strong>Email address</strong> - Used for login and communication</li>
+                <li><strong>Password</strong> - Stored securely using industry-standard hashing</li>
+                <li><strong>Username</strong> (optional) - For friend discovery features</li>
+                <li><strong>Birthday</strong> (optional) - For zodiac insights</li>
+                <li><strong>Location</strong> (optional) - City and country for weather data</li>
+            </ul>
+
+            <h3 class="h5 mt-4">1.2 Journal Content</h3>
+            <p>We collect and store:</p>
+            <ul>
+                <li><strong>Journal entries</strong> - Your written content (encrypted at rest)</li>
+                <li><strong>Entry metadata</strong> - Dates, mood tags, energy levels</li>
+                <li><strong>Media attachments</strong> - Images, audio, video files you attach</li>
+                <li><strong>Goals and habits</strong> - Your personal tracking data</li>
+                <li><strong>Captures</strong> - Books, movies, places, people you track</li>
+            </ul>
+
+            <h3 class="h5 mt-4">1.3 Automatically Collected Information</h3>
+            <ul>
+                <li><strong>Usage data</strong> - Pages viewed, features used, time spent</li>
+                <li><strong>Device information</strong> - Browser type, operating system</li>
+                <li><strong>IP address</strong> - For security and fraud prevention</li>
+                <li><strong>Cookies</strong> - Session management and preferences</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">2. How We Use Your Information</h2>
+
+            <h3 class="h5 mt-4">2.1 Core Service</h3>
+            <ul>
+                <li><strong>Provide journaling features</strong> - Store and display your entries</li>
+                <li><strong>AI analysis</strong> - Sentiment analysis, mood trends, insights generation</li>
+                <li><strong>Generate reviews</strong> - Year in Review, monthly summaries</li>
+                <li><strong>Track goals & habits</strong> - Progress monitoring and statistics</li>
+            </ul>
+
+            <h3 class="h5 mt-4">2.2 Account Management</h3>
+            <ul>
+                <li><strong>Authentication</strong> - Log you in securely</li>
+                <li><strong>Communication</strong> - Send important account updates</li>
+                <li><strong>Support</strong> - Respond to your questions and issues</li>
+            </ul>
+
+            <h3 class="h5 mt-4">2.3 Improvement & Security</h3>
+            <ul>
+                <li><strong>Service improvement</strong> - Understand how features are used</li>
+                <li><strong>Bug fixes</strong> - Identify and resolve technical issues</li>
+                <li><strong>Fraud prevention</strong> - Detect and prevent abuse</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">3. How We Protect Your Data</h2>
+
+            <h3 class="h5 mt-4">3.1 Encryption</h3>
+            <p><strong>Your journal entries are encrypted at rest.</strong> We use industry-standard Fernet encryption (AES-128 in CBC mode) to encrypt all journal entry titles and content before storing them in our database.</p>
+            <p>This means:</p>
+            <ul>
+                <li>Even if someone gains unauthorized access to our database, they cannot read your entries</li>
+                <li>Database backups are encrypted</li>
+                <li>Database administrators cannot read your private thoughts</li>
+            </ul>
+
+            <h3 class="h5 mt-4">3.2 Transport Security</h3>
+            <ul>
+                <li><strong>HTTPS/TLS</strong> - All data transmitted over secure connections</li>
+                <li><strong>Secure cookies</strong> - Session data protected from interception</li>
+            </ul>
+
+            <h3 class="h5 mt-4">3.3 Access Controls</h3>
+            <ul>
+                <li>Limited employee access to user data</li>
+                <li>Access logged and monitored</li>
+                <li>Multi-factor authentication for internal systems</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">4. Data Sharing & Third Parties</h2>
+
+            <h3 class="h5 mt-4">4.1 We DO NOT Sell Your Data</h3>
+            <p class="fw-bold text-success">We will never sell, rent, or trade your personal information or journal entries to third parties for marketing purposes.</p>
+
+            <h3 class="h5 mt-4">4.2 Service Providers We Use</h3>
+            <p>We share limited data with trusted third-party services:</p>
+            <ul>
+                <li><strong>Stripe</strong> - Payment processing (email, billing info only)</li>
+                <li><strong>Email provider</strong> - Transactional emails (email address only)</li>
+                <li><strong>Hosting provider</strong> - Infrastructure (encrypted database storage)</li>
+                <li><strong>Analytics</strong> - Anonymized usage statistics (no personal content)</li>
+            </ul>
+            <p class="text-muted small">These providers are contractually bound to protect your data and use it only for specified purposes.</p>
+
+            <h3 class="h5 mt-4">4.3 POV (Point of View) Sharing with Friends</h3>
+            <p>Reflekt includes a feature that allows you to share specific portions of your journal entries with friends using POV blocks:</p>
+
+            <p><strong>How POV Sharing Works:</strong></p>
+            <ul>
+                <li><strong>Selective Sharing</strong> - You can share specific paragraphs or thoughts from your entries, not entire entries</li>
+                <li><strong>Friends Only</strong> - POV blocks can only be shared with users you've added as friends on Reflekt</li>
+                <li><strong>Automatic Injection</strong> - When you share a POV, the content is automatically added to your friend's journal entry for that date</li>
+                <li><strong>Clear Attribution</strong> - Shared POVs are clearly marked with your username so recipients know who wrote it</li>
+                <li><strong>Recipient Control</strong> - Recipients can delete POV content from their journal at any time</li>
+                <li><strong>Optional Replies</strong> - Recipients can reply to your shared POVs, creating threaded conversations</li>
+                <li><strong>Notifications</strong> - Friends receive notifications when you share POVs with them</li>
+            </ul>
+
+            <p><strong>What's Shared:</strong></p>
+            <ul>
+                <li>Only the specific POV content you mark for sharing (using {pov} tags)</li>
+                <li>Your username (so friends know who shared it)</li>
+                <li>The date of your entry</li>
+                <li>Any replies to the shared POV</li>
+            </ul>
+
+            <p><strong>What's NOT Shared:</strong></p>
+            <ul>
+                <li>The rest of your journal entry remains private</li>
+                <li>Your other entries are never shared unless you explicitly create POV blocks in them</li>
+                <li>Media attachments, mood data, and other metadata remain private</li>
+            </ul>
+
+            <p class="text-muted small"><em>Important: Once you share a POV, it becomes part of your friend's journal entry. While they can delete it, you cannot remotely remove it from their journal after sharing. Only share content you're comfortable with your friends keeping.</em></p>
+
+            <h3 class="h5 mt-4">4.4 Family Plan Data Sharing</h3>
+            <p><strong>Reflekt offers Family Plans that allow one subscriber to provide premium access to up to 5 family members.</strong></p>
+
+            <p><strong>Information Visible to Family Plan Administrators:</strong></p>
+            <ul>
+                <li><strong>Family Member List</strong> - Administrators can see the names and email addresses of family members in their plan</li>
+                <li><strong>Join Dates</strong> - When each member was added to the family plan</li>
+                <li><strong>Membership Status</strong> - Whether invitations are pending or accepted</li>
+            </ul>
+
+            <p><strong>Information NOT Visible to Family Plan Administrators:</strong></p>
+            <ul>
+                <li><strong>Journal Entries</strong> - Family plan administrators CANNOT see family members' journal content</li>
+                <li><strong>Usage Statistics</strong> - Activity, streaks, and other usage data remain private</li>
+                <li><strong>Goals & Habits</strong> - Personal tracking data is never shared</li>
+                <li><strong>Captures</strong> - Books, movies, places, and people tracked remain private</li>
+                <li><strong>Friends List</strong> - Your friend connections remain private</li>
+            </ul>
+
+            <p><strong>Automatic Friend Connection:</strong></p>
+            <ul>
+                <li>When you join a family plan, you automatically become friends with the plan administrator</li>
+                <li>This friendship connection follows the same privacy rules as all friendships</li>
+                <li>Your journal entries remain private unless you explicitly share POV blocks</li>
+                <li>You can unfriend the administrator, but you will remain in the family plan</li>
+            </ul>
+
+            <p><strong>Family Plan Invitations:</strong></p>
+            <ul>
+                <li>When administrators invite you, we send an email to your registered email address</li>
+                <li>The invitation email contains information about who invited you and what accepting entails</li>
+                <li>We share your email address with the person who invited you (only if you accept)</li>
+            </ul>
+
+            <p class="alert alert-info small">
+                <strong>Privacy Guarantee:</strong> Being in a family plan does not grant the administrator any access to your journal content or personal data beyond what's listed above. Your journal entries remain completely private and encrypted.
+            </p>
+
+            <h3 class="h5 mt-4">4.5 Legal Requirements</h3>
+            <p>We may disclose your information if required by law:</p>
+            <ul>
+                <li>Valid subpoena or court order</li>
+                <li>Legal process compliance</li>
+                <li>Protection of our rights or safety of users</li>
+                <li>Investigation of fraud or security issues</li>
+            </ul>
+            <p class="text-muted small">We will notify you of legal requests unless prohibited by law.</p>
+
+            <h2 class="mt-5 mb-3">5. Your Rights & Controls</h2>
+
+            <h3 class="h5 mt-4">5.1 Access Your Data</h3>
+            <ul>
+                <li>View all your journal entries, goals, habits, and captures</li>
+                <li>Export your data in standard formats (JSON, CSV)</li>
+                <li>Request a complete copy of all your personal data</li>
+            </ul>
+
+            <h3 class="h5 mt-4">5.2 Update Your Data</h3>
+            <ul>
+                <li>Edit or delete entries at any time</li>
+                <li>Update account settings and preferences</li>
+                <li>Change email address or password</li>
+            </ul>
+
+            <h3 class="h5 mt-4">5.3 Delete Your Account</h3>
+            <p>You can permanently delete your account at any time:</p>
+            <ul>
+                <li>All journal entries will be permanently deleted</li>
+                <li>All personal data will be removed from our systems</li>
+                <li>Backups are purged within 30 days</li>
+                <li><strong>This action is irreversible</strong></li>
+            </ul>
+
+            <h3 class="h5 mt-4">5.4 Data Portability</h3>
+            <p>You can export your data in machine-readable formats to move to another service.</p>
+
+            <h2 class="mt-5 mb-3">6. Data Retention</h2>
+            <ul>
+                <li><strong>Active accounts</strong> - Data retained indefinitely while account is active</li>
+                <li><strong>Deleted accounts</strong> - Data purged within 30 days</li>
+                <li><strong>Inactive accounts</strong> - We may delete accounts inactive for 2+ years after notice</li>
+                <li><strong>Backups</strong> - Encrypted backups retained for 30 days</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">7. Children's Privacy</h2>
+            <p>Reflekt is not intended for users under 13 years of age. We do not knowingly collect personal information from children under 13. If we become aware that a child under 13 has provided us with personal information, we will delete such information immediately.</p>
+
+            <h2 class="mt-5 mb-3">8. International Data Transfers</h2>
+            <p>Your data may be transferred to and stored in countries other than your country of residence. We ensure appropriate safeguards are in place to protect your data in accordance with this Privacy Policy.</p>
+
+            <h2 class="mt-5 mb-3">9. Cookies & Tracking</h2>
+            <p>We use cookies for:</p>
+            <ul>
+                <li><strong>Essential cookies</strong> - Required for login and core functionality</li>
+                <li><strong>Preference cookies</strong> - Remember your settings</li>
+                <li><strong>Analytics cookies</strong> - Understand how the service is used (anonymized)</li>
+            </ul>
+            <p>You can disable cookies in your browser, but some features may not work properly.</p>
+
+            <h2 class="mt-5 mb-3">10. Changes to This Policy</h2>
+            <p>We may update this Privacy Policy from time to time. When we do:</p>
+            <ul>
+                <li>We'll update the "Last Updated" date at the top</li>
+                <li>We'll notify you via email for material changes</li>
+                <li>Continued use after changes constitutes acceptance</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">11. Contact Us</h2>
+            <p>If you have questions or concerns about this Privacy Policy or our data practices:</p>
+            <ul>
+                <li><strong>Email:</strong> privacy@reflekt.com</li>
+                <li><strong>Support:</strong> Contact us through the app</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">12. Specific Rights by Region</h2>
+
+            <h3 class="h5 mt-4">12.1 GDPR (European Users)</h3>
+            <p>If you are in the European Economic Area, you have additional rights:</p>
+            <ul>
+                <li>Right to access your personal data</li>
+                <li>Right to rectification of inaccurate data</li>
+                <li>Right to erasure ("right to be forgotten")</li>
+                <li>Right to restrict processing</li>
+                <li>Right to data portability</li>
+                <li>Right to object to processing</li>
+                <li>Right to withdraw consent at any time</li>
+                <li>Right to lodge a complaint with a supervisory authority</li>
+            </ul>
+
+            <h3 class="h5 mt-4">12.2 CCPA (California Users)</h3>
+            <p>California residents have additional rights:</p>
+            <ul>
+                <li>Right to know what personal information is collected</li>
+                <li>Right to know if personal information is sold or disclosed</li>
+                <li>Right to opt-out of the sale of personal information (we don't sell data)</li>
+                <li>Right to deletion</li>
+                <li>Right to non-discrimination for exercising these rights</li>
+            </ul>
+
+            <hr class="my-5">
+
+            <div class="alert alert-light">
+                <h4>Summary</h4>
+                <p class="mb-2">In plain English:</p>
+                <ul class="mb-0">
+                    <li>Your journal entries are encrypted and private</li>
+                    <li>We use AI to analyze your writing and provide insights</li>
+                    <li>We never sell your data to third parties</li>
+                    <li>POV sharing lets you share specific thoughts with friends, but they control whether to keep or delete it</li>
+                    <li>You can export or delete your data at any time</li>
+                    <li>We only share data when you explicitly choose to (POV sharing with friends) or when legally required</li>
+                </ul>
+            </div>
+
+            <p class="text-center mt-5">
+                <a href="{% url 'accounts:terms' %}" class="btn btn-outline-primary me-2">Read Terms of Service</a>
+                <a href="/" class="btn btn-primary">Back to Home</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

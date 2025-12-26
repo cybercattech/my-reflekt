@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source:*)",
+      "Bash(python manage.py migrate:*)",
+      "Bash(python manage.py makemigrations:*)",
+      "Bash(python:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(pip install:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Read(//private/tmp/**)",
+      "Bash(pkill:*)",
+      "Bash(for file in /Users/sfetter/Documents/CyberCat/Sandbox/reflekt/templates/dashboard/captures/*.html /Users/sfetter/Documents/CyberCat/Sandbox/reflekt/templates/dashboard/yearly.html /Users/sfetter/Documents/CyberCat/Sandbox/reflekt/templates/dashboard/monthly.html)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "Bash(pip uninstall:*)",
+      "Bash(sqlite3:*)",
+      "Bash(timeout 5 python:*)",
+      "Bash(chmod:*)",
+      "Read(//Library/Frameworks/Python.framework/Versions/3.13/bin/**)",
+      "Bash(env)",
+      "Bash(unset:*)",
+      "Read(//Users/sfetter/**)",
+      "Bash(awk:*)",
+      "Bash(printf:*)",
+      "Bash(test:*)",
+      "Bash(git log:*)",
+      "Bash(git rev-parse:*)"
+    ]
+  }
+}

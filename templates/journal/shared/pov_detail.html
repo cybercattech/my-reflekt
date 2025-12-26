@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load markdown_extras %}
+
+{% block title %}Shared POV{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Back link -->
+            <a href="{% url 'journal:shared_povs_list' %}" class="text-decoration-none mb-3 d-inline-block">
+                <i class="bi bi-arrow-left me-1"></i>Back to Shared
+            </a>
+
+            <!-- POV Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-chat-quote me-2"></i>
+                            From <strong>{{ pov.author.profile.display_name }}</strong>
+                        </div>
+                        <small>{{ pov.created_at|date:"M j, Y \a\t g:i A" }}</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="pov-content entry-content">
+                        {{ pov.content|render_markdown }}
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center text-muted small">
+                        <div>
+                            <i class="bi bi-calendar me-1"></i>
+                            From entry on {{ pov.entry.entry_date|date:"F j, Y" }}
+                        </div>
+                        <div>
+                            <i class="bi bi-people me-1"></i>
+                            Shared with:
+                            {% for r in recipients %}
+                                <span class="badge bg-secondary">{{ r.user.profile.display_name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Replies -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-chat-dots me-2"></i>Replies
+                    <span class="badge bg-secondary">{{ replies|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if replies %}
+                    <div class="replies-list" id="repliesList">
+                        {% for reply in replies %}
+                        <div class="reply-item mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ reply.author.profile.display_name }}</strong>
+                                    {% if reply.author == pov.author %}
+                                    <span class="badge bg-info ms-1">Author</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">{{ reply.created_at|timesince }} ago</small>
+                            </div>
+                            <div class="reply-content mt-2">
+                                {{ reply.content|linebreaks }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0" id="noRepliesMsg">No replies yet. Be the first to respond!</p>
+                    {% endif %}
+
+                    {% if can_reply %}
+                    <hr>
+                    <form id="replyForm" class="mt-3">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea class="form-control" name="content" rows="3"
+                                      placeholder="Write a reply..." required
+                                      maxlength="2000" id="replyContent"></textarea>
+                            <div class="form-text">
+                                <span id="charCount">0</span>/2000 characters
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submitReply">
+                            <i class="bi bi-send me-1"></i>Send Reply
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if can_reply %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('replyForm');
+    const textarea = document.getElementById('replyContent');
+    const charCount = document.getElementById('charCount');
+    const submitBtn = document.getElementById('submitReply');
+    const repliesList = document.getElementById('repliesList');
+    const noRepliesMsg = document.getElementById('noRepliesMsg');
+
+    // Character count
+    textarea.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+
+    // Submit reply
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const content = textarea.value.trim();
+        if (!content) return;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending...';
+
+        try {
+            const response = await fetch('{% url "journal:pov_reply_create" pov.id %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `content=${encodeURIComponent(content)}`
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Hide no replies message
+                if (noRepliesMsg) {
+                    noRepliesMsg.style.display = 'none';
+                }
+
+                // Add new reply to list
+                const replyHtml = `
+                    <div class="reply-item mb-3 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>${data.reply.author}</strong>
+                            </div>
+                            <small class="text-muted">just now</small>
+                        </div>
+                        <div class="reply-content mt-2">
+                            ${data.reply.content.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                `;
+
+                if (repliesList) {
+                    repliesList.insertAdjacentHTML('beforeend', replyHtml);
+                } else {
+                    // Create replies list if it doesn't exist
+                    const list = document.createElement('div');
+                    list.id = 'repliesList';
+                    list.className = 'replies-list';
+                    list.innerHTML = replyHtml;
+                    form.parentNode.insertBefore(list, form.parentNode.querySelector('hr'));
+                }
+
+                // Clear form
+                textarea.value = '';
+                charCount.textContent = '0';
+            } else {
+                alert(data.error || 'Failed to send reply');
+            }
+        } catch (error) {
+            alert('Error sending reply. Please try again.');
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-send me-1"></i>Send Reply';
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

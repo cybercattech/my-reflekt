@@ -1,0 +1,2303 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_new %}New Entry{% else %}Edit Entry{% endif %}{% endblock %}
+
+{% block extra_css %}
+{% include 'journal/partials/sidebar_css.html' %}
+<style>
+    /* 3-Column Layout */
+    .journal-layout {
+        display: flex;
+        min-height: calc(100vh - 56px - 80px);
+        position: relative;
+    }
+
+    .main-content-area {
+        flex: 1;
+        padding: 1.5rem 2rem;
+        overflow-y: auto;
+        background: #f9fafb;
+    }
+
+    @media (max-width: 768px) {
+        .journal-layout {
+            flex-direction: column;
+        }
+        .main-content-area {
+            padding: 1rem;
+        }
+    }
+
+    /* Title Input */
+    .title-input {
+        border: none;
+        background: transparent;
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #1f2937;
+        width: 100%;
+        padding: 0;
+        margin-bottom: 1rem;
+        outline: none;
+    }
+
+    .title-input::placeholder {
+        color: #9ca3af;
+    }
+
+    /* Metadata Toggle */
+    .metadata-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6b7280;
+        font-size: 0.85rem;
+        cursor: pointer;
+        margin-bottom: 1rem;
+        transition: color 0.2s;
+    }
+
+    .metadata-toggle:hover {
+        color: #4f46e5;
+    }
+
+    .metadata-panel {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .metadata-panel .form-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .metadata-panel .form-control,
+    .metadata-panel .form-select {
+        border-radius: 8px;
+        border-color: #e5e7eb;
+    }
+
+    .metadata-panel .form-control:focus,
+    .metadata-panel .form-select:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Editor Container */
+    .editor-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    /* Quill Customization */
+    .ql-container {
+        font-family: 'Georgia', serif;
+        font-size: 1.125rem;
+        line-height: 1.8;
+        border: none !important;
+    }
+
+    .ql-editor {
+        padding: 1.5rem;
+        min-height: calc(100vh - 400px);
+    }
+
+    .ql-editor.ql-blank::before {
+        font-style: normal;
+        color: #9ca3af;
+    }
+
+    .ql-toolbar {
+        border: none !important;
+        border-bottom: 1px solid #f3f4f6 !important;
+        padding: 0.75rem 1rem !important;
+    }
+
+    .ql-toolbar .ql-stroke {
+        stroke: #6b7280;
+    }
+
+    .ql-toolbar .ql-fill {
+        fill: #6b7280;
+    }
+
+    .ql-toolbar button:hover .ql-stroke {
+        stroke: #4f46e5;
+    }
+
+    .ql-toolbar button:hover .ql-fill {
+        fill: #4f46e5;
+    }
+
+    .ql-toolbar button.ql-active .ql-stroke {
+        stroke: #4f46e5;
+    }
+
+    .ql-toolbar button.ql-active .ql-fill {
+        fill: #4f46e5;
+    }
+
+    /* EasyMDE Customization - Full Height */
+    .EasyMDEContainer {
+        border: none !important;
+    }
+
+    .EasyMDEContainer .CodeMirror {
+        border: none !important;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+        font-size: 1rem;
+        line-height: 1.7;
+        padding: 1rem;
+        min-height: calc(100vh - 350px);
+        height: auto !important;
+        background: transparent;
+    }
+
+    .EasyMDEContainer .CodeMirror-scroll {
+        min-height: calc(100vh - 350px);
+    }
+
+    .EasyMDEContainer .editor-toolbar {
+        border: none !important;
+        border-bottom: 1px solid #f3f4f6 !important;
+        background: transparent;
+        opacity: 1;
+        padding: 0.5rem;
+    }
+
+    .EasyMDEContainer .editor-toolbar a {
+        color: #6b7280 !important;
+        border-radius: 6px;
+    }
+
+    .EasyMDEContainer .editor-toolbar a:hover,
+    .EasyMDEContainer .editor-toolbar a.active {
+        background: #f3f4f6;
+        color: #4f46e5 !important;
+    }
+
+    .EasyMDEContainer .editor-toolbar i.separator {
+        border-color: #e5e7eb;
+    }
+
+    /* Reduce header sizes in EasyMDE editor */
+    .EasyMDEContainer .cm-header-1 {
+        font-size: 1.4rem;
+    }
+
+    .EasyMDEContainer .cm-header-2 {
+        font-size: 1.2rem;
+    }
+
+    .EasyMDEContainer .cm-header-3 {
+        font-size: 1.1rem;
+    }
+
+    .EasyMDEContainer .cm-header-4,
+    .EasyMDEContainer .cm-header-5,
+    .EasyMDEContainer .cm-header-6 {
+        font-size: 1rem;
+    }
+
+    /* Full screen EasyMDE adjustments */
+    .EasyMDEContainer .CodeMirror-fullscreen {
+        min-height: 100vh !important;
+    }
+
+    .EasyMDEContainer .editor-toolbar.fullscreen {
+        z-index: 1001;
+    }
+
+    /* Word count */
+    .word-count {
+        text-align: right;
+        font-size: 0.8rem;
+        color: #9ca3af;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    /* Save status indicator */
+    .save-status {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .save-status.saving {
+        color: #f59e0b;
+    }
+
+    .save-status.saved {
+        color: #22c55e;
+    }
+
+    /* Attachment Styles */
+    .attachments-section {
+        margin-top: 1.5rem;
+    }
+
+    .attachments-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6b7280;
+        font-size: 0.85rem;
+        cursor: pointer;
+        margin-bottom: 1rem;
+        transition: color 0.2s;
+    }
+
+    .attachments-toggle:hover {
+        color: #4f46e5;
+    }
+
+    .upload-zone {
+        background: white;
+        border: 2px dashed #e5e7eb;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
+        border-color: #4f46e5;
+        background: #f5f3ff;
+    }
+
+    .upload-zone i {
+        font-size: 2rem;
+        color: #9ca3af;
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-zone.dragover i {
+        color: #4f46e5;
+    }
+
+    .upload-zone p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .upload-zone .browse-link {
+        color: #4f46e5;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .attachments-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .attachment-item {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .attachment-item img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    .attachment-item .file-icon {
+        width: 100%;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f3f4f6;
+    }
+
+    .attachment-item .file-icon i {
+        font-size: 3rem;
+        color: #6b7280;
+    }
+
+    .attachment-item .file-icon.audio i { color: #8b5cf6; }
+    .attachment-item .file-icon.video i { color: #ec4899; }
+
+    .attachment-item .file-info {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .attachment-item .file-name {
+        font-weight: 500;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .attachment-item .file-size {
+        color: #9ca3af;
+    }
+
+    .attachment-item .delete-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .attachment-item:hover .delete-btn {
+        opacity: 1;
+    }
+
+    .upload-progress {
+        margin-top: 1rem;
+    }
+
+    .upload-progress .progress {
+        height: 4px;
+        border-radius: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .EasyMDEContainer .CodeMirror,
+        .EasyMDEContainer .CodeMirror-scroll {
+            min-height: 400px;
+        }
+
+        .ql-editor {
+            min-height: 400px;
+        }
+    }
+
+    /* @ Mention Dropdown */
+    .mention-menu {
+        position: absolute;
+        z-index: 1000;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid #e5e7eb;
+        max-height: 200px;
+        overflow-y: auto;
+        min-width: 200px;
+        display: none;
+    }
+
+    .mention-menu.show {
+        display: block;
+    }
+
+    .mention-item {
+        display: flex;
+        align-items: center;
+        padding: 0.6rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.15s;
+    }
+
+    .mention-item:last-child {
+        border-bottom: none;
+    }
+
+    .mention-item:hover,
+    .mention-item.selected {
+        background: #e0f2fe;
+    }
+
+    .mention-item .mention-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #0ea5e9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        color: white;
+        font-size: 0.8rem;
+    }
+
+    .mention-item .mention-username {
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .mention-item .mention-display {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    .mention-header {
+        padding: 0.5rem 1rem;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: #9ca3af;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* Slash Command Dropdown */
+    .slash-command-menu {
+        position: absolute;
+        z-index: 1000;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid #e5e7eb;
+        max-height: 300px;
+        overflow-y: auto;
+        min-width: 250px;
+        display: none;
+    }
+
+    .slash-command-menu.show {
+        display: block;
+    }
+
+    .slash-command-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.15s;
+    }
+
+    .slash-command-item:last-child {
+        border-bottom: none;
+    }
+
+    .slash-command-item:hover,
+    .slash-command-item.selected {
+        background: #f5f3ff;
+    }
+
+    .slash-command-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        color: #6b7280;
+    }
+
+    .slash-command-item:hover .slash-command-icon,
+    .slash-command-item.selected .slash-command-icon {
+        background: #4f46e5;
+        color: white;
+    }
+
+    .slash-command-info {
+        flex: 1;
+    }
+
+    .slash-command-name {
+        font-weight: 500;
+        color: #1f2937;
+        font-size: 0.9rem;
+    }
+
+    .slash-command-desc {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    .slash-command-shortcut {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        font-family: monospace;
+    }
+
+    /* Goal/Habit Picker */
+    .picker-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .picker-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-bottom: 0.5rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.15s;
+    }
+
+    .picker-item:hover {
+        border-color: #4f46e5;
+        background: #f5f3ff;
+    }
+
+    .picker-item-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        color: white;
+    }
+
+    .picker-item-name {
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .picker-item-meta {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="journal-layout">
+    <!-- Left Calendar Sidebar -->
+    {% include 'journal/partials/calendar_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="main-content-area">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{% if entry %}{% url 'journal:entry_detail' pk=entry.pk %}{% else %}{% url 'journal:entry_list' %}{% endif %}"
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Back
+                        </a>
+                        <span class="text-muted small">
+                            <i class="bi bi-pencil me-1"></i>
+                            {% if is_new %}New Entry{% else %}Editing{% endif %}
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="save-status small" id="saveIndicator">
+                            <i class="bi bi-cloud-check me-1"></i>Auto-save on
+                        </span>
+                        {% if entry %}
+                        <a href="{% url 'journal:entry_delete' pk=entry.pk %}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </a>
+                        {% endif %}
+                        <button type="submit" form="entry-form" class="btn btn-primary btn-sm px-3">
+                            <i class="bi bi-check2 me-1"></i>Save
+                        </button>
+                    </div>
+                </div>
+
+                <form method="post" id="entry-form">
+                    {% csrf_token %}
+
+                    <!-- Title -->
+                    <input type="text"
+                           name="title"
+                           id="id_title"
+                           class="title-input"
+                           placeholder="Untitled"
+                           value="{{ form.title.value|default:'' }}"
+                           autocomplete="off">
+
+                    <!-- Metadata Toggle -->
+                    <div class="metadata-toggle" data-bs-toggle="collapse" data-bs-target="#metadataPanel">
+                        <i class="bi bi-sliders2"></i>
+                        <span>Date, Mood & Energy</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </div>
+
+                    <!-- Collapsible Metadata -->
+                    <div class="collapse {% if is_new %}show{% endif %}" id="metadataPanel">
+                        <div class="metadata-panel">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Date</label>
+                                    <input type="date"
+                                           name="entry_date"
+                                           class="form-control"
+                                           value="{{ form.entry_date.value|date:'Y-m-d' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Mood</label>
+                                    <select name="mood" class="form-select">
+                                        <option value="">How are you feeling?</option>
+                                        <option value="ecstatic" {% if form.mood.value == 'ecstatic' %}selected{% endif %}>🤩 Ecstatic</option>
+                                        <option value="happy" {% if form.mood.value == 'happy' %}selected{% endif %}>😊 Happy</option>
+                                        <option value="neutral" {% if form.mood.value == 'neutral' %}selected{% endif %}>😐 Neutral</option>
+                                        <option value="sad" {% if form.mood.value == 'sad' %}selected{% endif %}>😢 Sad</option>
+                                        <option value="angry" {% if form.angry.value == 'angry' %}selected{% endif %}>😠 Angry</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Energy</label>
+                                    <select name="energy" class="form-select">
+                                        <option value="">Energy level?</option>
+                                        <option value="high" {% if form.energy.value == 'high' %}selected{% endif %}>⚡ High</option>
+                                        <option value="medium" {% if form.energy.value == 'medium' %}selected{% endif %}>🔋 Medium</option>
+                                        <option value="low" {% if form.energy.value == 'low' %}selected{% endif %}>🪫 Low</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-8">
+                                    <label class="form-label">
+                                        <i class="bi bi-geo-alt me-1"></i>Location <small class="text-muted">(for weather tracking)</small>
+                                    </label>
+                                    <input type="text"
+                                           name="city"
+                                           id="id_city"
+                                           class="form-control"
+                                           placeholder="e.g., New York, Tokyo, London"
+                                           value="{{ form.city.value|default:profile.city|default:'' }}">
+                                    <div class="form-text">Where are you writing from? Defaults to your profile location.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Country Code</label>
+                                    <input type="text"
+                                           name="country_code"
+                                           id="id_country_code"
+                                           class="form-control"
+                                           placeholder="US"
+                                           maxlength="2"
+                                           style="text-transform: uppercase;"
+                                           value="{{ form.country_code.value|default:profile.country_code|default:'US' }}">
+                                    <div class="form-text">Two-letter code (e.g., US, JP, GB)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Helpful Tips -->
+                    <div class="alert alert-info border-0 mb-3" style="background-color: #f0f4ff; font-size: 0.85rem;">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-info-circle me-2 mt-1"></i>
+                            <div>
+                                <strong>Track habits & goals:</strong>
+                                <ul class="mb-0 mt-1 ps-3">
+                                    <li>Use <code>/habit</code> command to <strong>link & check-in</strong> a habit (creates tracking)</li>
+                                    <li>Use <code>/goal</code> command to link a goal</li>
+                                    <li>Note: <code>{habit}</code> blocks are just for display formatting, they don't create check-ins</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Habit Detection Suggestions -->
+                    <div id="habitSuggestions" class="alert alert-success border-0 mb-3 d-none" style="background-color: #f0fdf4; font-size: 0.85rem;">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div class="d-flex align-items-start flex-grow-1">
+                                <i class="bi bi-lightbulb me-2 mt-1 text-success"></i>
+                                <div>
+                                    <strong>Habits detected!</strong>
+                                    <div id="habitSuggestionsContent" class="mt-2"></div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close btn-close-sm" onclick="document.getElementById('habitSuggestions').classList.add('d-none')"></button>
+                        </div>
+                    </div>
+
+                    <!-- Editor Container -->
+                    <div class="editor-container" style="position: relative;">
+                        {% if editor_preference == 'rich_text' %}
+                        <!-- Quill Rich Text Editor -->
+                        <div id="quill-editor"></div>
+                        <textarea name="content" id="id_content" style="display:none;">{{ form.content.value|default:'' }}</textarea>
+                        {% else %}
+                        <!-- MyST Markdown Editor (EasyMDE) -->
+                        <textarea name="content" id="editor">{{ form.content.value|default:'' }}</textarea>
+                        {% endif %}
+                        <div class="word-count">
+                            <span id="wordCount">0</span> words
+                            <span class="ms-2 text-muted small">Type / for commands</span>
+                        </div>
+
+                        <!-- Slash Command Menu (positioned relative to editor) -->
+                        <div class="slash-command-menu" id="slashCommandMenu"></div>
+
+                        <!-- @ Mention Menu (for POV sharing) -->
+                        <div class="mention-menu" id="mentionMenu"></div>
+                    </div>
+
+                    <!-- Attachments Section -->
+                    <div class="attachments-section">
+                        <div class="attachments-toggle" data-bs-toggle="collapse" data-bs-target="#attachmentsPanel">
+                            <i class="bi bi-paperclip"></i>
+                            <span>Attachments</span>
+                            <span class="badge bg-secondary ms-2" id="attachmentCount">{% if entry %}{{ entry.attachments.count }}{% else %}0{% endif %}</span>
+                            <i class="bi bi-chevron-down ms-auto"></i>
+                        </div>
+
+                        <div class="collapse show" id="attachmentsPanel">
+                            <!-- Upload Zone -->
+                            <div class="upload-zone" id="uploadZone">
+                                <i class="bi bi-cloud-arrow-up d-block"></i>
+                                <p>Drag & drop files here or <span class="browse-link">browse</span></p>
+                                <p class="text-muted small mt-1">Audio & video up to 50MB</p>
+                                <p class="text-muted small"><i class="bi bi-info-circle me-1"></i>Tip: Paste or drop images directly in the editor above!</p>
+                                <input type="file" id="fileInput" multiple accept="image/*,audio/*,video/*" style="display:none;">
+                            </div>
+
+                            <!-- Upload Progress -->
+                            <div class="upload-progress d-none" id="uploadProgress">
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <small class="text-muted" id="uploadStatus">Uploading...</small>
+                            </div>
+
+                            <!-- Attachments Gallery -->
+                            <div class="attachments-gallery" id="attachmentsGallery">
+                                {% if entry %}
+                                {% for attachment in entry.attachments.all %}
+                                <div class="attachment-item" data-id="{{ attachment.id }}">
+                                    {% if attachment.is_image %}
+                                    <img src="{{ attachment.file.url }}" alt="{{ attachment.file_name }}">
+                                    {% elif attachment.is_audio %}
+                                    <div class="file-icon audio">
+                                        <i class="bi bi-music-note-beamed"></i>
+                                    </div>
+                                    {% elif attachment.is_video %}
+                                    <div class="file-icon video">
+                                        <i class="bi bi-play-circle"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="file-info">
+                                        <div class="file-name" title="{{ attachment.file_name }}">{{ attachment.file_name }}</div>
+                                        <div class="file-size">{{ attachment.size_display }}</div>
+                                    </div>
+                                    <button type="button" class="delete-btn" onclick="deleteAttachment({{ attachment.id }})">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+    </div>
+
+    <!-- Right Insights Sidebar -->
+    {% include 'journal/partials/insights_sidebar.html' %}
+</div>
+
+<!-- Quick Picker Modal (simplified slash commands) -->
+<div class="modal fade" id="quickPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title d-flex align-items-center mb-0">
+                    <i class="bi bi-search me-2" id="quickPickerIcon"></i>
+                    <span id="quickPickerTitle">Select</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-2">
+                <input type="text" class="form-control form-control-sm mb-2"
+                       id="quickPickerSearch" placeholder="Search or type new...">
+                <div id="quickPickerList" class="quick-picker-list"></div>
+                <div id="quickPickerCreate" class="quick-picker-create d-none">
+                    <button class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-plus-circle me-1"></i>Create "<span id="quickPickerNewName"></span>"
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Goal/Habit Picker Modal -->
+<div class="modal fade" id="goalHabitPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title d-flex align-items-center mb-0">
+                    <i class="bi bi-bullseye me-2" id="goalHabitPickerIcon"></i>
+                    <span id="goalHabitPickerTitle">Select</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <input type="text" class="form-control form-control-sm mb-3"
+                       id="goalHabitPickerSearch" placeholder="Search...">
+                <div id="goalHabitPickerList" class="goal-habit-picker-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.quick-picker-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+.quick-picker-item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.quick-picker-item:hover {
+    background-color: #f3f4f6;
+}
+.quick-picker-item.selected {
+    background-color: #e0e7ff;
+}
+.quick-picker-name {
+    font-weight: 500;
+}
+.quick-picker-meta {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+.quick-picker-empty {
+    padding: 1rem;
+    text-align: center;
+    color: #9ca3af;
+}
+.goal-habit-picker-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle insights sidebar
+    const insightsToggle = document.querySelector('.insights-toggle');
+    const insightsSidebar = document.querySelector('.insights-sidebar-right');
+
+    if (insightsToggle && insightsSidebar) {
+        insightsToggle.addEventListener('click', function() {
+            insightsSidebar.classList.toggle('collapsed');
+        });
+    }
+
+    // Calendar scroll functionality
+    const calendarScroll = document.getElementById('calendarScroll');
+    const todayBtn = document.getElementById('todayBtn');
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1;
+
+    // Function to scroll to a specific month
+    function scrollToMonth(year, month, behavior = 'auto') {
+        if (!calendarScroll) return;
+        const monthSection = calendarScroll.querySelector(
+            `[data-year="${year}"][data-month="${month}"]`
+        );
+        if (monthSection) {
+            monthSection.scrollIntoView({ behavior: behavior, block: 'start' });
+            calendarScroll.scrollTop -= 10;
+        }
+    }
+
+    // Scroll to the entry's date month (edit mode) or current month (new entry)
+    if (calendarScroll) {
+        {% if entry and entry.entry_date %}
+        const entryDate = new Date('{{ entry.entry_date|date:"Y-m-d" }}');
+        const entryYear = entryDate.getFullYear();
+        const entryMonth = entryDate.getMonth() + 1;
+        setTimeout(() => scrollToMonth(entryYear, entryMonth), 100);
+        {% else %}
+        setTimeout(() => scrollToMonth(currentYear, currentMonth), 100);
+        {% endif %}
+    }
+
+    // Today button click handler
+    if (todayBtn) {
+        todayBtn.addEventListener('click', function() {
+            scrollToMonth(currentYear, currentMonth, 'smooth');
+        });
+    }
+
+    const editorPreference = '{{ editor_preference }}';
+    const saveIndicator = document.getElementById('saveIndicator');
+    const wordCountEl = document.getElementById('wordCount');
+    let autoSaveTimeout = null;
+
+    // Word count function
+    function updateWordCount(text) {
+        const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+        wordCountEl.textContent = words;
+    }
+
+    // Auto-save indicator
+    function showSaving() {
+        saveIndicator.innerHTML = '<i class="bi bi-cloud-arrow-up me-1"></i>Saving...';
+        saveIndicator.classList.add('saving');
+        saveIndicator.classList.remove('saved');
+    }
+
+    function showSaved() {
+        saveIndicator.innerHTML = '<i class="bi bi-cloud-check me-1"></i>Saved';
+        saveIndicator.classList.remove('saving');
+        saveIndicator.classList.add('saved');
+        setTimeout(() => {
+            saveIndicator.innerHTML = '<i class="bi bi-cloud-check me-1"></i>Auto-save on';
+            saveIndicator.classList.remove('saved');
+        }, 2000);
+    }
+
+    // Local storage auto-save
+    function autoSave(content) {
+        clearTimeout(autoSaveTimeout);
+        showSaving();
+        autoSaveTimeout = setTimeout(() => {
+            const key = 'reflekt-entry-{% if entry %}{{ entry.pk }}{% else %}new{% endif %}';
+            localStorage.setItem(key, JSON.stringify({
+                title: document.getElementById('id_title').value,
+                content: content,
+                timestamp: Date.now()
+            }));
+            showSaved();
+        }, 1000);
+    }
+
+    {% if editor_preference == 'rich_text' %}
+    // Initialize Quill
+    const quill = new Quill('#quill-editor', {
+        theme: 'snow',
+        placeholder: 'Start writing your thoughts...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
+
+    // Set initial content
+    const initialContent = document.getElementById('id_content').value;
+    if (initialContent) {
+        quill.root.innerHTML = initialContent;
+    }
+
+    // Sync to hidden textarea
+    quill.on('text-change', function() {
+        const content = quill.root.innerHTML;
+        document.getElementById('id_content').value = content;
+        updateWordCount(quill.getText());
+        autoSave(content);
+    });
+
+    // Initial word count
+    updateWordCount(quill.getText());
+
+    {% else %}
+    // Initialize EasyMDE for MyST Markdown
+    const easyMDE = new EasyMDE({
+        element: document.getElementById('editor'),
+        spellChecker: false,
+        autosave: {
+            enabled: false
+        },
+        placeholder: 'Start writing in Markdown...\n\nTip: Paste or drag images directly into the editor!',
+        minHeight: 'calc(100vh - 350px)',
+        toolbar: [
+            'bold', 'italic', 'heading', '|',
+            'quote', 'unordered-list', 'ordered-list', '|',
+            'link', 'image', 'code', '|',
+            'preview', 'side-by-side', 'fullscreen', '|',
+            'guide'
+        ],
+        status: false,
+        styleSelectedText: true,
+        renderingConfig: {
+            codeSyntaxHighlighting: true
+        }
+    });
+
+    // Word count and auto-save
+    easyMDE.codemirror.on('change', function() {
+        const content = easyMDE.value();
+        updateWordCount(content);
+        autoSave(content);
+    });
+
+    // Initial word count
+    updateWordCount(easyMDE.value());
+
+    // Handle paste events for images
+    easyMDE.codemirror.on('paste', function(cm, e) {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (let item of items) {
+            if (item.type.startsWith('image/')) {
+                e.preventDefault();
+                const file = item.getAsFile();
+                if (file) {
+                    uploadAndInsertImage(file, cm);
+                }
+                return;
+            }
+        }
+    });
+
+    // Handle drop events for images
+    easyMDE.codemirror.on('drop', function(cm, e) {
+        const files = e.dataTransfer?.files;
+        if (!files || files.length === 0) return;
+
+        for (let file of files) {
+            if (file.type.startsWith('image/')) {
+                e.preventDefault();
+                uploadAndInsertImage(file, cm);
+                return;
+            }
+        }
+    });
+
+    // Upload image and insert Markdown at cursor
+    function uploadAndInsertImage(file, cm) {
+        const cursor = cm.getCursor();
+
+        // Insert placeholder
+        const placeholder = `![Uploading ${file.name}...]()`;
+        cm.replaceRange(placeholder, cursor);
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/journal/api/upload-image/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Replace placeholder with actual image markdown
+                const content = cm.getValue();
+                const newContent = content.replace(
+                    placeholder,
+                    `![${file.name}](${data.url})`
+                );
+                cm.setValue(newContent);
+                // Trigger change event
+                const event = new Event('change');
+                cm.getInputField().dispatchEvent(event);
+            } else {
+                // Remove placeholder on error
+                const content = cm.getValue();
+                cm.setValue(content.replace(placeholder, ''));
+                alert(data.error || 'Upload failed');
+            }
+        })
+        .catch(err => {
+            // Remove placeholder on error
+            const content = cm.getValue();
+            cm.setValue(content.replace(placeholder, ''));
+            alert('Upload failed. Please try again.');
+        });
+    }
+
+    // =================================================================
+    // SLASH COMMANDS
+    // =================================================================
+
+    // Slash command configuration
+    const slashCommands = [
+        { command: '/person', name: 'Person', icon: 'bi-person', description: 'Tag a person', special: 'quick_picker', pickerType: 'person' },
+        { command: '/book', name: 'Book', icon: 'bi-book', description: 'Tag a book', special: 'quick_picker', pickerType: 'book' },
+        { command: '/goal', name: 'Goal', icon: 'bi-bullseye', description: 'Link to a goal', special: 'goal_picker' },
+        { command: '/habit', name: 'Habit', icon: 'bi-repeat', description: 'Link to a habit & create check-in', special: 'habit_picker' },
+    ];
+
+    const slashMenu = document.getElementById('slashCommandMenu');
+    const quickPickerModal = new bootstrap.Modal(document.getElementById('quickPickerModal'));
+    const goalHabitPickerModal = new bootstrap.Modal(document.getElementById('goalHabitPickerModal'));
+    let selectedCommandIndex = 0;
+    let currentCommand = null;
+    let slashStartPos = null;
+
+    // Quick Picker configuration
+    const quickPickerConfig = {
+        person: {
+            title: 'Person',
+            icon: 'bi-person',
+            searchUrl: '/journal/api/people-search/',
+            createUrl: '/journal/api/people-create/',
+            mentionUrl: '/journal/api/people-mention/',
+            linkPath: '/analytics/people/',
+            emptyText: 'No people found. Type a name to add.',
+        },
+        book: {
+            title: 'Book',
+            icon: 'bi-book',
+            searchUrl: '/journal/api/books-search/',
+            createUrl: '/journal/api/books-create/',
+            mentionUrl: null,  // Books don't track mentions the same way
+            linkPath: '/analytics/books/',
+            emptyText: 'No books found. Type a title to add.',
+        },
+    };
+
+    let currentPickerType = null;
+    let pickerItems = [];
+    let pickerSelectedIndex = 0;
+
+    // Build menu items
+    function renderSlashMenu(filter = '') {
+        const filtered = filter
+            ? slashCommands.filter(c => c.command.toLowerCase().includes(filter.toLowerCase()) ||
+                                        c.name.toLowerCase().includes(filter.toLowerCase()))
+            : slashCommands;
+
+        if (filtered.length === 0) {
+            slashMenu.classList.remove('show');
+            return;
+        }
+
+        selectedCommandIndex = 0;
+        slashMenu.innerHTML = filtered.map((cmd, idx) => `
+            <div class="slash-command-item ${idx === 0 ? 'selected' : ''}" data-command="${cmd.command}">
+                <div class="slash-command-icon">
+                    <i class="bi ${cmd.icon}"></i>
+                </div>
+                <div class="slash-command-info">
+                    <div class="slash-command-name">${cmd.name}</div>
+                    <div class="slash-command-desc">${cmd.description}</div>
+                </div>
+                <div class="slash-command-shortcut">${cmd.command}</div>
+            </div>
+        `).join('');
+
+        // Add click handlers
+        slashMenu.querySelectorAll('.slash-command-item').forEach((item, idx) => {
+            item.addEventListener('click', () => selectCommand(filtered[idx]));
+            item.addEventListener('mouseenter', () => {
+                slashMenu.querySelectorAll('.slash-command-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                selectedCommandIndex = idx;
+            });
+        });
+
+        slashMenu.classList.add('show');
+    }
+
+    // Position the menu at cursor
+    function positionMenu(cm) {
+        const cursor = cm.getCursor();
+        const coords = cm.cursorCoords(cursor, 'local');
+        const editorRect = cm.getWrapperElement().getBoundingClientRect();
+        const containerRect = document.querySelector('.editor-container').getBoundingClientRect();
+
+        slashMenu.style.left = (coords.left + 10) + 'px';
+        slashMenu.style.top = (coords.bottom + 5) + 'px';
+    }
+
+    // Listen for "/" typing
+    easyMDE.codemirror.on('change', function(cm, change) {
+        if (change.origin === '+input' && change.text[0] === '/') {
+            // Check if "/" is at start of line or after whitespace
+            const cursor = cm.getCursor();
+            const line = cm.getLine(cursor.line);
+            const charBefore = line[cursor.ch - 2];
+
+            if (cursor.ch === 1 || !charBefore || /\s/.test(charBefore)) {
+                slashStartPos = { line: cursor.line, ch: cursor.ch - 1 };
+                renderSlashMenu();
+                positionMenu(cm);
+            }
+        } else if (slashMenu.classList.contains('show')) {
+            // Filter commands as user types
+            const cursor = cm.getCursor();
+            const line = cm.getLine(cursor.line);
+
+            if (slashStartPos && cursor.line === slashStartPos.line && cursor.ch >= slashStartPos.ch) {
+                const typed = line.substring(slashStartPos.ch, cursor.ch);
+                if (typed.startsWith('/') && !/\s/.test(typed)) {
+                    renderSlashMenu(typed);
+                } else {
+                    hideMenu();
+                }
+            } else {
+                hideMenu();
+            }
+        }
+    });
+
+    // Keyboard navigation
+    easyMDE.codemirror.on('keydown', function(cm, e) {
+        if (!slashMenu.classList.contains('show')) return;
+
+        const items = slashMenu.querySelectorAll('.slash-command-item');
+        const filtered = Array.from(items).map(item => {
+            const cmd = item.dataset.command;
+            return slashCommands.find(c => c.command === cmd);
+        });
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedCommandIndex = (selectedCommandIndex + 1) % items.length;
+            items.forEach((item, idx) => item.classList.toggle('selected', idx === selectedCommandIndex));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedCommandIndex = (selectedCommandIndex - 1 + items.length) % items.length;
+            items.forEach((item, idx) => item.classList.toggle('selected', idx === selectedCommandIndex));
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            e.preventDefault();
+            if (filtered[selectedCommandIndex]) {
+                selectCommand(filtered[selectedCommandIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            hideMenu();
+        }
+    });
+
+    function hideMenu() {
+        slashMenu.classList.remove('show');
+        slashStartPos = null;
+    }
+
+    function selectCommand(cmd) {
+        currentCommand = cmd;
+
+        // Remove the slash command text from editor BEFORE hiding menu
+        // (hideMenu sets slashStartPos to null)
+        if (slashStartPos) {
+            const cm = easyMDE.codemirror;
+            const cursor = cm.getCursor();
+            cm.replaceRange('', slashStartPos, cursor);
+        }
+
+        hideMenu();
+
+        // Handle special commands
+        if (cmd.special === 'quick_picker') {
+            showQuickPicker(cmd.pickerType);
+        } else if (cmd.special === 'goal_picker') {
+            showGoalPicker();
+        } else if (cmd.special === 'habit_picker') {
+            showHabitPicker();
+        }
+    }
+
+    // =================================================================
+    // QUICK PICKER (simplified entity selection)
+    // =================================================================
+
+    function showQuickPicker(type) {
+        currentPickerType = type;
+        const config = quickPickerConfig[type];
+
+        document.getElementById('quickPickerTitle').textContent = config.title;
+        document.getElementById('quickPickerIcon').className = `bi ${config.icon} me-2`;
+        document.getElementById('quickPickerSearch').value = '';
+        document.getElementById('quickPickerCreate').classList.add('d-none');
+
+        // Load items
+        loadPickerItems('');
+
+        quickPickerModal.show();
+
+        // Focus search after modal opens
+        setTimeout(() => {
+            document.getElementById('quickPickerSearch').focus();
+        }, 200);
+    }
+
+    async function loadPickerItems(query) {
+        const config = quickPickerConfig[currentPickerType];
+        const listEl = document.getElementById('quickPickerList');
+
+        try {
+            const resp = await fetch(`${config.searchUrl}?q=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            pickerItems = data.items || [];
+            pickerSelectedIndex = 0;
+
+            if (pickerItems.length === 0) {
+                listEl.innerHTML = `<div class="quick-picker-empty">${config.emptyText}</div>`;
+            } else {
+                listEl.innerHTML = pickerItems.map((item, idx) => `
+                    <div class="quick-picker-item ${idx === 0 ? 'selected' : ''}" data-id="${item.id}" data-name="${item.name}">
+                        <div>
+                            <div class="quick-picker-name">${item.name}</div>
+                            ${item.relationship ? `<div class="quick-picker-meta">${item.relationship}</div>` : ''}
+                            ${item.author ? `<div class="quick-picker-meta">by ${item.author}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add click handlers
+                listEl.querySelectorAll('.quick-picker-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        selectPickerItem(parseInt(item.dataset.id), item.dataset.name);
+                    });
+                });
+            }
+
+            // Show/hide create button
+            const createEl = document.getElementById('quickPickerCreate');
+            if (query.trim() && !pickerItems.some(p => p.name.toLowerCase() === query.toLowerCase())) {
+                document.getElementById('quickPickerNewName').textContent = query;
+                createEl.classList.remove('d-none');
+            } else {
+                createEl.classList.add('d-none');
+            }
+        } catch (e) {
+            console.error('Failed to load picker items:', e);
+        }
+    }
+
+    function selectPickerItem(id, name) {
+        const config = quickPickerConfig[currentPickerType];
+        const link = `[${name}](${config.linkPath}${id}/)`;
+
+        // Insert link into editor immediately
+        const cm = easyMDE.codemirror;
+        const cursor = cm.getCursor();
+        cm.replaceRange(link, cursor);
+
+        // Hide modal
+        quickPickerModal.hide();
+
+        // Track mention in background if this picker type supports it (e.g., person)
+        if (config.mentionUrl) {
+            trackMentionInBackground(config.mentionUrl, id);
+        }
+    }
+
+    // Track mention asynchronously without blocking UI
+    async function trackMentionInBackground(mentionUrl, personId) {
+        try {
+            let pk = entryPk;
+
+            // If new entry, save first to get pk
+            if (!pk) {
+                pk = await quickSaveEntryForCapture();
+                if (pk) {
+                    entryPk = pk;  // Update for future use
+                }
+            }
+
+            if (pk) {
+                await fetch(mentionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ person_id: personId, entry_id: pk })
+                });
+            }
+        } catch (e) {
+            console.error('Failed to track mention:', e);
+        }
+    }
+
+    async function createPickerItem(name) {
+        const config = quickPickerConfig[currentPickerType];
+
+        try {
+            const resp = await fetch(config.createUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name })
+            });
+
+            const data = await resp.json();
+            if (data.id) {
+                selectPickerItem(data.id, data.name);
+            }
+        } catch (e) {
+            console.error('Failed to create item:', e);
+        }
+    }
+
+    // Quick picker search input handler
+    document.getElementById('quickPickerSearch').addEventListener('input', function(e) {
+        loadPickerItems(e.target.value);
+    });
+
+    // Quick picker keyboard navigation
+    document.getElementById('quickPickerSearch').addEventListener('keydown', function(e) {
+        const items = document.querySelectorAll('.quick-picker-item');
+
+        if (e.key === 'ArrowDown' && items.length > 0) {
+            e.preventDefault();
+            pickerSelectedIndex = (pickerSelectedIndex + 1) % items.length;
+            items.forEach((item, idx) => item.classList.toggle('selected', idx === pickerSelectedIndex));
+            items[pickerSelectedIndex].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp' && items.length > 0) {
+            e.preventDefault();
+            pickerSelectedIndex = (pickerSelectedIndex - 1 + items.length) % items.length;
+            items.forEach((item, idx) => item.classList.toggle('selected', idx === pickerSelectedIndex));
+            items[pickerSelectedIndex].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (items.length > 0 && items[pickerSelectedIndex]) {
+                const item = items[pickerSelectedIndex];
+                selectPickerItem(parseInt(item.dataset.id), item.dataset.name);
+            } else if (this.value.trim()) {
+                // Create new item
+                createPickerItem(this.value.trim());
+            }
+        }
+    });
+
+    // Quick picker create button
+    document.querySelector('#quickPickerCreate button').addEventListener('click', function() {
+        const name = document.getElementById('quickPickerSearch').value.trim();
+        if (name) {
+            createPickerItem(name);
+        }
+    });
+
+    // =================================================================
+    // QUICK SAVE FOR CAPTURES
+    // =================================================================
+
+    function quickSaveEntryForCapture() {
+        return new Promise((resolve) => {
+            const formData = new FormData();
+            formData.append('title', document.getElementById('id_title').value || 'Untitled');
+            formData.append('entry_date', document.querySelector('input[name="entry_date"]').value);
+            formData.append('mood', document.querySelector('select[name="mood"]').value);
+            formData.append('energy', document.querySelector('select[name="energy"]').value);
+            formData.append('city', document.getElementById('id_city').value);
+            formData.append('country_code', document.getElementById('id_country_code').value);
+            formData.append('content', easyMDE.value());
+
+            fetch('/journal/api/quick-save/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    entryPk = data.entry_pk;
+                    resolve(data.entry_pk);
+                } else {
+                    resolve(null);
+                }
+            })
+            .catch(() => resolve(null));
+        });
+    }
+
+    // Goal picker
+    function showGoalPicker() {
+        document.getElementById('goalHabitPickerTitle').textContent = 'Link to Goal';
+        document.getElementById('goalHabitPickerIcon').className = 'bi bi-bullseye me-2';
+
+        const listContainer = document.getElementById('goalHabitPickerList');
+        listContainer.innerHTML = '<p class="text-muted text-center">Loading goals...</p>';
+
+        const searchInput = document.getElementById('goalHabitPickerSearch');
+        searchInput.value = '';
+        searchInput.placeholder = 'Search goals...';
+
+        loadGoals();
+        goalHabitPickerModal.show();
+
+        // Remove old listener and add new one
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        newSearchInput.addEventListener('input', function() {
+            loadGoals(this.value);
+        });
+
+        setTimeout(() => newSearchInput.focus(), 200);
+    }
+
+    function loadGoals(query = '') {
+        fetch(`/journal/api/goals-search/?q=${encodeURIComponent(query)}`, {
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const list = document.getElementById('goalHabitPickerList');
+            if (data.goals.length === 0) {
+                list.innerHTML = '<p class="text-muted text-center">No goals found</p>';
+                return;
+            }
+
+            list.innerHTML = data.goals.map(g => {
+                // Build tasks list
+                let tasksHtml = '';
+                if (g.tasks && g.tasks.length > 0) {
+                    tasksHtml = `
+                        <div class="goal-tasks mt-2">
+                            ${g.tasks.map(t => `
+                                <div class="goal-task-item" onclick="event.stopPropagation(); completeTask(${t.id}, '${t.title.replace(/'/g, "\\'")}', ${g.id}, '${g.title.replace(/'/g, "\\'")}')">
+                                    <i class="bi bi-square me-2 text-muted"></i>
+                                    <span>${t.title}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                // Build linked habits
+                let habitsHtml = '';
+                if (g.habits && g.habits.length > 0) {
+                    habitsHtml = `
+                        <div class="goal-habits mt-2">
+                            ${g.habits.map(h => `
+                                <span class="badge bg-light text-dark me-1" style="cursor: pointer;" onclick="event.stopPropagation(); selectHabit(${h.id}, '${h.name.replace(/'/g, "\\'")}')">
+                                    <i class="bi ${h.icon} me-1"></i>${h.name}
+                                </span>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="picker-item-goal" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem;">
+                        <div class="d-flex align-items-center" style="cursor: pointer;" onclick="selectGoal(${g.id}, '${g.title.replace(/'/g, "\\'")}')">
+                            <div class="picker-item-icon" style="background: ${g.color}; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; margin-right: 0.75rem;">
+                                <i class="bi ${g.icon}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="picker-item-name fw-medium">${g.title}</div>
+                                <div class="picker-item-meta text-muted small">${Math.round(g.progress)}% complete</div>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted"></i>
+                        </div>
+                        ${tasksHtml}
+                        ${habitsHtml}
+                    </div>
+                `;
+            }).join('');
+
+            // Add CSS for task items if not already present
+            if (!document.getElementById('goalTaskStyles')) {
+                const style = document.createElement('style');
+                style.id = 'goalTaskStyles';
+                style.textContent = `
+                    .goal-tasks { padding-left: 2.5rem; }
+                    .goal-task-item {
+                        display: flex;
+                        align-items: center;
+                        padding: 0.4rem 0.5rem;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 0.85rem;
+                        color: #374151;
+                    }
+                    .goal-task-item:hover {
+                        background: #f3f4f6;
+                    }
+                    .goal-task-item:hover i {
+                        color: #4f46e5 !important;
+                    }
+                    .goal-habits { padding-left: 2.5rem; }
+                `;
+                document.head.appendChild(style);
+            }
+        });
+    }
+
+    // Complete a task within a goal
+    window.completeTask = function(taskId, taskTitle, goalId, goalTitle) {
+        goalHabitPickerModal.hide();
+
+        const doCompleteTask = (pk) => {
+            fetch('/journal/api/complete-task/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    task_id: taskId,
+                    entry_pk: pk
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const cm = easyMDE.codemirror;
+                    const cursor = cm.getCursor();
+                    const text = `\n{goal} [${goalTitle}](/goals/${goalId}/) - ✅ ${taskTitle} {/goal}\n`;
+                    cm.replaceRange(text, cursor);
+                } else {
+                    alert(data.error || 'Failed to complete task');
+                }
+            })
+            .catch(() => alert('Failed to complete task'));
+        };
+
+        if (!entryPk) {
+            quickSaveEntryForCapture().then(pk => {
+                if (pk) doCompleteTask(pk);
+            });
+        } else {
+            doCompleteTask(entryPk);
+        }
+    };
+
+    window.selectGoal = function(id, title) {
+        goalHabitPickerModal.hide();
+
+        // Link the goal to the entry in the database
+        const linkGoalToEntry = (pk) => {
+            fetch('/journal/api/link-goal/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    entry_pk: pk,
+                    goal_id: id
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Insert the text with link
+                    const cm = easyMDE.codemirror;
+                    const cursor = cm.getCursor();
+                    const text = `\n{goal} [${title}](/goals/${id}/) {/goal}\n`;
+                    cm.replaceRange(text, cursor);
+                } else {
+                    alert(data.error || 'Failed to link goal');
+                }
+            })
+            .catch(() => alert('Failed to link goal'));
+        };
+
+        // If new entry, save first
+        if (!entryPk) {
+            quickSaveEntryForCapture().then(pk => {
+                if (pk) linkGoalToEntry(pk);
+            });
+        } else {
+            linkGoalToEntry(entryPk);
+        }
+    };
+
+    // Habit picker
+    function showHabitPicker() {
+        document.getElementById('goalHabitPickerTitle').textContent = 'Link to Habit';
+        document.getElementById('goalHabitPickerIcon').className = 'bi bi-repeat me-2';
+
+        const listContainer = document.getElementById('goalHabitPickerList');
+        listContainer.innerHTML = '<p class="text-muted text-center">Loading habits...</p>';
+
+        const searchInput = document.getElementById('goalHabitPickerSearch');
+        searchInput.value = '';
+        searchInput.placeholder = 'Search habits...';
+
+        loadHabits();
+        goalHabitPickerModal.show();
+
+        // Remove old listener and add new one
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        newSearchInput.addEventListener('input', function() {
+            loadHabits(this.value);
+        });
+
+        setTimeout(() => newSearchInput.focus(), 200);
+    }
+
+    function loadHabits(query = '') {
+        fetch(`/journal/api/habits-search/?q=${encodeURIComponent(query)}`, {
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const list = document.getElementById('goalHabitPickerList');
+            let html = '';
+
+            if (data.habits.length === 0) {
+                html = '<p class="text-muted text-center mb-3">No habits found</p>';
+            } else {
+                html = data.habits.map(h => `
+                    <div class="picker-item" onclick="selectHabit(${h.id}, '${h.name.replace(/'/g, "\\'")}')">
+                        <div class="picker-item-icon" style="background: ${h.color}">
+                            <i class="bi ${h.icon}"></i>
+                        </div>
+                        <div>
+                            <div class="picker-item-name">${h.name}</div>
+                            <div class="picker-item-meta">${h.current_streak} day streak</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Add "Create New Habit" button at the bottom
+            html += `
+                <div class="mt-3 text-center">
+                    <a href="/habits/create/" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Create New Habit
+                    </a>
+                    <p class="text-muted small mt-2 mb-0">Opens in new tab</p>
+                </div>
+            `;
+
+            list.innerHTML = html;
+        });
+    }
+
+    window.selectHabit = function(id, name) {
+        goalHabitPickerModal.hide();
+
+        // Link the habit to the entry and create a check-in
+        const linkHabitToEntry = (pk) => {
+            fetch('/journal/api/link-habit/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    entry_pk: pk,
+                    habit_id: id,
+                    create_checkin: true
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Insert the text with link
+                    const cm = easyMDE.codemirror;
+                    const cursor = cm.getCursor();
+                    let text = `\n{habit} [${name}](/habits/${id}/) {/habit}\n`;
+                    if (data.checkin_created) {
+                        text = `\n{habit} [${name}](/habits/${id}/) - Checked in! {/habit}\n`;
+                    }
+                    cm.replaceRange(text, cursor);
+                } else {
+                    alert(data.error || 'Failed to link habit');
+                }
+            })
+            .catch(() => alert('Failed to link habit'));
+        };
+
+        // If new entry, save first
+        if (!entryPk) {
+            quickSaveEntryForCapture().then(pk => {
+                if (pk) linkHabitToEntry(pk);
+            });
+        } else {
+            linkHabitToEntry(entryPk);
+        }
+    };
+
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!slashMenu.contains(e.target)) {
+            hideMenu();
+        }
+        if (!mentionMenu.contains(e.target)) {
+            hideMentionMenu();
+        }
+    });
+
+    // =================================================================
+    // HABIT AUTO-DETECTION
+    // =================================================================
+
+    let habitDetectionTimeout = null;
+    let detectedHabits = [];
+
+    function detectHabitsInContent() {
+        const content = easyMDE ? easyMDE.value() : '';
+        if (!content || content.length < 3) {
+            document.getElementById('habitSuggestions').classList.add('d-none');
+            return;
+        }
+
+        // Debounce the API call
+        clearTimeout(habitDetectionTimeout);
+        habitDetectionTimeout = setTimeout(() => {
+            fetch(`/journal/api/habits-detect/?content=${encodeURIComponent(content)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.detected_habits && data.detected_habits.length > 0) {
+                        detectedHabits = data.detected_habits;
+                        showHabitSuggestions(data.detected_habits);
+                    } else {
+                        document.getElementById('habitSuggestions').classList.add('d-none');
+                    }
+                })
+                .catch(err => console.error('Habit detection failed:', err));
+        }, 1500); // Wait 1.5s after user stops typing
+    }
+
+    function showHabitSuggestions(habits) {
+        const container = document.getElementById('habitSuggestionsContent');
+        const banner = document.getElementById('habitSuggestions');
+
+        let html = '<div class="d-flex flex-wrap gap-2">';
+        habits.forEach(habit => {
+            html += `
+                <button type="button" class="btn btn-sm btn-success" onclick="quickLinkHabit(${habit.id}, '${habit.name.replace(/'/g, "\\'")}')">
+                    <i class="bi bi-repeat me-1"></i>Link "${habit.name}"
+                </button>
+            `;
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+        banner.classList.remove('d-none');
+    }
+
+    window.quickLinkHabit = function(id, name) {
+        // Close the suggestion banner
+        document.getElementById('habitSuggestions').classList.add('d-none');
+        // Use the existing selectHabit function
+        selectHabit(id, name);
+    };
+
+    // Watch for content changes
+    if (easyMDE) {
+        easyMDE.codemirror.on('change', function() {
+            detectHabitsInContent();
+        });
+    }
+
+    // =================================================================
+    // @ MENTION AUTOCOMPLETE (for POV sharing)
+    // =================================================================
+
+    const mentionMenu = document.getElementById('mentionMenu');
+    let friendsList = null;  // Cached friends list
+    let mentionStartPos = null;
+    let selectedMentionIndex = 0;
+
+    // Fetch friends list (cached)
+    function loadFriendsList() {
+        if (friendsList !== null) {
+            return Promise.resolve(friendsList);
+        }
+        return fetch('{% url "accounts:friends_list_api" %}')
+            .then(r => r.json())
+            .then(data => {
+                friendsList = data.friends || [];
+                return friendsList;
+            })
+            .catch(() => {
+                friendsList = [];
+                return [];
+            });
+    }
+
+    // Pre-load friends list
+    loadFriendsList();
+
+    // Render mention menu
+    function renderMentionMenu(filter = '') {
+        loadFriendsList().then(friends => {
+            const filtered = filter
+                ? friends.filter(f =>
+                    f.username.toLowerCase().includes(filter.toLowerCase()) ||
+                    f.display_name.toLowerCase().includes(filter.toLowerCase())
+                  )
+                : friends;
+
+            if (filtered.length === 0) {
+                mentionMenu.innerHTML = `
+                    <div class="mention-header">Friends</div>
+                    <div class="text-muted text-center py-3 small">No friends found</div>
+                `;
+                mentionMenu.classList.add('show');
+                return;
+            }
+
+            selectedMentionIndex = 0;
+            mentionMenu.innerHTML = `
+                <div class="mention-header">Tag a friend for POV</div>
+                ${filtered.map((f, idx) => `
+                    <div class="mention-item ${idx === 0 ? 'selected' : ''}" data-username="${f.username}">
+                        <div class="mention-icon">${f.username.charAt(0).toUpperCase()}</div>
+                        <div>
+                            <div class="mention-username">@${f.username}</div>
+                            <div class="mention-display">${f.display_name}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+
+            // Add click handlers
+            mentionMenu.querySelectorAll('.mention-item').forEach((item, idx) => {
+                item.addEventListener('click', () => selectMention(filtered[idx]));
+                item.addEventListener('mouseenter', () => {
+                    mentionMenu.querySelectorAll('.mention-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    selectedMentionIndex = idx;
+                });
+            });
+
+            mentionMenu.classList.add('show');
+        });
+    }
+
+    // Position mention menu at cursor
+    function positionMentionMenu(cm) {
+        const cursor = cm.getCursor();
+        const coords = cm.cursorCoords(cursor, 'local');
+        mentionMenu.style.left = (coords.left + 10) + 'px';
+        mentionMenu.style.top = (coords.bottom + 5) + 'px';
+    }
+
+    function hideMentionMenu() {
+        mentionMenu.classList.remove('show');
+        mentionStartPos = null;
+    }
+
+    function selectMention(friend) {
+        if (mentionStartPos) {
+            const cm = easyMDE.codemirror;
+            const cursor = cm.getCursor();
+            // Replace @partial with @username
+            cm.replaceRange(friend.username + ' ', mentionStartPos, cursor);
+        }
+        hideMentionMenu();
+    }
+
+    // Listen for "@" typing in EasyMDE
+    easyMDE.codemirror.on('change', function(cm, change) {
+        // Check for @ trigger
+        if (change.origin === '+input' && change.text[0] === '@') {
+            const cursor = cm.getCursor();
+            const line = cm.getLine(cursor.line);
+            const charBefore = line[cursor.ch - 2];
+
+            // Only trigger if @ is at start of line or after whitespace
+            if (cursor.ch === 1 || !charBefore || /\s/.test(charBefore)) {
+                mentionStartPos = { line: cursor.line, ch: cursor.ch - 1 };
+                renderMentionMenu();
+                positionMentionMenu(cm);
+            }
+        } else if (mentionMenu.classList.contains('show')) {
+            // Filter as user types after @
+            const cursor = cm.getCursor();
+            const line = cm.getLine(cursor.line);
+
+            if (mentionStartPos && cursor.line === mentionStartPos.line && cursor.ch >= mentionStartPos.ch) {
+                const typed = line.substring(mentionStartPos.ch, cursor.ch);
+                if (typed.startsWith('@') && !/\s/.test(typed)) {
+                    renderMentionMenu(typed.substring(1));  // Remove @ for filter
+                } else {
+                    hideMentionMenu();
+                }
+            } else {
+                hideMentionMenu();
+            }
+        }
+    });
+
+    // Keyboard navigation for mention menu
+    easyMDE.codemirror.on('keydown', function(cm, e) {
+        if (!mentionMenu.classList.contains('show')) return;
+
+        const items = mentionMenu.querySelectorAll('.mention-item');
+        if (items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedMentionIndex = (selectedMentionIndex + 1) % items.length;
+            items.forEach((item, idx) => item.classList.toggle('selected', idx === selectedMentionIndex));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedMentionIndex = (selectedMentionIndex - 1 + items.length) % items.length;
+            items.forEach((item, idx) => item.classList.toggle('selected', idx === selectedMentionIndex));
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            e.preventDefault();
+            const selectedItem = items[selectedMentionIndex];
+            if (selectedItem) {
+                const username = selectedItem.dataset.username;
+                const friend = friendsList.find(f => f.username === username);
+                if (friend) selectMention(friend);
+            }
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            hideMentionMenu();
+        }
+    });
+
+    {% endif %}
+
+    // Restore from local storage if newer
+    const key = 'reflekt-entry-{% if entry %}{{ entry.pk }}{% else %}new{% endif %}';
+    const saved = localStorage.getItem(key);
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            // Only restore if less than 24 hours old and user confirms
+            if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+                {% if is_new %}
+                // For new entries, auto-restore
+                if (data.content && data.content.trim()) {
+                    if (confirm('Restore your unsaved draft?')) {
+                        document.getElementById('id_title').value = data.title || '';
+                        {% if editor_preference == 'rich_text' %}
+                        quill.root.innerHTML = data.content;
+                        document.getElementById('id_content').value = data.content;
+                        updateWordCount(quill.getText());
+                        {% else %}
+                        easyMDE.value(data.content);
+                        updateWordCount(data.content);
+                        {% endif %}
+                    }
+                }
+                {% endif %}
+            }
+        } catch (e) {
+            console.log('Could not restore draft');
+        }
+    }
+
+    // Clear local storage on successful save
+    document.getElementById('entry-form').addEventListener('submit', function() {
+        localStorage.removeItem(key);
+    });
+
+    // Attachment upload handling
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = uploadProgress.querySelector('.progress-bar');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const gallery = document.getElementById('attachmentsGallery');
+    const attachmentCount = document.getElementById('attachmentCount');
+    let entryPk = {% if entry %}{{ entry.pk }}{% else %}null{% endif %};
+    const csrfToken = '{{ csrf_token }}';
+    const isNewEntry = {{ is_new|yesno:"true,false" }};
+    let pendingFiles = [];
+
+    // Click to browse
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    // Drag and drop
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    // File input change
+    fileInput.addEventListener('change', () => {
+        handleFiles(fileInput.files);
+        fileInput.value = ''; // Reset for next upload
+    });
+
+    function handleFiles(files) {
+        if (entryPk) {
+            // Entry exists, upload directly
+            Array.from(files).forEach(file => uploadFile(file));
+        } else {
+            // New entry - save it first, then upload
+            pendingFiles = Array.from(files);
+            quickSaveEntry().then(pk => {
+                if (pk) {
+                    entryPk = pk;
+                    // Update the form action to point to edit URL
+                    document.getElementById('entry-form').action = `/journal/${pk}/edit/`;
+                    // Upload pending files
+                    pendingFiles.forEach(file => uploadFile(file));
+                    pendingFiles = [];
+                    // Clear local storage since entry is now saved
+                    localStorage.removeItem('reflekt-entry-new');
+                }
+            });
+        }
+    }
+
+    function quickSaveEntry() {
+        return new Promise((resolve, reject) => {
+            uploadProgress.classList.remove('d-none');
+            uploadStatus.textContent = 'Saving entry...';
+            progressBar.style.width = '50%';
+
+            const formData = new FormData();
+            formData.append('title', document.getElementById('id_title').value || 'Untitled');
+            formData.append('entry_date', document.querySelector('input[name="entry_date"]').value);
+            formData.append('mood', document.querySelector('select[name="mood"]').value);
+            formData.append('energy', document.querySelector('select[name="energy"]').value);
+            formData.append('city', document.getElementById('id_city').value);
+            formData.append('country_code', document.getElementById('id_country_code').value);
+
+            // Get content from the appropriate editor
+            {% if editor_preference == 'rich_text' %}
+            formData.append('content', document.getElementById('id_content').value);
+            {% else %}
+            formData.append('content', easyMDE.value());
+            {% endif %}
+
+            fetch('/journal/api/quick-save/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    progressBar.style.width = '100%';
+                    uploadStatus.textContent = 'Entry saved!';
+                    resolve(data.entry_pk);
+                } else {
+                    uploadProgress.classList.add('d-none');
+                    alert('Failed to save entry');
+                    resolve(null);
+                }
+            })
+            .catch(err => {
+                uploadProgress.classList.add('d-none');
+                alert('Failed to save entry');
+                resolve(null);
+            });
+        });
+    }
+
+    function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // Show progress
+        uploadProgress.classList.remove('d-none');
+        progressBar.style.width = '0%';
+        uploadStatus.textContent = `Uploading ${file.name}...`;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `/journal/${entryPk}/attachments/upload/`);
+        xhr.setRequestHeader('X-CSRFToken', csrfToken);
+
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const percent = (e.loaded / e.total) * 100;
+                progressBar.style.width = percent + '%';
+            }
+        };
+
+        xhr.onload = () => {
+            uploadProgress.classList.add('d-none');
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                addAttachmentToGallery(data);
+                updateCount(1);
+            } else {
+                const error = JSON.parse(xhr.responseText);
+                alert(error.error || 'Upload failed');
+            }
+        };
+
+        xhr.onerror = () => {
+            uploadProgress.classList.add('d-none');
+            alert('Upload failed. Please try again.');
+        };
+
+        xhr.send(formData);
+    }
+
+    function addAttachmentToGallery(data) {
+        const item = document.createElement('div');
+        item.className = 'attachment-item';
+        item.dataset.id = data.id;
+
+        let preview;
+        if (data.file_type === 'image') {
+            preview = `<img src="${data.url}" alt="${data.file_name}">`;
+        } else if (data.file_type === 'audio') {
+            preview = `<div class="file-icon audio"><i class="bi bi-music-note-beamed"></i></div>`;
+        } else {
+            preview = `<div class="file-icon video"><i class="bi bi-play-circle"></i></div>`;
+        }
+
+        item.innerHTML = `
+            ${preview}
+            <div class="file-info">
+                <div class="file-name" title="${data.file_name}">${data.file_name}</div>
+                <div class="file-size">${data.size_display}</div>
+            </div>
+            <button type="button" class="delete-btn" onclick="deleteAttachment(${data.id})">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+
+        gallery.appendChild(item);
+    }
+
+    function updateCount(delta) {
+        const current = parseInt(attachmentCount.textContent) || 0;
+        attachmentCount.textContent = current + delta;
+    }
+
+    // Make deleteAttachment global
+    window.deleteAttachment = function(id) {
+        if (!confirm('Delete this attachment?')) return;
+
+        fetch(`/journal/attachments/${id}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const item = gallery.querySelector(`[data-id="${id}"]`);
+                if (item) item.remove();
+                updateCount(-1);
+            }
+        })
+        .catch(() => alert('Failed to delete attachment'));
+    };
+});
+</script>
+{% endblock %}

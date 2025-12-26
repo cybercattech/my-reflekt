@@ -1,0 +1,317 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ habit.name }}{% endblock %}
+
+{% block dashboard_css %}
+{% include 'habits/partials/_habits_css.html' %}
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="habits-container px-4 py-4">
+    <div class="habits-main">
+        <!-- Back Link -->
+        <a href="{% url 'habits:habit_list' %}" class="text-decoration-none text-muted mb-3 d-inline-block">
+            <i class="bi bi-arrow-left me-1"></i>Back to Habits
+        </a>
+
+        <!-- Habit Header -->
+        <div class="habit-detail-header" style="background: linear-gradient(135deg, {{ habit.color }} 0%, {{ habit.color }}dd 100%);">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="habit-icon" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px;">
+                        <i class="{{ habit.icon }}" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h1 class="habit-detail-title mb-1">{{ habit.name }}</h1>
+                        <div class="habit-detail-meta">
+                            <span><i class="{{ habit.category_icon }} me-1"></i>{{ habit.get_category_display }}</span>
+                            <span><i class="bi bi-clock me-1"></i>{{ habit.frequency_display }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'habits:habit_edit' pk=habit.pk %}" class="btn btn-light btn-sm">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </a>
+                    <a href="{% url 'habits:habit_delete' pk=habit.pk %}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="habit-stats-grid">
+                <div class="habit-stat-item">
+                    <div class="habit-stat-value">{{ habit.current_streak }}</div>
+                    <div class="habit-stat-label">Current Streak</div>
+                </div>
+                <div class="habit-stat-item">
+                    <div class="habit-stat-value">{{ habit.longest_streak }}</div>
+                    <div class="habit-stat-label">Best Streak</div>
+                </div>
+                <div class="habit-stat-item">
+                    <div class="habit-stat-value">{{ habit.total_completions }}</div>
+                    <div class="habit-stat-label">Total Check-ins</div>
+                </div>
+                <div class="habit-stat-item">
+                    <div class="habit-stat-value">{{ completion_rate_30|floatformat:0 }}%</div>
+                    <div class="habit-stat-label">30-Day Rate</div>
+                </div>
+            </div>
+
+            <!-- Today's Check-in -->
+            <div class="mt-4 text-center">
+                <button class="btn {% if completed_today %}btn-light{% else %}btn-warning{% endif %} btn-lg"
+                        onclick="toggleCheckin({{ habit.pk }})"
+                        {% if not is_due_today %}disabled title="Not due today"{% endif %}>
+                    {% if completed_today %}
+                    <i class="bi bi-check-circle-fill me-2"></i>Completed Today
+                    {% elif is_due_today %}
+                    <i class="bi bi-circle me-2"></i>Mark as Complete
+                    {% else %}
+                    <i class="bi bi-dash-circle me-2"></i>Not Due Today
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Column: Calendar & History -->
+            <div class="col-lg-8">
+                <!-- Calendar Heatmap -->
+                <div class="habit-calendar">
+                    <h3 class="habit-section-title">
+                        <i class="bi bi-calendar3"></i>Last 30 Days
+                    </h3>
+                    <div class="calendar-grid">
+                        <!-- Weekday headers -->
+                        <div class="calendar-weekday">M</div>
+                        <div class="calendar-weekday">T</div>
+                        <div class="calendar-weekday">W</div>
+                        <div class="calendar-weekday">T</div>
+                        <div class="calendar-weekday">F</div>
+                        <div class="calendar-weekday">S</div>
+                        <div class="calendar-weekday">S</div>
+
+                        {% for day in calendar_data %}
+                        <div class="calendar-day
+                                    {% if day.completed %}completed{% elif day.is_due %}due{% else %}not-due{% endif %}
+                                    {% if day.is_today %}today{% endif %}"
+                             title="{{ day.date|date:'M d' }}{% if day.completed %} - Completed{% elif day.is_due %} - Due{% endif %}"
+                             {% if not day.is_today %}onclick="toggleCheckinDate({{ habit.pk }}, '{{ day.date|date:'Y-m-d' }}')"{% endif %}>
+                            {{ day.date.day }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3 d-flex gap-3 justify-content-center small text-muted">
+                        <span><span class="badge" style="background: #22c55e;">&nbsp;</span> Completed</span>
+                        <span><span class="badge" style="background: #fef3c7; color: #92400e;">&nbsp;</span> Due/Missed</span>
+                        <span><span class="badge" style="background: #f9fafb;">&nbsp;</span> Not Due</span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                {% if habit.description %}
+                <div class="habit-section">
+                    <h3 class="habit-section-title">
+                        <i class="bi bi-info-circle"></i>About This Habit
+                    </h3>
+                    <p class="mb-0">{{ habit.description|linebreaks }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Recent Check-ins with Notes -->
+                {% if recent_checkins %}
+                <div class="habit-section">
+                    <h3 class="habit-section-title">
+                        <i class="bi bi-chat-left-text"></i>Recent Notes
+                    </h3>
+                    {% for checkin in recent_checkins %}
+                    <div class="d-flex gap-2 mb-2 p-2 bg-light rounded">
+                        <div class="flex-shrink-0">
+                            <span class="badge bg-{{ checkin.completed|yesno:'success,secondary' }}">
+                                {{ checkin.check_date|date:"M d" }}
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 small">{{ checkin.note }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column: Linked Entries -->
+            <div class="col-lg-4">
+                <div class="habit-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="habit-section-title mb-0">
+                            <i class="bi bi-journal"></i>Linked Entries
+                        </h3>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#linkEntryModal">
+                            <i class="bi bi-link-45deg me-1"></i>Link
+                        </button>
+                    </div>
+
+                    {% if linked_entries %}
+                    {% for entry in linked_entries %}
+                    <a href="{{ entry.get_absolute_url }}" class="linked-entry">
+                        <i class="bi bi-journal-text text-primary"></i>
+                        <div class="flex-grow-1">
+                            <div>{{ entry.title|default:"Journal Entry" }}</div>
+                            <div class="linked-entry-date">{{ entry.entry_date|date:"M d, Y" }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                    {% if habit.journal_entries.count > 5 %}
+                    <div class="text-center">
+                        <small class="text-muted">+ {{ habit.journal_entries.count|add:"-5" }} more entries</small>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-muted mb-0 small">No journal entries linked yet.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="habit-section">
+                    <h3 class="habit-section-title">
+                        <i class="bi bi-bar-chart"></i>Statistics
+                    </h3>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">7-day completion</span>
+                        <span class="fw-bold">{{ completion_rate_7|floatformat:0 }}%</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">30-day completion</span>
+                        <span class="fw-bold">{{ completion_rate_30|floatformat:0 }}%</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Started</span>
+                        <span class="fw-bold">{{ habit.start_date|date:"M d, Y" }}</span>
+                    </div>
+                    {% if habit.last_completed_date %}
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Last completed</span>
+                        <span class="fw-bold">{{ habit.last_completed_date|date:"M d" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Link Entry Modal -->
+<div class="modal fade" id="linkEntryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Link Journal Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Search Entries</label>
+                    <input type="text" id="entrySearch" class="form-control"
+                           placeholder="Search by title or content...">
+                </div>
+                <div id="entryResults" class="mt-3">
+                    <p class="text-muted small">Type to search your journal entries</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script>
+function toggleCheckin(habitId) {
+    fetch(`/habits/${habitId}/checkin/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function toggleCheckinDate(habitId, dateStr) {
+    fetch(`/habits/${habitId}/checkin/${dateStr}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+// Search and link entries
+let searchTimeout;
+document.getElementById('entrySearch').addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    const query = e.target.value;
+
+    if (query.length < 2) {
+        document.getElementById('entryResults').innerHTML =
+            '<p class="text-muted small">Type at least 2 characters to search</p>';
+        return;
+    }
+
+    searchTimeout = setTimeout(() => {
+        fetch(`/habits/{{ habit.pk }}/search-entries/?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            const results = document.getElementById('entryResults');
+            if (data.entries.length === 0) {
+                results.innerHTML = '<p class="text-muted">No matching entries found</p>';
+                return;
+            }
+
+            results.innerHTML = data.entries.map(entry => `
+                <div class="linked-entry" style="cursor:pointer" onclick="linkEntry(${entry.id})">
+                    <i class="bi bi-journal-text text-primary"></i>
+                    <div>
+                        <div>${entry.title}</div>
+                        <div class="linked-entry-date">${entry.date}</div>
+                    </div>
+                </div>
+            `).join('');
+        });
+    }, 300);
+});
+
+function linkEntry(entryId) {
+    const form = new FormData();
+    form.append('entry_id', entryId);
+
+    fetch(`/habits/{{ habit.pk }}/link-entry/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: form
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock dashboard_js %}

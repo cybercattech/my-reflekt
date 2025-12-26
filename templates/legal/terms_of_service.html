@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms of Service{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <h1 class="mb-4">Terms of Service</h1>
+            <p class="text-muted mb-4"><strong>Last Updated:</strong> December 25, 2025</p>
+
+            <div class="alert alert-info">
+                <strong>Agreement to Terms</strong><br>
+                By using Reflekt, you agree to these Terms of Service. Please read them carefully.
+            </div>
+
+            <h2 class="mt-5 mb-3">1. Acceptance of Terms</h2>
+            <p>By accessing or using Reflekt ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service.</p>
+            <p>We may modify these Terms at any time. Continued use of the Service after changes constitutes acceptance of the modified Terms.</p>
+
+            <h2 class="mt-5 mb-3">2. Description of Service</h2>
+            <p>Reflekt is a digital journaling platform that provides:</p>
+            <ul>
+                <li>Secure, encrypted storage of journal entries</li>
+                <li>AI-powered sentiment analysis and insights</li>
+                <li>Goal and habit tracking</li>
+                <li>Life capture tracking (books, movies, places, people)</li>
+                <li>Annual and monthly reviews</li>
+                <li>Friend sharing features</li>
+                <li>Data import from other journaling platforms</li>
+                <li>Export capabilities</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">3. Account Registration</h2>
+
+            <h3 class="h5 mt-4">3.1 Eligibility</h3>
+            <ul>
+                <li>You must be at least 13 years old to use the Service</li>
+                <li>You must provide accurate and complete registration information</li>
+                <li>You are responsible for maintaining the confidentiality of your account</li>
+            </ul>
+
+            <h3 class="h5 mt-4">3.2 Account Security</h3>
+            <ul>
+                <li>You are responsible for all activity under your account</li>
+                <li>You must notify us immediately of any unauthorized access</li>
+                <li>You may not share your account credentials with others</li>
+                <li>You may not create multiple accounts for abusive purposes</li>
+            </ul>
+
+            <h3 class="h5 mt-4">3.3 Account Termination</h3>
+            <p>We reserve the right to suspend or terminate your account if you:</p>
+            <ul>
+                <li>Violate these Terms</li>
+                <li>Engage in fraudulent or illegal activity</li>
+                <li>Abuse the Service or other users</li>
+                <li>Remain inactive for an extended period (with notice)</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">4. Subscription & Payment</h2>
+
+            <h3 class="h5 mt-4">4.1 Free Tier</h3>
+            <ul>
+                <li>Basic journaling and sentiment analysis features are free</li>
+                <li>We reserve the right to modify free tier features with notice</li>
+            </ul>
+
+            <h3 class="h5 mt-4">4.2 Premium Subscription</h3>
+            <ul>
+                <li><strong>Trial Period:</strong> 14-day free trial for new subscribers</li>
+                <li><strong>Billing:</strong> Monthly or annual subscription options</li>
+                <li><strong>Auto-renewal:</strong> Subscriptions automatically renew unless cancelled</li>
+                <li><strong>Payment:</strong> Processed securely through Stripe</li>
+            </ul>
+
+            <h3 class="h5 mt-4">4.3 Cancellation & Refunds</h3>
+            <ul>
+                <li><strong>Cancellation:</strong> You may cancel your subscription at any time through your account settings</li>
+                <li><strong>Effective Date:</strong> Cancellation takes effect at the end of the current billing period</li>
+                <li><strong>Continued Access:</strong> You retain access to premium features until the end of the paid period</li>
+                <li><strong>No Refunds - Monthly Plans:</strong> No refunds for partial months or unused time</li>
+                <li><strong>No Refunds - Annual Plans:</strong> Annual subscriptions are non-refundable. No refunds will be issued for annual plans, even if cancelled mid-term</li>
+                <li><strong>7-Day Window:</strong> You may request a full refund within 7 days of your initial purchase (first-time subscribers only)</li>
+                <li><strong>Trial Period:</strong> If you cancel during the 14-day free trial, you will not be charged</li>
+            </ul>
+
+            <h3 class="h5 mt-4">4.4 Family Plan</h3>
+            <p><strong>Family Plan allows one subscriber to provide premium access to up to 5 family members.</strong></p>
+
+            <p><strong>As the Family Plan Administrator:</strong></p>
+            <ul>
+                <li>You can invite up to 5 people to join your family plan</li>
+                <li>You pay for the family plan subscription</li>
+                <li>All family members get full premium access</li>
+                <li>You can remove family members at any time</li>
+                <li>If you cancel or downgrade, all family members lose premium access</li>
+            </ul>
+
+            <p><strong>As a Family Plan Member:</strong></p>
+            <ul>
+                <li>You receive an invitation email from the family plan administrator</li>
+                <li>You must accept the invitation to join</li>
+                <li><strong>Subscription Cancellation:</strong> If you currently have a paid subscription, it will be cancelled when you join the family plan. Your current subscription will end at the end of the billing period, with <strong>no refund issued</strong> for the current period</li>
+                <li><strong>Automatic Friendship:</strong> When you join a family plan, you automatically become friends with the administrator on Reflekt</li>
+                <li>You can be removed from the family plan at any time by the administrator</li>
+                <li>If removed, you immediately lose premium access and revert to the free tier</li>
+                <li>Your journal data and entries are never deleted when leaving a family plan</li>
+            </ul>
+
+            <p class="alert alert-warning small">
+                <strong>⚠️ Important for Family Members:</strong> Joining a family plan will cancel your existing subscription with no refund. Your current subscription will continue until the end of your billing period, then automatically transition to the family plan.
+            </p>
+
+            <h3 class="h5 mt-4">4.5 Price Changes</h3>
+            <ul>
+                <li>We may change subscription prices with 30 days notice</li>
+                <li>Price changes apply at your next renewal</li>
+                <li>You may cancel before the price change takes effect</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">5. Your Content</h2>
+
+            <h3 class="h5 mt-4">5.1 Ownership</h3>
+            <p class="fw-bold">You retain all rights to your journal entries and content.</p>
+            <p>We do not claim ownership of any content you create or upload to the Service.</p>
+
+            <h3 class="h5 mt-4">5.2 License to Us</h3>
+            <p>By using the Service, you grant us a limited license to:</p>
+            <ul>
+                <li>Store and display your content to you</li>
+                <li>Process your content for AI analysis and insights</li>
+                <li>Display shared content to friends you've explicitly chosen</li>
+                <li>Create backups for data protection</li>
+            </ul>
+            <p class="text-muted small">This license terminates when you delete content or close your account.</p>
+
+            <h3 class="h5 mt-4">5.3 Content Responsibilities</h3>
+            <p>You are solely responsible for your content. You agree not to post content that:</p>
+            <ul>
+                <li>Is illegal or promotes illegal activity</li>
+                <li>Violates intellectual property rights</li>
+                <li>Contains malware or harmful code</li>
+                <li>Harasses or threatens others</li>
+                <li>Contains child sexual abuse material</li>
+                <li>Violates export control laws</li>
+            </ul>
+
+            <h3 class="h5 mt-4">5.4 POV (Point of View) Sharing Feature</h3>
+            <p>Reflekt allows you to share specific portions of your journal entries with friends using POV blocks. By using this feature, you acknowledge and agree to the following:</p>
+
+            <p><strong>Your Responsibilities as a Sharer:</strong></p>
+            <ul>
+                <li><strong>Consent</strong> - You have the right to share the content you're posting in POV blocks</li>
+                <li><strong>Irrevocability</strong> - Once a POV is shared, it becomes part of your friend's journal entry. While you can delete the POV from your side, you cannot force removal from the recipient's journal</li>
+                <li><strong>Friend Verification</strong> - POVs can only be shared with confirmed friends on the platform</li>
+                <li><strong>No Sensitive Information</strong> - You should not share others' personal information, trade secrets, or confidential information without permission</li>
+                <li><strong>Appropriate Content</strong> - Shared POVs must comply with our Acceptable Use policy (Section 6)</li>
+            </ul>
+
+            <p><strong>Your Rights as a Recipient:</strong></p>
+            <ul>
+                <li><strong>Deletion Right</strong> - You can delete any POV shared with you from your journal at any time</li>
+                <li><strong>Reply Option</strong> - You can choose to reply to POVs or ignore them</li>
+                <li><strong>No Obligation</strong> - You're not required to read, respond to, or keep shared POVs</li>
+                <li><strong>Reporting</strong> - If a POV contains inappropriate content, you can report it to us</li>
+            </ul>
+
+            <p><strong>Data Handling:</strong></p>
+            <ul>
+                <li>Shared POV content is encrypted at rest, just like your regular journal entries</li>
+                <li>POV content is only visible to you (the author), the specified recipients, and Reflekt for AI processing</li>
+                <li>When you delete your account, all POVs you authored are deleted from tracking, but content already in friends' journals may remain</li>
+                <li>When a friend deletes their account, POVs they shared with you may remain in your journal unless you delete them</li>
+            </ul>
+
+            <p class="alert alert-warning small mb-4">
+                <strong>⚠️ Important:</strong> Think carefully before sharing POVs. Once shared, the content is in someone else's journal. While they can delete it, you cannot control what they do with it. Only share what you're comfortable with your friends keeping permanently.
+            </p>
+
+            <h2 class="mt-5 mb-3">6. Acceptable Use</h2>
+            <p>You agree NOT to:</p>
+            <ul>
+                <li>Attempt to gain unauthorized access to our systems</li>
+                <li>Interfere with or disrupt the Service</li>
+                <li>Use automated systems to access the Service (scraping, bots)</li>
+                <li>Reverse engineer or decompile any part of the Service</li>
+                <li>Resell or redistribute the Service</li>
+                <li>Use the Service for competitive analysis</li>
+                <li>Impersonate others or create fake accounts</li>
+                <li>Spam or send unsolicited messages to other users</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">7. AI Analysis & Insights</h2>
+
+            <h3 class="h5 mt-4">7.1 How It Works</h3>
+            <ul>
+                <li>AI analyzes your journal entries to generate sentiment scores and insights</li>
+                <li>Analysis is performed automatically on your content</li>
+                <li>Results are visible only to you (unless you share entries)</li>
+            </ul>
+
+            <h3 class="h5 mt-4">7.2 No Medical/Therapeutic Claims</h3>
+            <p class="fw-bold text-danger">Reflekt is NOT a medical or mental health service.</p>
+            <ul>
+                <li>AI insights are for self-reflection, not medical diagnosis</li>
+                <li>Do not rely on Reflekt for mental health treatment</li>
+                <li>Seek professional help for mental health concerns</li>
+                <li>If you are in crisis, contact emergency services immediately</li>
+            </ul>
+
+            <h3 class="h5 mt-4">7.3 Accuracy Disclaimer</h3>
+            <p>AI analysis may not always be accurate. Insights are generated by algorithms and should be taken as suggestions, not absolute truths.</p>
+
+            <h2 class="mt-5 mb-3">8. Data & Privacy</h2>
+            <p>Your privacy is important to us. Please review our <a href="{% url 'accounts:privacy' %}">Privacy Policy</a> to understand how we collect, use, and protect your data.</p>
+
+            <h3 class="h5 mt-4">8.1 Data Security</h3>
+            <ul>
+                <li>We use encryption to protect your journal entries at rest</li>
+                <li>We use HTTPS/TLS to protect data in transit</li>
+                <li>We implement industry-standard security practices</li>
+            </ul>
+
+            <h3 class="h5 mt-4">8.2 No Guarantee</h3>
+            <p>While we take security seriously, we cannot guarantee absolute security. You use the Service at your own risk.</p>
+
+            <h2 class="mt-5 mb-3">9. Backups & Data Loss</h2>
+            <ul>
+                <li>We perform regular backups of user data</li>
+                <li>We are not responsible for data loss due to your actions (deletion)</li>
+                <li>We recommend you export your data regularly for safekeeping</li>
+                <li>In case of catastrophic failure, we will make best efforts to restore data</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">10. Intellectual Property</h2>
+
+            <h3 class="h5 mt-4">10.1 Our Rights</h3>
+            <p>Reflekt and all related trademarks, logos, and service marks are our property. The Service's design, code, and functionality are protected by copyright and other intellectual property laws.</p>
+
+            <h3 class="h5 mt-4">10.2 Feedback</h3>
+            <p>If you provide feedback, suggestions, or ideas about the Service, we may use them without obligation or compensation to you.</p>
+
+            <h2 class="mt-5 mb-3">11. Third-Party Services</h2>
+            <p>The Service may integrate with third-party services (e.g., Stripe for payments). Your use of those services is governed by their own terms and privacy policies.</p>
+
+            <h2 class="mt-5 mb-3">12. Disclaimers</h2>
+            <p class="fw-bold">THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND.</p>
+            <ul>
+                <li>We do not guarantee the Service will be error-free or uninterrupted</li>
+                <li>We do not guarantee specific results from using the Service</li>
+                <li>We disclaim all warranties, express or implied</li>
+                <li>Some jurisdictions do not allow warranty disclaimers, so this may not apply to you</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">13. Limitation of Liability</h2>
+            <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW:</p>
+            <ul>
+                <li>We are not liable for indirect, incidental, or consequential damages</li>
+                <li>Our total liability is limited to the amount you paid us in the past 12 months</li>
+                <li>We are not liable for data loss, lost profits, or business interruption</li>
+                <li>Some jurisdictions do not allow liability limitations, so this may not apply to you</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">14. Indemnification</h2>
+            <p>You agree to indemnify and hold us harmless from any claims, damages, or expenses (including legal fees) arising from:</p>
+            <ul>
+                <li>Your use of the Service</li>
+                <li>Your violation of these Terms</li>
+                <li>Your violation of any rights of another user</li>
+                <li>Your content</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">15. Dispute Resolution</h2>
+
+            <h3 class="h5 mt-4">15.1 Informal Resolution</h3>
+            <p>If you have a dispute, please contact us first at support@reflekt.com. We'll try to resolve it informally.</p>
+
+            <h3 class="h5 mt-4">15.2 Arbitration</h3>
+            <p>Any disputes will be resolved through binding arbitration rather than in court, except where prohibited by law.</p>
+
+            <h3 class="h5 mt-4">15.3 Governing Law</h3>
+            <p>These Terms are governed by the laws of [Your Jurisdiction], without regard to conflict of law principles.</p>
+
+            <h2 class="mt-5 mb-3">16. Changes to Service</h2>
+            <p>We reserve the right to:</p>
+            <ul>
+                <li>Modify or discontinue features with or without notice</li>
+                <li>Add new features or change existing ones</li>
+                <li>Impose usage limits</li>
+            </ul>
+            <p>We will provide reasonable notice for material changes.</p>
+
+            <h2 class="mt-5 mb-3">17. Export & Account Closure</h2>
+
+            <h3 class="h5 mt-4">17.1 Data Export</h3>
+            <ul>
+                <li>You can export your data at any time in standard formats</li>
+                <li>Export includes journal entries, goals, habits, and captures</li>
+            </ul>
+
+            <h3 class="h5 mt-4">17.2 Account Deletion</h3>
+            <ul>
+                <li>You can delete your account at any time</li>
+                <li>Deletion is permanent and irreversible</li>
+                <li>We will delete your data within 30 days</li>
+                <li>Some data may persist in backups for up to 30 days</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3">18. Severability</h2>
+            <p>If any provision of these Terms is found to be unenforceable, the remaining provisions will remain in full effect.</p>
+
+            <h2 class="mt-5 mb-3">19. Entire Agreement</h2>
+            <p>These Terms, along with our Privacy Policy, constitute the entire agreement between you and Reflekt.</p>
+
+            <h2 class="mt-5 mb-3">20. Contact</h2>
+            <p>For questions about these Terms:</p>
+            <ul>
+                <li><strong>Email:</strong> legal@reflekt.com</li>
+                <li><strong>Support:</strong> support@reflekt.com</li>
+            </ul>
+
+            <hr class="my-5">
+
+            <div class="alert alert-light">
+                <h4>Summary</h4>
+                <p class="mb-2">Key points in plain English:</p>
+                <ul class="mb-0">
+                    <li>You own your journal entries; we just store them securely</li>
+                    <li>Reflekt is a journaling tool, not medical advice</li>
+                    <li>You can cancel your subscription anytime</li>
+                    <li>We encrypt your data but can't guarantee 100% security (no one can)</li>
+                    <li>POV sharing lets you share specific thoughts with friends, but once shared, you can't force them to delete it</li>
+                    <li>Be respectful and don't abuse the service</li>
+                    <li>You can export your data and delete your account at any time</li>
+                </ul>
+            </div>
+
+            <p class="text-center mt-5">
+                <a href="{% url 'accounts:privacy' %}" class="btn btn-outline-primary me-2">Read Privacy Policy</a>
+                <a href="/" class="btn btn-primary">Back to Home</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

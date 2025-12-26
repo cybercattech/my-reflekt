@@ -1,0 +1,137 @@
+services:
+  # Web Service (Django App)
+  - type: web
+    name: reflekt
+    runtime: python
+    plan: starter  # Free tier - upgrade to 'starter' ($7/mo) for production
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FERNET_ENCRYPTION_KEY
+        sync: false  # You'll set this manually
+      - key: DATABASE_URL
+        fromDatabase:
+          name: reflekt-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: reflekt-redis
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"  # Update with your custom domain if you have one
+      # Stripe Configuration
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_INDIVIDUAL_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_INDIVIDUAL_YEARLY
+        sync: false
+      - key: STRIPE_PRICE_FAMILY_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_FAMILY_YEARLY
+        sync: false
+      # Email Configuration (SendGrid)
+      - key: EMAIL_HOST
+        value: smtp.sendgrid.net
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USE_TLS
+        value: True
+      - key: EMAIL_HOST_USER
+        value: apikey
+      - key: EMAIL_HOST_PASSWORD
+        sync: false  # Set this to your SendGrid API Key
+      - key: DEFAULT_FROM_EMAIL
+        value: sergio@myreflekt.net
+      # Weather API
+      - key: OPENWEATHERMAP_API_KEY
+        sync: false
+      # AWS S3 for Media Storage (Optional)
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_STORAGE_BUCKET_NAME
+        sync: false
+      - key: AWS_S3_REGION_NAME
+        value: us-east-1
+
+  # PostgreSQL Database
+  - type: pserv
+    name: reflekt-db
+    runtime: postgresql
+    plan: starter  # Free tier - 90 days, then $7/mo
+    ipAllowList: []  # Required for paid plan
+    databases:
+      - name: reflekt
+        user: reflekt
+
+  # Redis (for Celery)
+  - type: redis
+    name: reflekt-redis
+    plan: starter  # Free tier - upgrade for production
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+
+  # Celery Worker (Background Tasks)
+  - type: worker
+    name: reflekt-worker
+    runtime: python
+    plan: starter  # Free tier
+    buildCommand: "./build.sh"
+    startCommand: "celery -A config worker --loglevel=info"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: SECRET_KEY
+        sync: false
+      - key: FERNET_ENCRYPTION_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: reflekt-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: reflekt-redis
+          property: connectionString
+
+  # Celery Beat (Scheduled Tasks)
+  - type: worker
+    name: reflekt-beat
+    runtime: python
+    plan: starter  # Free tier
+    buildCommand: "./build.sh"
+    startCommand: "celery -A config beat --loglevel=info"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: SECRET_KEY
+        sync: false
+      - key: FERNET_ENCRYPTION_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: reflekt-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: reflekt-redis
+          property: connectionString

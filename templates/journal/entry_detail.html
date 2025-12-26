@@ -1,0 +1,1025 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load markdown_extras %}
+
+{% block title %}{{ entry.title|default:entry.entry_date }}{% endblock %}
+
+{% block extra_css %}
+{% include 'journal/partials/sidebar_css.html' %}
+<style>
+    /* 3-Column Layout */
+    .journal-layout {
+        display: flex;
+        min-height: calc(100vh - 56px - 80px);
+        position: relative;
+    }
+
+    .main-content-area {
+        flex: 1;
+        padding: 1.5rem 2rem;
+        overflow-y: auto;
+        background: #f9fafb;
+    }
+
+    @media (max-width: 768px) {
+        .journal-layout {
+            flex-direction: column;
+        }
+        .main-content-area {
+            padding: 1rem;
+        }
+    }
+
+    /* Markdown Content Styling */
+    .entry-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #1f2937;
+    }
+
+    .entry-content h1,
+    .entry-content h2,
+    .entry-content h3,
+    .entry-content h4 {
+        margin-top: 1.5em;
+        margin-bottom: 0.75em;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .entry-content h1 { font-size: 1.75rem; }
+    .entry-content h2 { font-size: 1.5rem; }
+    .entry-content h3 { font-size: 1.25rem; }
+    .entry-content h4 { font-size: 1.1rem; }
+
+    .entry-content p {
+        margin-bottom: 1em;
+    }
+
+    .entry-content blockquote {
+        border-left: 4px solid #4f46e5;
+        padding-left: 1rem;
+        margin: 1.5em 0;
+        color: #4b5563;
+        font-style: italic;
+        background: #f9fafb;
+        padding: 1rem 1rem 1rem 1.5rem;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .entry-content code {
+        background: #f3f4f6;
+        padding: 0.2em 0.4em;
+        border-radius: 4px;
+        font-size: 0.9em;
+        color: #dc2626;
+    }
+
+    .entry-content pre {
+        background: #1f2937;
+        color: #f9fafb;
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 1.5em 0;
+    }
+
+    .entry-content pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+    }
+
+    .entry-content ul,
+    .entry-content ol {
+        margin: 1em 0;
+        padding-left: 2em;
+    }
+
+    .entry-content li {
+        margin-bottom: 0.5em;
+    }
+
+    .entry-content a {
+        color: #4f46e5;
+        text-decoration: underline;
+    }
+
+    .entry-content a:hover {
+        color: #4338ca;
+    }
+
+    .entry-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5em 0;
+    }
+
+    .entry-content th,
+    .entry-content td {
+        border: 1px solid #e5e7eb;
+        padding: 0.75rem;
+        text-align: left;
+    }
+
+    .entry-content th {
+        background: #f9fafb;
+        font-weight: 600;
+    }
+
+    .entry-content hr {
+        border: none;
+        border-top: 2px solid #e5e7eb;
+        margin: 2em 0;
+    }
+
+    .entry-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 1em 0;
+    }
+
+    /* MyST Admonitions */
+    .entry-content .admonition {
+        border-radius: 8px;
+        margin: 1.5em 0;
+        padding: 1rem 1.25rem;
+        border-left-width: 4px;
+        border-left-style: solid;
+    }
+
+    .entry-content .admonition-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .entry-content .admonition-content {
+        margin: 0;
+    }
+
+    .entry-content .admonition-note {
+        border-left-color: #0dcaf0;
+    }
+
+    .entry-content .admonition-warning,
+    .entry-content .admonition-caution {
+        border-left-color: #ffc107;
+    }
+
+    .entry-content .admonition-danger {
+        border-left-color: #dc3545;
+    }
+
+    .entry-content .admonition-tip {
+        border-left-color: #198754;
+    }
+
+    .entry-content .admonition-important {
+        border-left-color: #4f46e5;
+    }
+
+    /* POV blocks - received from friends (light blue) */
+    .entry-content .admonition-pov {
+        background-color: #e0f2fe;
+        border-color: #7dd3fc;
+        border-left-color: #0ea5e9;
+    }
+    .entry-content .admonition-pov .admonition-title {
+        color: #0369a1;
+    }
+    .entry-content .admonition-pov .admonition-content {
+        color: #0c4a6e;
+    }
+
+    /* POV blocks - sent to friends (light purple) */
+    .entry-content .admonition-pov-author {
+        background-color: #f3e8ff;
+        border-color: #d8b4fe;
+        border-left-color: #a855f7;
+    }
+    .entry-content .admonition-pov-author .admonition-title {
+        color: #7c3aed;
+    }
+    .entry-content .admonition-pov-author .admonition-content {
+        color: #581c87;
+    }
+
+    /* Hashtags Section */
+    .entry-hashtags {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 0;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .entry-hashtags .hashtag {
+        display: inline-block;
+        background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+        color: #6d28d9;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .entry-hashtags .hashtag:hover {
+        background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+        transform: scale(1.05);
+    }
+
+    /* Attachments Gallery */
+    .attachments-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .attachments-section h5 {
+        color: #6b7280;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+    }
+
+    .attachment-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .attachment-item {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .attachment-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .attachment-image {
+        cursor: pointer;
+    }
+
+    .attachment-image img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .attachment-audio {
+        padding: 1.5rem;
+    }
+
+    .attachment-audio .audio-icon {
+        font-size: 3rem;
+        color: #4f46e5;
+        margin-bottom: 1rem;
+        display: block;
+        text-align: center;
+    }
+
+    .attachment-audio audio {
+        width: 100%;
+    }
+
+    .attachment-audio .file-name {
+        font-size: 0.85rem;
+        color: #6b7280;
+        text-align: center;
+        margin-top: 0.75rem;
+        word-break: break-word;
+    }
+
+    .attachment-video video {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .attachment-video .file-name {
+        font-size: 0.85rem;
+        color: #6b7280;
+        text-align: center;
+        padding: 0.75rem;
+        background: #f9fafb;
+    }
+
+    /* Lightbox */
+    .lightbox-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+    }
+
+    .lightbox-overlay.active {
+        display: flex;
+    }
+
+    .lightbox-content {
+        max-width: 90vw;
+        max-height: 90vh;
+        position: relative;
+    }
+
+    .lightbox-content img {
+        max-width: 100%;
+        max-height: 85vh;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .lightbox-close:hover {
+        opacity: 1;
+    }
+
+    .lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        font-size: 2rem;
+        padding: 1rem;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+
+    .lightbox-nav:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .lightbox-prev {
+        left: -60px;
+    }
+
+    .lightbox-next {
+        right: -60px;
+    }
+
+    .lightbox-caption {
+        text-align: center;
+        color: white;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+        .lightbox-nav {
+            display: none;
+        }
+    }
+
+    /* Delete Confirmation Modal */
+    .delete-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .delete-modal-overlay.active {
+        display: flex;
+    }
+
+    .delete-modal {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: modalSlideIn 0.2s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .delete-modal-icon {
+        width: 60px;
+        height: 60px;
+        background: #fee2e2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .delete-modal-icon i {
+        font-size: 1.5rem;
+        color: #dc2626;
+    }
+
+    .delete-modal h5 {
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .delete-modal p {
+        text-align: center;
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+    }
+
+    .delete-modal-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .delete-modal-actions button {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    /* On This Day Section */
+    .on-this-day-section .card {
+        overflow: hidden;
+    }
+
+    .bg-gradient-purple {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    }
+
+    .year-badge {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .on-this-day-section .list-group-item {
+        border-left: none;
+        border-right: none;
+        transition: background 0.2s;
+    }
+
+    .on-this-day-section .list-group-item:first-child {
+        border-top: none;
+    }
+
+    .on-this-day-section .list-group-item:last-child {
+        border-bottom: none;
+    }
+
+    .on-this-day-section .list-group-item:hover {
+        background: #f9fafb;
+    }
+
+    .on-this-day-section .list-group-item:hover .year-badge {
+        transform: scale(1.05);
+        transition: transform 0.2s;
+    }
+
+    /* POV Block Styling */
+    .pov-block {
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        margin: 1.5em 0;
+        border-left: 4px solid;
+    }
+
+    .pov-block-author {
+        background: #fef3c7;
+        border-left-color: #f59e0b;
+    }
+
+    .pov-block-recipient {
+        background: #dbeafe;
+        border-left-color: #3b82f6;
+    }
+
+    .pov-header {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .pov-content {
+        color: #1f2937;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="journal-layout">
+    <!-- Left Calendar Sidebar -->
+    {% include 'journal/partials/calendar_sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="main-content-area">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h1 class="mb-2">
+                            {% if entry.mood %}
+                            <span class="mood-emoji me-2">{{ entry.mood_emoji }}</span>
+                            {% endif %}
+                            {{ entry.title|default:"Journal Entry" }}
+                        </h1>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-calendar me-1"></i>
+                            {{ entry.entry_date|date:"l, F j, Y" }}
+                            <span class="mx-2">|</span>
+                            {{ entry.word_count }} words
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'journal:entry_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Back
+                        </a>
+                        <a href="{% url 'journal:entry_edit' entry.pk %}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <button type="button" class="btn btn-outline-danger" id="deleteEntryBtn"
+                                data-entry-id="{{ entry.pk }}"
+                                data-entry-title="{{ entry.title|default:entry.entry_date }}">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analysis Card (if analyzed) -->
+                {% if entry.analysis %}
+                <div class="card mb-4 border-0 bg-light">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Detected Mood</small>
+                                <span class="fs-4">
+                                    {% if entry.analysis.detected_mood == 'ecstatic' %}🤩
+                                    {% elif entry.analysis.detected_mood == 'happy' %}😊
+                                    {% elif entry.analysis.detected_mood == 'neutral' %}😐
+                                    {% elif entry.analysis.detected_mood == 'sad' %}😢
+                                    {% elif entry.analysis.detected_mood == 'angry' %}😠
+                                    {% endif %}
+                                </span>
+                                <span class="fw-bold">{{ entry.analysis.detected_mood|title }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Sentiment</small>
+                                <span class="fs-5 fw-bold {% if entry.analysis.sentiment_score > 0 %}sentiment-positive{% elif entry.analysis.sentiment_score < 0 %}sentiment-negative{% else %}sentiment-neutral{% endif %}">
+                                    {% if entry.analysis.sentiment_score > 0 %}+{% endif %}{{ entry.analysis.sentiment_score|floatformat:2 }}
+                                </span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Themes</small>
+                                {% for theme in entry.analysis.themes|slice:":3" %}
+                                <span class="badge bg-secondary me-1">{{ theme }}</span>
+                                {% empty %}
+                                <span class="text-muted">-</span>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Keywords</small>
+                                {% for kw in entry.analysis.keywords|slice:":3" %}
+                                <span class="badge bg-info text-dark me-1">{{ kw }}</span>
+                                {% empty %}
+                                <span class="text-muted">-</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Environmental Context -->
+                        {% if entry.analysis.moon_phase or entry.analysis.weather_condition or entry.analysis.zodiac_sign %}
+                        <hr class="my-3">
+                        <div class="row text-center">
+                            {% if entry.analysis.moon_phase %}
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Moon Phase</small>
+                                <span class="fs-4 me-1">
+                                    {% if entry.analysis.moon_phase == 'full_moon' %}🌕
+                                    {% elif entry.analysis.moon_phase == 'new_moon' %}🌑
+                                    {% elif entry.analysis.moon_phase == 'first_quarter' %}🌓
+                                    {% elif entry.analysis.moon_phase == 'last_quarter' %}🌗
+                                    {% elif entry.analysis.moon_phase == 'waxing_crescent' %}🌒
+                                    {% elif entry.analysis.moon_phase == 'waxing_gibbous' %}🌔
+                                    {% elif entry.analysis.moon_phase == 'waning_crescent' %}🌘
+                                    {% elif entry.analysis.moon_phase == 'waning_gibbous' %}🌖
+                                    {% else %}<i class="bi bi-moon-stars"></i>
+                                    {% endif %}
+                                </span>
+                                <span class="fw-bold">{{ entry.analysis.moon_phase|replace:"_: "|title }}</span>
+                                {% if entry.analysis.moon_illumination %}
+                                <br><small class="text-muted">({{ entry.analysis.moon_illumination|mul:100|floatformat:0 }}% illuminated)</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% if entry.analysis.weather_condition %}
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Weather{% if entry.analysis.weather_location %} in {{ entry.analysis.weather_location }}{% endif %}</small>
+                                <i class="bi bi-{% if entry.analysis.weather_condition == 'clear' %}sun{% elif entry.analysis.weather_condition == 'clouds' %}cloud{% elif entry.analysis.weather_condition == 'rain' %}cloud-rain{% elif entry.analysis.weather_condition == 'snow' %}cloud-snow{% else %}cloud{% endif %} me-1"></i>
+                                <span class="fw-bold">{{ entry.analysis.weather_condition|title }}</span>
+                                {% if entry.analysis.temperature %}
+                                <span class="ms-1">{{ entry.analysis.temperature|floatformat:0 }}°C</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% if entry.analysis.zodiac_sign %}
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Zodiac</small>
+                                <i class="bi bi-stars me-1"></i>
+                                <span class="fw-bold">{{ entry.analysis.zodiac_sign|title }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% elif not entry.is_analyzed %}
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    This entry is being analyzed. Refresh in a moment to see insights.
+                </div>
+                {% endif %}
+
+                <!-- Entry Content -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="entry-content">
+                            {{ entry.content|render_markdown }}
+                        </div>
+
+                        <!-- Attachments Section -->
+                        {% if entry.attachments.exists %}
+                        <div class="attachments-section">
+                            <h5><i class="bi bi-paperclip me-2"></i>Attachments ({{ entry.attachments.count }})</h5>
+
+                            <div class="attachment-grid">
+                                {% for attachment in entry.attachments.all %}
+                                    {% if attachment.file_type == 'image' %}
+                                    <div class="attachment-item attachment-image"
+                                         onclick="openLightbox('{{ attachment.file.url }}', '{{ attachment.file_name|escapejs }}')"
+                                         data-image-url="{{ attachment.file.url }}"
+                                         data-image-name="{{ attachment.file_name }}">
+                                        <img src="{{ attachment.file.url }}" alt="{{ attachment.file_name }}" loading="lazy">
+                                    </div>
+
+                                    {% elif attachment.file_type == 'audio' %}
+                                    <div class="attachment-item attachment-audio">
+                                        <i class="bi bi-music-note-beamed audio-icon"></i>
+                                        <audio controls preload="metadata">
+                                            <source src="{{ attachment.file.url }}" type="{{ attachment.mime_type }}">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                        <div class="file-name">{{ attachment.file_name }}</div>
+                                    </div>
+
+                                    {% elif attachment.file_type == 'video' %}
+                                    <div class="attachment-item attachment-video">
+                                        <video controls preload="metadata">
+                                            <source src="{{ attachment.file.url }}" type="{{ attachment.mime_type }}">
+                                            Your browser does not support the video element.
+                                        </video>
+                                        <div class="file-name">{{ attachment.file_name }}</div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Hashtags -->
+                {% with hashtags=entry.content|get_hashtags %}
+                {% if hashtags %}
+                <div class="entry-hashtags mt-3">
+                    <i class="bi bi-hash text-muted me-1"></i>
+                    {% for tag in hashtags %}
+                    <span class="hashtag">#{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Metadata -->
+                <div class="mt-4 text-muted small">
+                    <p class="mb-1">
+                        <i class="bi bi-clock me-1"></i>
+                        Created: {{ entry.created_at|date:"F j, Y g:i a" }}
+                        {% if entry.updated_at != entry.created_at %}
+                        | Updated: {{ entry.updated_at|date:"F j, Y g:i a" }}
+                        {% endif %}
+                    </p>
+                    {% if entry.mood or entry.energy %}
+                    <p class="mb-0">
+                        {% if entry.mood %}
+                        <i class="bi bi-emoji-smile me-1"></i>Mood: {{ entry.get_mood_display }}
+                        {% endif %}
+                        {% if entry.energy %}
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-battery-charging me-1"></i>Energy: {{ entry.get_energy_display }}
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- On This Day - Other entries from the same day -->
+                {% if same_day_entries %}
+                <div class="on-this-day-section mt-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-gradient-purple text-white py-2">
+                            <i class="bi bi-calendar-heart me-2"></i>
+                            On This Day ({{ entry.entry_date|date:"F j" }})
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for other_entry in same_day_entries %}
+                                <a href="{% url 'journal:entry_detail' other_entry.pk %}"
+                                   class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                                    <div class="year-badge me-3">
+                                        {{ other_entry.entry_date|date:"Y" }}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center">
+                                            {% if other_entry.mood %}
+                                            <span class="me-2">{{ other_entry.mood_emoji }}</span>
+                                            {% endif %}
+                                            <strong>{{ other_entry.title|default:"Untitled" }}</strong>
+                                        </div>
+                                        <p class="text-muted mb-0 small text-truncate" style="max-width: 400px;">
+                                            {{ other_entry.preview }}
+                                        </p>
+                                    </div>
+                                    <small class="text-muted ms-2">
+                                        {{ other_entry.word_count }} words
+                                    </small>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+    </div>
+
+    <!-- Right Insights Sidebar -->
+    {% include 'journal/partials/insights_sidebar.html' %}
+</div>
+
+<!-- Lightbox Overlay -->
+<div id="lightbox" class="lightbox-overlay" onclick="closeLightbox(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+        <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">&#10094;</button>
+        <img id="lightbox-image" src="" alt="">
+        <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">&#10095;</button>
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="delete-modal-overlay">
+    <div class="delete-modal">
+        <div class="delete-modal-icon">
+            <i class="bi bi-trash"></i>
+        </div>
+        <h5>Delete Entry?</h5>
+        <p id="deleteModalMessage">Are you sure you want to delete "{{ entry.title|default:entry.entry_date }}"? This action cannot be undone.</p>
+        <div class="delete-modal-actions">
+            <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                <i class="bi bi-trash me-1"></i>Delete
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle insights sidebar
+        const insightsToggle = document.querySelector('.insights-toggle');
+        const insightsSidebar = document.querySelector('.insights-sidebar-right');
+
+        if (insightsToggle && insightsSidebar) {
+            insightsToggle.addEventListener('click', function() {
+                insightsSidebar.classList.toggle('collapsed');
+            });
+        }
+
+        // Calendar scroll functionality
+        const calendarScroll = document.getElementById('calendarScroll');
+        const todayBtn = document.getElementById('todayBtn');
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+
+        // Function to scroll to a specific month
+        function scrollToMonth(year, month, behavior = 'auto') {
+            if (!calendarScroll) return;
+            const monthSection = calendarScroll.querySelector(
+                `[data-year="${year}"][data-month="${month}"]`
+            );
+            if (monthSection) {
+                monthSection.scrollIntoView({ behavior: behavior, block: 'start' });
+                calendarScroll.scrollTop -= 10;
+            }
+        }
+
+        // Scroll to the entry's date month
+        if (calendarScroll) {
+            const entryDate = new Date('{{ entry.entry_date|date:"Y-m-d" }}');
+            const entryYear = entryDate.getFullYear();
+            const entryMonth = entryDate.getMonth() + 1;
+            setTimeout(() => scrollToMonth(entryYear, entryMonth), 100);
+        }
+
+        // Today button click handler
+        if (todayBtn) {
+            todayBtn.addEventListener('click', function() {
+                scrollToMonth(currentYear, currentMonth, 'smooth');
+            });
+        }
+    });
+
+    // Lightbox functionality
+    let currentImageIndex = 0;
+    let imageUrls = [];
+    let imageNames = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const imageElements = document.querySelectorAll('.attachment-image');
+        imageElements.forEach(function(el) {
+            imageUrls.push(el.dataset.imageUrl);
+            imageNames.push(el.dataset.imageName);
+        });
+    });
+
+    function openLightbox(url, name) {
+        const lightbox = document.getElementById('lightbox');
+        const image = document.getElementById('lightbox-image');
+        const caption = document.getElementById('lightbox-caption');
+
+        currentImageIndex = imageUrls.indexOf(url);
+        if (currentImageIndex === -1) currentImageIndex = 0;
+
+        image.src = url;
+        caption.textContent = name;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        const prevBtn = document.querySelector('.lightbox-prev');
+        const nextBtn = document.querySelector('.lightbox-next');
+        if (imageUrls.length <= 1) {
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'block';
+            nextBtn.style.display = 'block';
+        }
+    }
+
+    function closeLightbox(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const lightbox = document.getElementById('lightbox');
+        lightbox.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function navigateLightbox(direction) {
+        if (imageUrls.length <= 1) return;
+
+        currentImageIndex += direction;
+        if (currentImageIndex < 0) currentImageIndex = imageUrls.length - 1;
+        if (currentImageIndex >= imageUrls.length) currentImageIndex = 0;
+
+        const image = document.getElementById('lightbox-image');
+        const caption = document.getElementById('lightbox-caption');
+        image.src = imageUrls[currentImageIndex];
+        caption.textContent = imageNames[currentImageIndex];
+    }
+
+    document.addEventListener('keydown', function(e) {
+        const lightbox = document.getElementById('lightbox');
+        if (!lightbox.classList.contains('active')) return;
+
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') navigateLightbox(-1);
+        if (e.key === 'ArrowRight') navigateLightbox(1);
+    });
+
+    // Delete entry functionality
+    const deleteEntryBtn = document.getElementById('deleteEntryBtn');
+    const deleteModal = document.getElementById('deleteModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+    if (deleteEntryBtn) {
+        deleteEntryBtn.addEventListener('click', function() {
+            deleteModal.classList.add('active');
+        });
+    }
+
+    function closeDeleteModal() {
+        deleteModal.classList.remove('active');
+    }
+
+    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+            closeDeleteModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && deleteModal.classList.contains('active')) {
+            closeDeleteModal();
+        }
+    });
+
+    confirmDeleteBtn.addEventListener('click', function() {
+        const entryId = deleteEntryBtn.dataset.entryId;
+
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
+
+        fetch(`/journal/${entryId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Redirect to journal list
+                window.location.href = '{% url "journal:entry_list" %}';
+            } else {
+                alert('Failed to delete entry. Please try again.');
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Delete';
+            }
+        })
+        .catch(err => {
+            alert('An error occurred. Please try again.');
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Delete';
+        });
+    });
+</script>
+{% endblock %}

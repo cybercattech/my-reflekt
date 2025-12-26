@@ -1,0 +1,50 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Delete Habit{% endblock %}
+
+{% block dashboard_css %}
+{% include 'habits/partials/_habits_css.html' %}
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="habits-container px-4 py-4">
+    <div class="habits-main" style="max-width: 500px; margin: 0 auto;">
+        <div class="habit-form text-center">
+            <div class="mb-4">
+                <div class="habit-icon mx-auto" style="background: {{ habit.color }}; width: 64px; height: 64px;">
+                    <i class="{{ habit.icon }}" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+
+            <h1 class="h4 mb-3">Delete Habit</h1>
+
+            <p class="mb-4">
+                Are you sure you want to delete <strong>"{{ habit.name }}"</strong>?
+            </p>
+
+            <div class="alert alert-warning text-start">
+                <i class="bi bi-info-circle me-2"></i>
+                This will also delete:
+                <ul class="mb-0 mt-2">
+                    <li>{{ habit.checkins.count }} check-in record(s)</li>
+                    <li>Your {{ habit.current_streak }}-day streak</li>
+                </ul>
+                <small class="text-muted">Linked journal entries will not be deleted.</small>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="{% url 'habits:habit_detail' pk=habit.pk %}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Delete Habit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}

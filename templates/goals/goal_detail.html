@@ -1,0 +1,583 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ goal.title }}{% endblock %}
+
+{% block dashboard_css %}
+{% include 'goals/partials/_goals_css.html' %}
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="goals-container px-4 py-4">
+    <div class="goals-main">
+        <!-- Back Link -->
+        <a href="{% url 'goals:goal_list' %}" class="text-decoration-none text-muted mb-3 d-inline-block">
+            <i class="bi bi-arrow-left me-1"></i>Back to Goals
+        </a>
+
+        <!-- Goal Header -->
+        <div class="goal-detail-header">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="goal-category bg-white bg-opacity-25 text-white mb-2 d-inline-block">
+                        <i class="{{ goal.category_icon }}"></i>
+                        {{ goal.get_category_display }}
+                    </span>
+                    <h1 class="goal-detail-title">{{ goal.title }}</h1>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'goals:goal_edit' pk=goal.pk %}" class="btn btn-light btn-sm">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </a>
+                    <a href="{% url 'goals:goal_delete' pk=goal.pk %}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </a>
+                </div>
+            </div>
+            <div class="goal-detail-meta">
+                <span class="status-badge {{ goal.status }} bg-white bg-opacity-25 text-white">
+                    {{ goal.get_status_display }}
+                </span>
+                <span class="priority-badge {{ goal.priority }} bg-white bg-opacity-25 text-white">
+                    {{ goal.get_priority_display }} Priority
+                </span>
+                {% if goal.due_date %}
+                <span>
+                    <i class="bi bi-calendar me-1"></i>
+                    Due: {{ goal.due_date|date:"M d, Y" }}
+                    {% if goal.is_overdue %}
+                    <span class="badge bg-danger ms-1">Overdue</span>
+                    {% elif goal.days_remaining <= 7 and goal.days_remaining >= 0 %}
+                    <span class="badge bg-warning ms-1">{{ goal.days_remaining }} days left</span>
+                    {% endif %}
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Progress</span>
+                    <span class="fw-bold">{{ goal.progress_percentage|floatformat:0 }}%</span>
+                </div>
+                <div class="progress-bar-container" style="height: 12px; background: rgba(255,255,255,0.3);">
+                    <div class="progress-bar-fill {% if goal.status == 'completed' %}completed{% endif %}"
+                         style="width: {{ goal.progress_percentage|floatformat:0 }}%;"></div>
+                </div>
+                {% if goal.target_value %}
+                <div class="text-center mt-2 small">
+                    {{ goal.current_value|floatformat:0 }} / {{ goal.target_value|floatformat:0 }} {{ goal.unit }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Column: SMART Details -->
+            <div class="col-lg-8">
+                {% if goal.description %}
+                <div class="smart-section">
+                    <h3 class="smart-section-title">
+                        <i class="bi bi-bullseye"></i>Specific - What
+                    </h3>
+                    <div class="smart-section-content">{{ goal.description|linebreaks }}</div>
+                </div>
+                {% endif %}
+
+                {% if goal.success_criteria or goal.target_value %}
+                <div class="smart-section">
+                    <h3 class="smart-section-title">
+                        <i class="bi bi-rulers"></i>Measurable - How
+                    </h3>
+                    <div class="smart-section-content">
+                        {% if goal.success_criteria %}
+                        <p>{{ goal.success_criteria|linebreaks }}</p>
+                        {% endif %}
+                        {% if goal.target_value %}
+                        <div class="d-flex gap-3 mt-2">
+                            <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                                Target: {{ goal.target_value|floatformat:0 }} {{ goal.unit }}
+                            </span>
+                            <span class="badge bg-secondary px-3 py-2">
+                                Current: {{ goal.current_value|floatformat:0 }} {{ goal.unit }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if goal.why_achievable %}
+                <div class="smart-section">
+                    <h3 class="smart-section-title">
+                        <i class="bi bi-check2-circle"></i>Achievable - Why Possible
+                    </h3>
+                    <div class="smart-section-content">{{ goal.why_achievable|linebreaks }}</div>
+                </div>
+                {% endif %}
+
+                {% if goal.relevance %}
+                <div class="smart-section">
+                    <h3 class="smart-section-title">
+                        <i class="bi bi-heart"></i>Relevant - Why Important
+                    </h3>
+                    <div class="smart-section-content">{{ goal.relevance|linebreaks }}</div>
+                </div>
+                {% endif %}
+
+                <div class="smart-section">
+                    <h3 class="smart-section-title">
+                        <i class="bi bi-clock"></i>Time-Bound - When
+                    </h3>
+                    <div class="smart-section-content">
+                        <div class="d-flex gap-4">
+                            <div>
+                                <span class="text-muted">Started:</span>
+                                <strong>{{ goal.start_date|date:"M d, Y" }}</strong>
+                            </div>
+                            {% if goal.due_date %}
+                            <div>
+                                <span class="text-muted">Due:</span>
+                                <strong>{{ goal.due_date|date:"M d, Y" }}</strong>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Milestones Section -->
+                <div class="smart-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="smart-section-title mb-0">
+                            <i class="bi bi-flag"></i>Milestones
+                        </h3>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addMilestoneModal">
+                            <i class="bi bi-plus-lg me-1"></i>Add
+                        </button>
+                    </div>
+
+                    {% if milestones %}
+                    <ul class="milestone-list">
+                        {% for milestone in milestones %}
+                        <li class="milestone-item" data-milestone-id="{{ milestone.pk }}">
+                            <div class="milestone-checkbox {% if milestone.is_completed %}completed{% endif %}"
+                                 onclick="toggleMilestone({{ milestone.pk }})">
+                                {% if milestone.is_completed %}
+                                <i class="bi bi-check"></i>
+                                {% endif %}
+                            </div>
+                            <div class="milestone-content">
+                                <div class="milestone-title {% if milestone.is_completed %}completed{% endif %}">
+                                    {{ milestone.title }}
+                                </div>
+                                {% if milestone.due_date %}
+                                <div class="milestone-due">
+                                    <i class="bi bi-calendar me-1"></i>{{ milestone.due_date|date:"M d" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <button class="btn btn-sm btn-link text-danger" onclick="deleteMilestone({{ milestone.pk }})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-0">No milestones yet. Break down your goal into smaller steps.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right Column: Progress & Entries -->
+            <div class="col-lg-4">
+                <!-- Update Progress Card -->
+                {% if goal.target_value %}
+                <div class="smart-section">
+                    <h3 class="smart-section-title">
+                        <i class="bi bi-graph-up"></i>Update Progress
+                    </h3>
+                    <form id="progressForm" method="post" action="{% url 'goals:goal_update_progress' pk=goal.pk %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small">New Value</label>
+                            <div class="input-group">
+                                <input type="number" name="value" class="form-control"
+                                       value="{{ goal.current_value|floatformat:0 }}" step="0.01">
+                                <span class="input-group-text">{{ goal.unit }}</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Note (optional)</label>
+                            <textarea name="note" class="form-control" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-save me-1"></i>Log Progress
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+
+                <!-- Progress History -->
+                {% if progress_logs %}
+                <div class="smart-section">
+                    <h3 class="smart-section-title">
+                        <i class="bi bi-clock-history"></i>Progress History
+                    </h3>
+                    <div class="progress-log">
+                        {% for log in progress_logs %}
+                        <div class="progress-log-item">
+                            <div>
+                                <strong>{{ log.value|floatformat:1 }}</strong> {{ goal.unit }}
+                                {% if log.note %}
+                                <div class="text-muted small">{{ log.note }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="text-muted small">
+                                {{ log.logged_at|date:"M d" }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Linked Habits -->
+                <div class="smart-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="smart-section-title mb-0">
+                            <i class="bi bi-repeat"></i>Linked Habits
+                        </h3>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#linkHabitModal">
+                            <i class="bi bi-link-45deg me-1"></i>Link
+                        </button>
+                    </div>
+
+                    {% if goal.linked_habits.exists %}
+                    {% for habit in goal.linked_habits.all %}
+                    <div class="linked-entry d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="me-2" style="width: 28px; height: 28px; border-radius: 6px; background: {{ habit.color }}; display: flex; align-items: center; justify-content: center; color: white;">
+                                <i class="bi {{ habit.icon }}"></i>
+                            </div>
+                            <div>
+                                <a href="{% url 'habits:habit_detail' pk=habit.pk %}" class="text-decoration-none">{{ habit.name }}</a>
+                                <div class="text-muted small">{{ habit.current_streak }} day streak</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-link text-danger p-0" onclick="unlinkHabit({{ habit.pk }})">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted mb-0 small">No habits linked yet. Link habits that contribute to this goal.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Linked Journal Entries -->
+                <div class="smart-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="smart-section-title mb-0">
+                            <i class="bi bi-journal"></i>Linked Entries
+                        </h3>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#linkEntryModal">
+                            <i class="bi bi-link-45deg me-1"></i>Link
+                        </button>
+                    </div>
+
+                    {% if linked_entries %}
+                    {% for entry in linked_entries %}
+                    <a href="{{ entry.get_absolute_url }}" class="linked-entry">
+                        <i class="bi bi-journal-text text-primary"></i>
+                        <div class="flex-grow-1">
+                            <div>{{ entry.title|default:"Journal Entry" }}</div>
+                            <div class="linked-entry-date">{{ entry.entry_date|date:"M d, Y" }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                    {% if goal.journal_entries.count > 5 %}
+                    <div class="text-center">
+                        <small class="text-muted">+ {{ goal.journal_entries.count|add:"-5" }} more entries</small>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-muted mb-0 small">No journal entries linked yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Milestone Modal -->
+<div class="modal fade" id="addMilestoneModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Milestone</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'goals:milestone_create' goal_pk=goal.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-control" required
+                               placeholder="What's this milestone?">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description (optional)</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Due Date (optional)</label>
+                        <input type="date" name="due_date" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Milestone</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Link Entry Modal -->
+<div class="modal fade" id="linkEntryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Link Journal Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Search Entries</label>
+                    <input type="text" id="entrySearch" class="form-control"
+                           placeholder="Search by title or content...">
+                </div>
+                <div id="entryResults" class="mt-3">
+                    <p class="text-muted small">Type to search your journal entries</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Link Habit Modal -->
+<div class="modal fade" id="linkHabitModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-repeat me-2"></i>Link Habit to Goal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Link habits that contribute to achieving this goal. When you check in a habit from your journal, it can automatically reference this goal.</p>
+                <div class="mb-3">
+                    <input type="text" id="habitSearch" class="form-control"
+                           placeholder="Search habits...">
+                </div>
+                <div id="habitResults" class="mt-3">
+                    <p class="text-muted small text-center">Loading habits...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script>
+// Toggle milestone completion
+function toggleMilestone(milestoneId) {
+    fetch(`/goals/milestones/${milestoneId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+// Delete milestone
+function deleteMilestone(milestoneId) {
+    if (confirm('Delete this milestone?')) {
+        fetch(`/goals/milestones/${milestoneId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+}
+
+// Search and link entries
+let searchTimeout;
+document.getElementById('entrySearch').addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    const query = e.target.value;
+
+    if (query.length < 2) {
+        document.getElementById('entryResults').innerHTML =
+            '<p class="text-muted small">Type at least 2 characters to search</p>';
+        return;
+    }
+
+    searchTimeout = setTimeout(() => {
+        fetch(`/goals/{{ goal.pk }}/search-entries/?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            const results = document.getElementById('entryResults');
+            if (data.entries.length === 0) {
+                results.innerHTML = '<p class="text-muted">No matching entries found</p>';
+                return;
+            }
+
+            results.innerHTML = data.entries.map(entry => `
+                <div class="linked-entry" style="cursor:pointer" onclick="linkEntry(${entry.id})">
+                    <i class="bi bi-journal-text text-primary"></i>
+                    <div>
+                        <div>${entry.title}</div>
+                        <div class="linked-entry-date">${entry.date}</div>
+                    </div>
+                </div>
+            `).join('');
+        });
+    }, 300);
+});
+
+function linkEntry(entryId) {
+    const form = new FormData();
+    form.append('entry_id', entryId);
+
+    fetch(`/goals/{{ goal.pk }}/link-entry/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: form
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+// Handle progress form submission
+document.getElementById('progressForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = new FormData(this);
+
+    fetch(this.action, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: form
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+});
+
+// Load habits when modal opens
+document.getElementById('linkHabitModal').addEventListener('shown.bs.modal', function() {
+    loadHabits();
+    document.getElementById('habitSearch').focus();
+});
+
+// Search habits
+let habitSearchTimeout;
+document.getElementById('habitSearch').addEventListener('input', function(e) {
+    clearTimeout(habitSearchTimeout);
+    habitSearchTimeout = setTimeout(() => loadHabits(e.target.value), 300);
+});
+
+function loadHabits(query = '') {
+    fetch(`/goals/{{ goal.pk }}/search-habits/?q=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(data => {
+        const results = document.getElementById('habitResults');
+        if (data.habits.length === 0) {
+            results.innerHTML = '<p class="text-muted text-center">No habits found</p>';
+            return;
+        }
+
+        results.innerHTML = data.habits.map(habit => `
+            <div class="d-flex align-items-center justify-content-between p-2 border rounded mb-2" style="cursor: pointer;" onclick="linkHabit(${habit.id})">
+                <div class="d-flex align-items-center">
+                    <div class="me-2" style="width: 32px; height: 32px; border-radius: 6px; background: ${habit.color}; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="bi ${habit.icon}"></i>
+                    </div>
+                    <div>
+                        <div class="fw-medium">${habit.name}</div>
+                        <div class="text-muted small">${habit.current_streak} day streak</div>
+                    </div>
+                </div>
+                ${habit.is_linked ? '<span class="badge bg-success">Linked</span>' : '<i class="bi bi-plus-circle text-primary"></i>'}
+            </div>
+        `).join('');
+    });
+}
+
+function linkHabit(habitId) {
+    fetch(`/goals/{{ goal.pk }}/link-habit/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `habit_id=${habitId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function unlinkHabit(habitId) {
+    if (confirm('Unlink this habit from the goal?')) {
+        fetch(`/goals/{{ goal.pk }}/unlink-habit/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `habit_id=${habitId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+}
+</script>
+{% endblock dashboard_js %}

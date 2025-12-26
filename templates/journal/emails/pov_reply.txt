@@ -1,0 +1,13 @@
+New Reply on Reflekt
+=====================
+
+{{ replier_name }} replied to a shared note.
+
+---
+{{ reply_preview }}
+---
+
+View conversation: {{ view_url }}
+
+---
+This email was sent by Reflekt.

@@ -1,0 +1,190 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load analytics_tags %}
+
+{% block title %}{{ month_name }} {{ year }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-calendar-month me-2"></i>{{ month_name }} {{ year }}</h1>
+    </div>
+
+    <!-- Month Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-6 text-primary">{{ snapshot.entry_count }}</h3>
+                    <p class="text-muted mb-0">Entries</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-6 text-success">{{ snapshot.total_words|floatformat:0 }}</h3>
+                    <p class="text-muted mb-0">Words</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-6 {% if snapshot.avg_sentiment > 0 %}text-success{% elif snapshot.avg_sentiment < 0 %}text-danger{% else %}text-secondary{% endif %}">
+                        {% if snapshot.avg_sentiment > 0 %}+{% endif %}{{ snapshot.avg_sentiment|floatformat:2 }}
+                    </h3>
+                    <p class="text-muted mb-0">Avg Sentiment</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-6">
+                        {% if snapshot.dominant_mood == 'ecstatic' %}🤩
+                        {% elif snapshot.dominant_mood == 'happy' %}😊
+                        {% elif snapshot.dominant_mood == 'neutral' %}😐
+                        {% elif snapshot.dominant_mood == 'sad' %}😢
+                        {% elif snapshot.dominant_mood == 'angry' %}😠
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">{{ snapshot.dominant_mood|title }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-calendar3 me-2"></i>Mood Calendar
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-7 g-2 text-center">
+                <!-- Day headers -->
+                <div class="col"><small class="text-muted fw-bold">Sun</small></div>
+                <div class="col"><small class="text-muted fw-bold">Mon</small></div>
+                <div class="col"><small class="text-muted fw-bold">Tue</small></div>
+                <div class="col"><small class="text-muted fw-bold">Wed</small></div>
+                <div class="col"><small class="text-muted fw-bold">Thu</small></div>
+                <div class="col"><small class="text-muted fw-bold">Fri</small></div>
+                <div class="col"><small class="text-muted fw-bold">Sat</small></div>
+
+                <!-- Calendar days -->
+                {% for day in month_days %}
+                <div class="col">
+                    {% if day == 0 %}
+                    <div class="p-2"></div>
+                    {% else %}
+                    <div class="border rounded p-2 {% if day in entry_map %}bg-light{% endif %}">
+                        <small class="d-block text-muted">{{ day }}</small>
+                        {% if day in entry_map %}
+                        {% with entry=entry_map|get_item:day %}
+                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="text-decoration-none">
+                            <span class="fs-5">
+                                {% if entry.analysis %}
+                                    {% if entry.analysis.detected_mood == 'ecstatic' %}🤩
+                                    {% elif entry.analysis.detected_mood == 'happy' %}😊
+                                    {% elif entry.analysis.detected_mood == 'neutral' %}😐
+                                    {% elif entry.analysis.detected_mood == 'sad' %}😢
+                                    {% elif entry.analysis.detected_mood == 'angry' %}😠
+                                    {% else %}📝{% endif %}
+                                {% else %}
+                                📝
+                                {% endif %}
+                            </span>
+                        </a>
+                        {% endwith %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Mood Distribution -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-pie-chart me-2"></i>Mood Distribution
+                </div>
+                <div class="card-body">
+                    {% for mood, count in snapshot.mood_distribution.items %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>
+                            {% if mood == 'ecstatic' %}🤩
+                            {% elif mood == 'happy' %}😊
+                            {% elif mood == 'neutral' %}😐
+                            {% elif mood == 'sad' %}😢
+                            {% elif mood == 'angry' %}😠
+                            {% endif %}
+                            {{ mood|title }}
+                        </span>
+                        <div class="d-flex align-items-center" style="width: 60%;">
+                            <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                <div class="progress-bar" style="width: {% widthratio count snapshot.entry_count 100 %}%"></div>
+                            </div>
+                            <span class="badge bg-secondary">{{ count }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No mood data</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-tags me-2"></i>Top Themes
+                </div>
+                <div class="card-body">
+                    {% if snapshot.top_themes %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for theme in snapshot.top_themes %}
+                        <span class="badge bg-primary fs-6">{{ theme|title }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No themes detected</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Entries -->
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-list me-2"></i>All Entries
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for entry in entries %}
+            <li class="list-group-item">
+                <a href="{% url 'journal:entry_detail' entry.pk %}" class="text-decoration-none">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="me-2">{{ entry.mood_emoji }}</span>
+                            <strong>{{ entry.entry_date|date:"D, M j" }}</strong>
+                            {% if entry.title %} - {{ entry.title }}{% endif %}
+                            <p class="mb-0 text-muted small">{{ entry.preview|truncatewords:15 }}</p>
+                        </div>
+                        {% if entry.analysis %}
+                        <span class="badge bg-{% if entry.analysis.sentiment_label == 'positive' %}success{% elif entry.analysis.sentiment_label == 'negative' %}danger{% else %}secondary{% endif %}">
+                            {% if entry.analysis.sentiment_score > 0 %}+{% endif %}{{ entry.analysis.sentiment_score|floatformat:2 }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </a>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-center text-muted">No entries this month</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock dashboard_content %}

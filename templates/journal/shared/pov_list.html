@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}POV History{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1><i class="bi bi-chat-square-quote me-2"></i>POV History</h1>
+                    <p class="text-muted mb-0">Points of view shared with you by friends - also added to your journal entries.</p>
+                </div>
+            </div>
+
+            {% if povs %}
+            <div class="list-group">
+                {% for recipient in povs %}
+                <div class="list-group-item {% if not recipient.is_read %}list-group-item-primary{% endif %}">
+                    <div class="d-flex w-100 justify-content-between align-items-start">
+                        <a href="{% url 'journal:pov_view_and_redirect' recipient.pov.id %}"
+                           class="flex-grow-1 text-decoration-none">
+                            <div class="d-flex align-items-center mb-1">
+                                {% if not recipient.is_read %}
+                                <span class="badge bg-primary me-2">New</span>
+                                {% endif %}
+                                <strong class="text-dark">{{ recipient.pov.author.profile.display_name }}</strong>
+                                <small class="text-muted ms-2">
+                                    {{ recipient.pov.created_at|timesince }} ago
+                                </small>
+                            </div>
+                            <p class="mb-1 text-muted">
+                                {{ recipient.pov.preview }}
+                            </p>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar me-1"></i>
+                                Added to your entry on {{ recipient.pov.entry.entry_date|date:"M j, Y" }}
+                            </small>
+                        </a>
+                        <div class="d-flex align-items-center ms-3">
+                            <a href="{% url 'journal:pov_view_and_redirect' recipient.pov.id %}"
+                               class="btn btn-sm btn-outline-secondary me-2" title="View in journal">
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                            <form method="post" action="{% url 'journal:pov_delete_recipient' recipient.pov.id %}"
+                                  onsubmit="return confirm('Remove this POV from your journal?');"
+                                  class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove from journal">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if povs.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if povs.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ povs.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Page {{ povs.number }} of {{ povs.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if povs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ povs.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-chat-square-quote display-1 text-muted"></i>
+                <h4 class="mt-3 text-muted">No POVs yet</h4>
+                <p class="text-muted">
+                    When friends share their point of view with you using<br>
+                    <code>{pov} @{{ request.user.profile.username|default:"you" }} their thoughts here</code><br>
+                    it will be added directly to your journal entry for that day.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

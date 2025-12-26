@@ -1,0 +1,512 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Profile Settings{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4"><i class="bi bi-gear me-2"></i>Profile Settings</h1>
+
+            <!-- Account Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-person me-2"></i>Account Information
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label text-muted">Email</label>
+                        <div class="col-sm-9">
+                            <p class="form-control-plaintext">{{ user.email }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label text-muted">Username</label>
+                        <div class="col-sm-9">
+                            <p class="form-control-plaintext">
+                                {% if profile.username %}
+                                    <span class="badge bg-primary">@{{ profile.username }}</span>
+                                {% else %}
+                                    <span class="text-muted">Not set - add one below!</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label text-muted">Member Since</label>
+                        <div class="col-sm-9">
+                            <p class="form-control-plaintext">{{ profile.created_at|date:"F j, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscription Info -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-star me-2"></i>Subscription</span>
+                    {% if profile.is_premium %}
+                        <span class="badge bg-success">Premium</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Free</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if profile.is_premium %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">
+                                    {% if profile.subscription_plan == 'individual_monthly' %}
+                                        Individual - Monthly
+                                    {% elif profile.subscription_plan == 'individual_yearly' %}
+                                        Individual - Yearly
+                                    {% elif profile.subscription_plan == 'family_monthly' %}
+                                        Family - Monthly
+                                    {% elif profile.subscription_plan == 'family_yearly' %}
+                                        Family - Yearly
+                                    {% else %}
+                                        Premium Plan
+                                    {% endif %}
+                                </h6>
+                                <p class="text-muted small mb-0">All premium features unlocked</p>
+                            </div>
+                            <a href="{% url 'accounts:manage_subscription' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-gear me-1"></i>Manage
+                            </a>
+                        </div>
+
+                        <!-- Family Plan Management Link -->
+                        {% if profile.subscription_plan == 'family_monthly' or profile.subscription_plan == 'family_yearly' %}
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">
+                                    <i class="bi bi-people-fill text-primary me-2"></i>Family Members
+                                </h6>
+                                <p class="text-muted small mb-0">Manage who has access to your family plan</p>
+                            </div>
+                            <a href="{% url 'accounts:family_management' %}" class="btn btn-outline-success">
+                                <i class="bi bi-people me-1"></i>Manage Family
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-0">You're on the free plan. Upgrade to unlock all features!</p>
+                            </div>
+                            <a href="{% url 'accounts:pricing' %}" class="btn btn-primary">
+                                <i class="bi bi-arrow-up-circle me-1"></i>Upgrade
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Friends Section -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-people me-2"></i>Friends</span>
+                    <span class="badge bg-secondary">{{ friends|length }}</span>
+                </div>
+                <div class="card-body">
+                    <!-- Pending Invitations Received (for new users) -->
+                    {% if invitations_received %}
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-envelope-heart me-2"></i>
+                        <strong>You have {{ invitations_received|length }} invitation{{ invitations_received|length|pluralize }}!</strong>
+                        <div class="mt-2">
+                            {% for inv in invitations_received %}
+                            <div class="d-flex justify-content-between align-items-center py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                                <div>
+                                    <strong>{{ inv.sender.profile.display_name }}</strong>
+                                    <small class="text-muted">({{ inv.sender.email }})</small>
+                                    {% if inv.message %}<br><small class="fst-italic">"{{ inv.message }}"</small>{% endif %}
+                                </div>
+                                <div>
+                                    <form method="post" action="{% url 'accounts:accept_invitation' inv.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                    </form>
+                                    <form method="post" action="{% url 'accounts:deny_invitation' inv.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Decline</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Pending Friend Requests Received -->
+                    {% if pending_received %}
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Pending Requests</h6>
+                        {% for req in pending_received %}
+                        <div class="d-flex justify-content-between align-items-center py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div>
+                                <strong>{{ req.sender.profile.display_name }}</strong>
+                                <small class="text-muted">({{ req.sender.email }})</small>
+                                {% if req.message %}<br><small class="text-muted fst-italic">"{{ req.message }}"</small>{% endif %}
+                            </div>
+                            <div>
+                                <form method="post" action="{% url 'accounts:accept_friend_request' req.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check"></i> Accept
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'accounts:deny_friend_request' req.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Send Friend Request Form -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Add a Friend</h6>
+                        <form method="post" action="{% url 'accounts:send_friend_request' %}">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="email" name="email" class="form-control"
+                                       placeholder="Enter friend's email address" required>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-person-plus me-1"></i>Send Request
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                If they're not on Reflekt yet, we'll send them an invitation email.
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Current Friends List -->
+                    {% if friends %}
+                    <h6 class="text-muted mb-2">Your Friends</h6>
+                    <div class="row g-2">
+                        {% for friend in friends %}
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-person-circle me-2"></i>
+                                        {% if friend.profile.username %}
+                                            <strong>@{{ friend.profile.username }}</strong>
+                                        {% else %}
+                                            <strong>{{ friend.email }}</strong>
+                                        {% endif %}
+                                    </div>
+                                    <form method="post" action="{% url 'accounts:unfriend' friend.id %}"
+                                          onsubmit="return confirm('Remove {{ friend.email }} from friends?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Unfriend">
+                                            <i class="bi bi-person-dash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        You haven't added any friends yet. Invite someone to connect!
+                    </p>
+                    {% endif %}
+
+                    <!-- Pending Sent Requests/Invitations -->
+                    {% if pending_sent or invitations_sent %}
+                    <hr>
+                    <h6 class="text-muted mb-2">Pending</h6>
+                    {% for req in pending_sent %}
+                    <div class="d-flex justify-content-between align-items-center py-1">
+                        <small>
+                            <i class="bi bi-hourglass-split me-1"></i>
+                            Request sent to {{ req.recipient.email }}
+                        </small>
+                        <form method="post" action="{% url 'accounts:cancel_friend_request' req.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-link text-muted p-0">Cancel</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                    {% for inv in invitations_sent %}
+                    <div class="d-flex justify-content-between align-items-center py-1">
+                        <small>
+                            <i class="bi bi-envelope me-1"></i>
+                            Invitation sent to {{ inv.email }}
+                        </small>
+                        <form method="post" action="{% url 'accounts:cancel_invitation' inv.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-link text-muted p-0">Cancel</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart me-2"></i>Your Stats
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h3 class="text-primary">{{ profile.total_entries }}</h3>
+                            <p class="text-muted mb-0">Total Entries</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-success">{{ profile.current_streak }}</h3>
+                            <p class="text-muted mb-0">Current Streak</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-info">{{ profile.longest_streak }}</h3>
+                            <p class="text-muted mb-0">Longest Streak</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-sliders me-2"></i>Preferences
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'accounts:profile_update' %}">
+                        {% csrf_token %}
+
+                        <!-- Username -->
+                        <div class="row mb-3">
+                            <label for="username" class="col-sm-3 col-form-label">Username</label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <span class="input-group-text">@</span>
+                                    <input type="text" name="username" id="username" class="form-control"
+                                           value="{{ profile.username|default:'' }}"
+                                           placeholder="your_username" pattern="[a-zA-Z0-9_]+"
+                                           minlength="3" maxlength="30">
+                                </div>
+                                <div class="form-text">
+                                    Friends can find you by @username. Letters, numbers, and underscores only.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="timezone" class="col-sm-3 col-form-label">Timezone</label>
+                            <div class="col-sm-9">
+                                <select name="timezone" id="timezone" class="form-select">
+                                    <option value="America/New_York" {% if profile.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time</option>
+                                    <option value="America/Chicago" {% if profile.timezone == 'America/Chicago' %}selected{% endif %}>Central Time</option>
+                                    <option value="America/Denver" {% if profile.timezone == 'America/Denver' %}selected{% endif %}>Mountain Time</option>
+                                    <option value="America/Los_Angeles" {% if profile.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time</option>
+                                    <option value="UTC" {% if profile.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <label class="col-sm-3 col-form-label">Editor</label>
+                            <div class="col-sm-9">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="editor_preference"
+                                           id="editor_myst" value="myst_markdown"
+                                           {% if profile.editor_preference == 'myst_markdown' %}checked{% endif %}>
+                                    <label class="form-check-label" for="editor_myst">
+                                        <strong>MyST Markdown</strong>
+                                        <small class="text-muted d-block">Write in Markdown with extended MyST syntax. Great for structured content with code blocks and math.</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="editor_preference"
+                                           id="editor_rich" value="rich_text"
+                                           {% if profile.editor_preference == 'rich_text' %}checked{% endif %}>
+                                    <label class="form-check-label" for="editor_rich">
+                                        <strong>Rich Text (Quill)</strong>
+                                        <small class="text-muted d-block">Visual editor with formatting toolbar. Clean, Medium.com-like writing experience.</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-9 offset-sm-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check me-1"></i>Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Email Addresses -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-envelope-check me-2"></i>Email Addresses</span>
+                    <a href="{% url 'account_email' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-gear me-1"></i>Manage
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-muted small mb-2">Primary Email</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-envelope-fill text-primary"></i>
+                            <span>{{ user.email }}</span>
+                            {% if user.emailaddress_set.all.0.verified %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i>Verified
+                            </span>
+                            {% else %}
+                            <span class="badge bg-warning">
+                                <i class="bi bi-exclamation-circle me-1"></i>Unverified
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Manage your email addresses, add additional emails, or resend verification emails.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Insights & Analysis -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-graph-up me-2"></i>Insights & Analysis
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-4">
+                        Enable additional data tracking to discover patterns in your journal entries.
+                        See how weather, moon phases, and your zodiac sign correlate with your mood.
+                    </p>
+                    <form method="post" action="{% url 'accounts:profile_update' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="insights_form" value="1">
+
+                        <!-- Weather Location -->
+                        <h6 class="text-muted mb-3"><i class="bi bi-cloud-sun me-1"></i>Weather Tracking</h6>
+                        <div class="row mb-3">
+                            <label for="city" class="col-sm-3 col-form-label">City</label>
+                            <div class="col-sm-6">
+                                <input type="text" name="city" id="city" class="form-control"
+                                       value="{{ profile.city|default:'' }}"
+                                       placeholder="e.g., New York">
+                            </div>
+                            <div class="col-sm-3">
+                                <select name="country_code" id="country_code" class="form-select">
+                                    <option value="US" {% if profile.country_code == 'US' %}selected{% endif %}>US</option>
+                                    <option value="CA" {% if profile.country_code == 'CA' %}selected{% endif %}>Canada</option>
+                                    <option value="GB" {% if profile.country_code == 'GB' %}selected{% endif %}>UK</option>
+                                    <option value="AU" {% if profile.country_code == 'AU' %}selected{% endif %}>Australia</option>
+                                    <option value="DE" {% if profile.country_code == 'DE' %}selected{% endif %}>Germany</option>
+                                    <option value="FR" {% if profile.country_code == 'FR' %}selected{% endif %}>France</option>
+                                    <option value="BR" {% if profile.country_code == 'BR' %}selected{% endif %}>Brazil</option>
+                                    <option value="MX" {% if profile.country_code == 'MX' %}selected{% endif %}>Mexico</option>
+                                    <option value="IN" {% if profile.country_code == 'IN' %}selected{% endif %}>India</option>
+                                    <option value="JP" {% if profile.country_code == 'JP' %}selected{% endif %}>Japan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-text mb-4">
+                            Add your city to track weather conditions when you write entries.
+                            See how sunny days vs rainy days affect your mood!
+                        </div>
+
+                        <!-- Horoscope -->
+                        <h6 class="text-muted mb-3"><i class="bi bi-stars me-1"></i>Horoscope & Zodiac</h6>
+                        <div class="row mb-3">
+                            <label for="birthday" class="col-sm-3 col-form-label">Birthday</label>
+                            <div class="col-sm-6">
+                                <input type="date" name="birthday" id="birthday" class="form-control"
+                                       value="{% if profile.birthday %}{{ profile.birthday|date:'Y-m-d' }}{% endif %}">
+                            </div>
+                            <div class="col-sm-3">
+                                {% if profile.birthday %}
+                                <span class="form-control-plaintext">
+                                    <span class="badge bg-primary">{{ profile.zodiac_display }}</span>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-9 offset-sm-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="horoscope_enabled"
+                                           id="horoscope_enabled" value="1"
+                                           {% if profile.horoscope_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="horoscope_enabled">
+                                        Enable zodiac insights in analytics
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-text mb-4">
+                            Add your birthday to see zodiac-based patterns in your journal.
+                            Discover if certain astrological periods affect your mood or writing.
+                        </div>
+
+                        <!-- Daily Devotion -->
+                        <h6 class="text-muted mb-3"><i class="bi bi-book me-1"></i>Daily Christian Devotion</h6>
+                        <div class="row mb-3">
+                            <div class="col-sm-9 offset-sm-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="devotion_enabled"
+                                           id="devotion_enabled" value="1"
+                                           {% if profile.devotion_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="devotion_enabled">
+                                        Enable daily Christian devotions
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-text mb-4">
+                            Receive a daily Bible verse and reflection on your dashboard.
+                            Start each day with spiritual encouragement and guidance.
+                        </div>
+
+                        <!-- Moon Phase Note -->
+                        <div class="alert alert-light mb-4">
+                            <i class="bi bi-moon-stars me-2"></i>
+                            <strong>Moon Phase Tracking</strong> is automatically enabled for all entries.
+                            See how full moons and new moons correlate with your emotions!
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-9 offset-sm-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check me-1"></i>Save Insights Settings
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Danger Zone
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Permanently delete your account and all associated data.</p>
+                    <a href="{% url 'account_logout' %}" class="btn btn-outline-danger">
+                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}

@@ -1,0 +1,377 @@
+{% load static %}
+{% load subscription_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Reflekt{% endblock %} | Your Writing, Understood</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- EasyMDE for markdown editor -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <!-- Quill for rich text editor -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #7c3aed;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .main-content {
+            flex: 1;
+        }
+        .mood-emoji {
+            font-size: 1.5rem;
+        }
+        .entry-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s;
+        }
+        .sentiment-positive { color: #22c55e; }
+        .sentiment-negative { color: #ef4444; }
+        .sentiment-neutral { color: #6b7280; }
+
+        /* POV blocks - received from friends (light blue) */
+        .alert-pov {
+            background-color: #e0f2fe;
+            border: 1px solid #7dd3fc;
+            border-left: 4px solid #0ea5e9;
+            border-radius: 0.5rem;
+            color: #0c4a6e;
+        }
+        .admonition-pov .admonition-title {
+            color: #0369a1;
+            font-weight: 600;
+        }
+        .admonition-pov .admonition-content {
+            color: #0c4a6e;
+        }
+
+        /* POV blocks - sent to friends (light purple) */
+        .alert-pov-author {
+            background-color: #f3e8ff;
+            border: 1px solid #d8b4fe;
+            border-left: 4px solid #a855f7;
+            border-radius: 0.5rem;
+            color: #581c87;
+        }
+        .admonition-pov-author .admonition-title {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+        .admonition-pov-author .admonition-content {
+            color: #581c87;
+        }
+
+        /* Goal and Habit tracker blocks */
+        .tracker-block {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+        }
+        .tracker-block a {
+            text-decoration: none;
+        }
+        .tracker-block a:hover {
+            text-decoration: underline;
+        }
+        .tracker-goal {
+            background-color: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        .tracker-goal a {
+            color: #166534;
+            font-weight: 500;
+        }
+        .tracker-habit {
+            background-color: #fef3c7;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+        }
+        .tracker-habit a {
+            color: #92400e;
+            font-weight: 500;
+        }
+
+        /* Editor styling */
+        .EasyMDEContainer .CodeMirror {
+            border-radius: 0.375rem;
+            border: 1px solid #dee2e6;
+        }
+        .editor-toolbar {
+            border-radius: 0.375rem 0.375rem 0 0;
+        }
+
+        /* Toast-style notifications */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 300px;
+        }
+        .toast-alert {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+        .toast-alert.alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .toast-alert.alert-error, .toast-alert.alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .toast-alert.alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .toast-alert.alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .toast-alert .btn-close {
+            padding: 0.25rem;
+            font-size: 0.7rem;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .toast-alert.hiding {
+            animation: slideOut 0.3s ease-in forwards;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="bi bi-journal-text me-2"></i>Reflekt
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if user.is_authenticated %}
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'journal:entry_list' %}">
+                            <i class="bi bi-book me-1"></i>Journal
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if user|user_is_premium %}{% url 'goals:goal_list' %}{% else %}{% url 'accounts:upgrade' %}{% endif %}">
+                            <i class="bi bi-bullseye me-1"></i>Goals
+                            {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">PRO</span>{% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if user|user_is_premium %}{% url 'habits:habit_list' %}{% else %}{% url 'accounts:upgrade' %}{% endif %}">
+                            <i class="bi bi-repeat me-1"></i>Habits
+                            {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">PRO</span>{% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-graph-up me-1"></i>Dashboard
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'analytics:dashboard' %}">
+                                <i class="bi bi-speedometer2 me-2"></i>Overview
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% if user|user_is_premium %}{% url 'analytics:captures' %}{% else %}{% url 'accounts:upgrade' %}{% endif %}">
+                                <i class="bi bi-collection me-2"></i>Captures
+                                {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">PRO</span>{% endif %}
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% if user|user_is_premium %}{% url 'analytics:books' %}{% else %}{% url 'accounts:upgrade' %}{% endif %}">
+                                <i class="bi bi-book me-2"></i>Books
+                                {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">PRO</span>{% endif %}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% if user|user_is_premium %}{% url 'analytics:media' %}{% else %}{% url 'accounts:upgrade' %}{% endif %}">
+                                <i class="bi bi-film me-2"></i>Media
+                                {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">PRO</span>{% endif %}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% if user|user_is_premium %}{% url 'analytics:people' %}{% else %}{% url 'accounts:upgrade' %}{% endif %}">
+                                <i class="bi bi-people me-2"></i>People
+                                {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">PRO</span>{% endif %}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% if user|user_is_premium %}{% url 'analytics:fitness' %}{% else %}{% url 'accounts:upgrade' %}{% endif %}">
+                                <i class="bi bi-activity me-2"></i>Fitness
+                                {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">PRO</span>{% endif %}
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'journal:entry_create' %}">
+                            <i class="bi bi-plus-circle me-1"></i>New Entry
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{% url 'journal:shared_povs_list' %}">
+                            <i class="bi bi-chat-square-quote me-1"></i>POVs
+                            <span class="badge bg-danger rounded-pill d-none" id="povBadge" style="font-size: 0.65rem; position: absolute; top: 0; right: 0; transform: translate(25%, -25%);"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'journal:import_entries' %}">
+                            <i class="bi bi-upload me-1"></i>Import
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:profile' %}">
+                            <i class="bi bi-gear me-1"></i>Settings
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>{{ user.email }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                <i class="bi bi-gear me-2"></i>Settings
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'features' %}">
+                                <i class="bi bi-lightbulb me-2"></i>How It Works
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'account_logout' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+                {% else %}
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'features' %}">
+                            <i class="bi bi-lightbulb me-1"></i>How It Works
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:pricing' %}">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'account_login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="{% url 'account_signup' %}">Sign Up</a>
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toast-style Messages -->
+    {% if messages %}
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="toast-alert alert-{{ message.tags }} d-flex align-items-center justify-content-between" role="alert">
+            <span><i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>{{ message }}</span>
+            <button type="button" class="btn-close ms-2" onclick="this.parentElement.remove()"></button>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        // Auto-dismiss toast messages after 2.5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toast-alert').forEach(function(toast) {
+                setTimeout(function() {
+                    toast.classList.add('hiding');
+                    setTimeout(function() {
+                        toast.remove();
+                    }, 300);
+                }, 2500);
+            });
+        });
+    </script>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light py-4 mt-auto">
+        <div class="container text-center text-muted">
+            <p class="mb-0">&copy; 2025 Reflekt. Your writing, understood over time.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- EasyMDE -->
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <!-- Quill -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {% if user.is_authenticated %}
+    <script>
+    // Update POV badge with unread count
+    function updatePovBadge() {
+        fetch('{% url "journal:unread_povs_count" %}')
+            .then(r => r.json())
+            .then(data => {
+                const badge = document.getElementById('povBadge');
+                if (badge) {
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.classList.remove('d-none');
+                    } else {
+                        badge.classList.add('d-none');
+                    }
+                }
+            })
+            .catch(() => {});
+    }
+    // Initial check and periodic refresh
+    document.addEventListener('DOMContentLoaded', function() {
+        updatePovBadge();
+        setInterval(updatePovBadge, 60000); // Every minute
+    });
+    </script>
+    {% endif %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

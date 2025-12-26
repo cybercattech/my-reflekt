@@ -1,0 +1,573 @@
+{% extends 'base.html' %}
+
+{% block title %}Features & How They Work{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">How Reflekt Works</h1>
+                <p class="lead text-muted">Understanding the AI-powered insights and features that make your journaling experience unique</p>
+            </div>
+
+            <!-- Table of Contents -->
+            <div class="card border-0 shadow-sm mb-5">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Quick Navigation</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><a href="#ai-sentiment" class="text-decoration-none">🤖 AI Sentiment Analysis</a></li>
+                                <li class="mb-2"><a href="#mood-tracking" class="text-decoration-none">😊 Mood Tracking</a></li>
+                                <li class="mb-2"><a href="#pov-sharing" class="text-decoration-none">💬 POV Sharing</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><a href="#correlations" class="text-decoration-none">📊 Environmental Correlations</a></li>
+                                <li class="mb-2"><a href="#insights" class="text-decoration-none">✨ Personalized Insights</a></li>
+                                <li class="mb-2"><a href="#devotion" class="text-decoration-none">📖 Daily Devotion</a></li>
+                                <li class="mb-2"><a href="#privacy" class="text-decoration-none">🔒 Privacy & Encryption</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Sentiment Analysis -->
+            <section id="ai-sentiment" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h3 mb-4">🤖 AI Sentiment Analysis</h2>
+
+                        <h3 class="h5 mb-3">How It Works</h3>
+                        <p>Every journal entry is automatically analyzed using <strong>VADER (Valence Aware Dictionary and sEntiment Reasoner)</strong>, an AI model specifically designed for understanding emotions in everyday language.</p>
+
+                        <div class="alert alert-info">
+                            <strong>Real-time Analysis:</strong> The moment you save an entry, our AI reads your words and determines the emotional tone.
+                        </div>
+
+                        <h3 class="h5 mb-3 mt-4">What We Measure</h3>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <h6 class="text-success mb-2">😊 Positive Sentiment</h6>
+                                    <p class="small mb-0">Words expressing happiness, gratitude, excitement, love, and optimism</p>
+                                    <p class="small text-muted mb-0 mt-2"><em>Example: "amazing," "grateful," "wonderful"</em></p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <h6 class="text-danger mb-2">😔 Negative Sentiment</h6>
+                                    <p class="small mb-0">Words expressing sadness, frustration, anger, worry, and disappointment</p>
+                                    <p class="small text-muted mb-0 mt-2"><em>Example: "frustrated," "disappointed," "worried"</em></p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <h6 class="text-secondary mb-2">😐 Neutral Sentiment</h6>
+                                    <p class="small mb-0">Factual, informational, or balanced emotional tone</p>
+                                    <p class="small text-muted mb-0 mt-2"><em>Example: "went to work," "ate dinner"</em></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 class="h5 mb-3 mt-4">The Sentiment Score</h3>
+                        <p>Each entry receives a <strong>compound sentiment score</strong> from -1.0 to +1.0:</p>
+                        <div class="bg-light p-3 rounded mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="flex-shrink-0" style="width: 80px;">
+                                    <span class="badge bg-success">+0.05 to +1.0</span>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <strong>Positive</strong> - Happy, grateful, excited entries
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="flex-shrink-0" style="width: 80px;">
+                                    <span class="badge bg-secondary">-0.05 to +0.05</span>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <strong>Neutral</strong> - Balanced or informational entries
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0" style="width: 80px;">
+                                    <span class="badge bg-danger">-1.0 to -0.05</span>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <strong>Negative</strong> - Sad, frustrated, worried entries
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 class="h5 mb-3 mt-4">What You Get</h3>
+                        <ul>
+                            <li><strong>Daily sentiment tracking</strong> - See your emotional journey over time</li>
+                            <li><strong>Monthly trends</strong> - Identify patterns in your mood</li>
+                            <li><strong>Yearly summaries</strong> - Understand your emotional year at a glance</li>
+                            <li><strong>Visualizations</strong> - Charts and graphs showing sentiment trends</li>
+                        </ul>
+
+                        <div class="alert alert-warning mt-3">
+                            <strong>⚠️ Important:</strong> Sentiment analysis is a tool for reflection, not medical advice. If you're experiencing persistent negative emotions, please consult a mental health professional.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mood Tracking -->
+            <section id="mood-tracking" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h3 mb-4">😊 Mood Tracking</h2>
+
+                        <p>In addition to AI sentiment analysis, Reflekt automatically detects specific moods from your writing:</p>
+
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6 col-lg-4">
+                                <div class="p-3 border rounded">
+                                    <h6 class="text-primary">💙 Happy</h6>
+                                    <p class="small mb-0">Joy, contentment, excitement</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="p-3 border rounded">
+                                    <h6 class="text-info">😔 Sad</h6>
+                                    <p class="small mb-0">Melancholy, grief, disappointment</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="p-3 border rounded">
+                                    <h6 class="text-warning">😤 Angry</h6>
+                                    <p class="small mb-0">Frustration, irritation, resentment</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="p-3 border rounded">
+                                    <h6 class="text-danger">😰 Anxious</h6>
+                                    <p class="small mb-0">Worry, stress, nervousness</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="p-3 border rounded">
+                                    <h6 class="text-success">🙏 Grateful</h6>
+                                    <p class="small mb-0">Appreciation, thankfulness</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="p-3 border rounded">
+                                    <h6 class="text-secondary">🤔 Reflective</h6>
+                                    <p class="small mb-0">Contemplative, thoughtful, introspective</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="mt-4">The AI looks for specific emotional keywords and phrases to identify these moods automatically. You can also manually tag entries with moods and energy levels.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- POV Sharing -->
+            <section id="pov-sharing" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h3 mb-4">💬 POV (Point of View) Sharing</h2>
+
+                        <p class="lead">Share specific thoughts with friends without sharing your entire entry.</p>
+
+                        <h3 class="h5 mb-3 mt-4">How to Share a POV</h3>
+                        <p>Use the special <code>{pov}</code> syntax in your journal entries:</p>
+
+                        <div class="bg-light p-3 rounded mb-3">
+                            <pre class="mb-0" style="color: #333;"><code>Today was an amazing day! I went to the beach.
+
+{pov} @alice @bob
+Just wanted to share - saw the most beautiful sunset today!
+Reminded me of when we all went camping last year.
+{/pov}
+
+The rest of my entry stays private...</code></pre>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>What happens:</strong> Only Alice and Bob will see the POV content. It gets automatically added to their journal entry for that same date, clearly marked with your username.
+                        </div>
+
+                        <h3 class="h5 mb-3 mt-4">Key Features</h3>
+                        <ul>
+                            <li><strong>Selective Sharing</strong> - Share paragraphs, not entire entries</li>
+                            <li><strong>Friends Only</strong> - Can only share with confirmed friends</li>
+                            <li><strong>Auto-Injection</strong> - Content appears in recipient's journal for that date</li>
+                            <li><strong>Clear Attribution</strong> - Recipients see who shared it</li>
+                            <li><strong>Reply Threads</strong> - Recipients can reply, creating conversations</li>
+                            <li><strong>Notifications</strong> - Friends are notified when you share</li>
+                        </ul>
+
+                        <h3 class="h5 mb-3 mt-4">Recipient Controls</h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="p-3 bg-success bg-opacity-10 rounded">
+                                    <h6 class="text-success mb-2">✅ What Recipients Can Do</h6>
+                                    <ul class="small mb-0">
+                                        <li>Delete POVs from their journal anytime</li>
+                                        <li>Reply to shared POVs</li>
+                                        <li>Choose to ignore POVs</li>
+                                        <li>Report inappropriate content</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-warning bg-opacity-10 rounded">
+                                    <h6 class="text-warning mb-2">⚠️ What You Can't Do</h6>
+                                    <ul class="small mb-0">
+                                        <li>You cannot unsend a POV once shared</li>
+                                        <li>You cannot force delete from recipient's journal</li>
+                                        <li>You cannot see if they've deleted it</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-4">
+                            <strong>⚠️ Think Before You Share:</strong> POV content becomes part of your friend's journal. While they can delete it, you cannot control what they do with it once shared. Only share what you're comfortable with them keeping.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Daily Devotion -->
+            <section id="devotion" class="mb-5">
+                <div class="card border-0 shadow-sm border-primary">
+                    <div class="card-body p-4">
+                        <h2 class="h3 mb-4">📖 Daily Christian Devotion</h2>
+
+                        <p class="lead">Start each day with Biblical wisdom and spiritual encouragement.</p>
+
+                        <h3 class="h5 mb-3 mt-4">What You Get</h3>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded text-center">
+                                    <i class="bi bi-book text-primary mb-2" style="font-size: 2rem;"></i>
+                                    <h6>Daily Bible Verse</h6>
+                                    <p class="small mb-0">Carefully selected scripture for each day of the year</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded text-center">
+                                    <i class="bi bi-lightbulb text-warning mb-2" style="font-size: 2rem;"></i>
+                                    <h6>Thoughtful Reflection</h6>
+                                    <p class="small mb-0">Practical application and encouragement for daily life</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded text-center">
+                                    <i class="bi bi-heart text-danger mb-2" style="font-size: 2rem;"></i>
+                                    <h6>Thematic Focus</h6>
+                                    <p class="small mb-0">Organized around themes like Trust, Hope, Love, and Rest</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 class="h5 mb-3 mt-4">How It Works</h3>
+                        <ol>
+                            <li><strong>Enable in Settings</strong> - Toggle on the devotion feature in your profile settings</li>
+                            <li><strong>See on Dashboard</strong> - Each day, a new verse and reflection appears on your dashboard</li>
+                            <li><strong>Reflect & Journal</strong> - Use the devotion as a prompt or inspiration for your journaling</li>
+                            <li><strong>Year-Round Rotation</strong> - Verses cycle through the year, providing fresh encouragement daily</li>
+                        </ol>
+
+                        <h3 class="h5 mb-3 mt-4">Example Themes</h3>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>New Beginnings</li>
+                                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Trust & Faith</li>
+                                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Strength in Weakness</li>
+                                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Rest & Renewal</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Hope & Perseverance</li>
+                                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Love & Kindness</li>
+                                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Stillness & Peace</li>
+                                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>God's Provision</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mt-4">
+                            <strong>💙 Completely Optional:</strong> The daily devotion feature is designed for those who want to integrate Christian faith with their journaling practice. It can be enabled or disabled at any time in your profile settings, and it works alongside any other insights features you have enabled (like horoscopes or moon phases).
+                        </div>
+
+                        <div class="alert alert-light mt-3">
+                            <strong>📚 Growing Library:</strong> We currently offer a curated selection of devotions that cycle throughout the year. We're constantly adding more verses and reflections to provide deeper spiritual insights.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Environmental Correlations -->
+            <section id="correlations" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h3 mb-4">📊 Environmental Correlations</h2>
+
+                        <p class="lead">Discover how external factors influence your mood and writing.</p>
+
+                        <h3 class="h5 mb-3 mt-4">🌙 Moon Phase Correlations</h3>
+                        <p>We track the moon phase for each entry and correlate it with your sentiment scores to find patterns:</p>
+                        <ul>
+                            <li><strong>New Moon 🌑</strong> - New beginnings, introspection</li>
+                            <li><strong>Waxing Crescent 🌒</strong> - Growing energy, planning</li>
+                            <li><strong>First Quarter 🌓</strong> - Action, decision-making</li>
+                            <li><strong>Waxing Gibbous 🌔</strong> - Refinement, anticipation</li>
+                            <li><strong>Full Moon 🌕</strong> - Peak energy, emotions, completion</li>
+                            <li><strong>Waning Gibbous 🌖</strong> - Gratitude, sharing</li>
+                            <li><strong>Last Quarter 🌗</strong> - Release, letting go</li>
+                            <li><strong>Waning Crescent 🌘</strong> - Rest, reflection</li>
+                        </ul>
+
+                        <div class="alert alert-info">
+                            <strong>Example Insight:</strong> "🌕 Your writing skews towards feeling grateful during the full moon" or "🌑 New moon phases inspire reflective energy in your entries"
+                        </div>
+
+                        <h3 class="h5 mb-3 mt-4">🌤️ Weather Correlations</h3>
+                        <p>If you've added your location, we track local weather conditions and correlate them with your mood:</p>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded">
+                                    <h6>☀️ Sunny Days</h6>
+                                    <p class="small mb-0">Do you feel happier on sunny days?</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded">
+                                    <h6>🌧️ Rainy Days</h6>
+                                    <p class="small mb-0">Are rainy days more reflective?</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded">
+                                    <h6>🌡️ Temperature</h6>
+                                    <p class="small mb-0">Does heat or cold affect your mood?</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded">
+                                    <h6>💧 Humidity</h6>
+                                    <p class="small mb-0">Impact of humidity on your writing</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 class="h5 mb-3 mt-4">♈ Zodiac Correlations (Optional)</h3>
+                        <p>If you've added your birthday, we can correlate your mood with zodiac sign periods:</p>
+                        <ul>
+                            <li>Patterns during your sun sign's season</li>
+                            <li>Elemental influences (Fire, Earth, Air, Water)</li>
+                            <li>Seasonal emotional patterns</li>
+                        </ul>
+
+                        <h3 class="h5 mb-3 mt-4">📖 Daily Christian Devotion (Optional)</h3>
+                        <p>Start each day with spiritual reflection and Biblical guidance:</p>
+                        <ul>
+                            <li><strong>Daily Bible Verse</strong> - Carefully selected scripture for each day of the year</li>
+                            <li><strong>Thoughtful Reflection</strong> - Practical application and encouragement</li>
+                            <li><strong>Thematic Focus</strong> - Verses organized around themes like Trust, Hope, Love, Strength, and Rest</li>
+                            <li><strong>Dashboard Display</strong> - See your daily devotion prominently on your dashboard</li>
+                            <li><strong>Optional Feature</strong> - Easily enable or disable in your profile settings</li>
+                        </ul>
+
+                        <div class="alert alert-info">
+                            <strong>💙 Faith & Reflection:</strong> The daily devotion feature is designed to encourage spiritual growth alongside your journaling practice. Verses cycle through the year, providing fresh encouragement each day. This feature is completely optional and can be toggled on/off at any time in your profile settings.
+                        </div>
+
+                        <div class="alert alert-secondary">
+                            <strong>📊 How Correlations Work:</strong> We analyze at least 90 days of entries, calculating average sentiment scores for each moon phase, weather condition, etc. The results show you which conditions correlate with your happiest, saddest, or most reflective entries.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Personalized Insights -->
+            <section id="insights" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h3 mb-4">✨ Personalized Insights</h2>
+
+                        <p class="lead">The more you write, the smarter Reflekt becomes at understanding your patterns.</p>
+
+                        <h3 class="h5 mb-3 mt-4">What You'll Discover</h3>
+
+                        <div class="accordion" id="insightsAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#insight1">
+                                        📈 Sentiment Trends
+                                    </button>
+                                </h2>
+                                <div id="insight1" class="accordion-collapse collapse show" data-bs-parent="#insightsAccordion">
+                                    <div class="accordion-body">
+                                        <ul class="mb-0">
+                                            <li>30-day moving average of your emotional state</li>
+                                            <li>Weekly and monthly sentiment summaries</li>
+                                            <li>Comparison to your historical baseline</li>
+                                            <li>Identification of upward or downward trends</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#insight2">
+                                        📅 Temporal Patterns
+                                    </button>
+                                </h2>
+                                <div id="insight2" class="accordion-collapse collapse" data-bs-parent="#insightsAccordion">
+                                    <div class="accordion-body">
+                                        <ul class="mb-0">
+                                            <li><strong>Day of Week:</strong> Are you happier on weekends?</li>
+                                            <li><strong>Time of Day:</strong> Morning vs. evening writing patterns</li>
+                                            <li><strong>Seasonal:</strong> How seasons affect your mood</li>
+                                            <li><strong>Streak Impact:</strong> Does consistent writing improve mood?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#insight3">
+                                        🎯 Goal & Habit Correlations
+                                    </button>
+                                </h2>
+                                <div id="insight3" class="accordion-collapse collapse" data-bs-parent="#insightsAccordion">
+                                    <div class="accordion-body">
+                                        <ul class="mb-0">
+                                            <li>How achieving goals affects your sentiment</li>
+                                            <li>Impact of habit consistency on mood</li>
+                                            <li>Identification of mood-boosting activities</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#insight4">
+                                        📝 Writing Style Analysis
+                                    </button>
+                                </h2>
+                                <div id="insight4" class="accordion-collapse collapse" data-bs-parent="#insightsAccordion">
+                                    <div class="accordion-body">
+                                        <ul class="mb-0">
+                                            <li>Average entry length over time</li>
+                                            <li>Most frequently used emotional words</li>
+                                            <li>Gratitude frequency (how often you express thanks)</li>
+                                            <li>People and places most mentioned</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6 class="mb-2">🎁 Year in Review</h6>
+                            <p class="small mb-0">At the end of each year, Reflekt generates a comprehensive review showing your emotional journey, most memorable entries, gratitude highlights, and personal growth. It's like your own personal annual report!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Privacy & Encryption -->
+            <section id="privacy" class="mb-5">
+                <div class="card border-0 shadow-sm border-primary">
+                    <div class="card-body p-4">
+                        <h2 class="h3 mb-4">🔒 Privacy & Encryption</h2>
+
+                        <div class="alert alert-success">
+                            <strong>Your thoughts are safe.</strong> Here's exactly how we protect your most private writing.
+                        </div>
+
+                        <h3 class="h5 mb-3 mt-4">🔐 Encryption at Rest</h3>
+                        <p>All journal entry titles and content are encrypted before being stored in our database using <strong>Fernet encryption (AES-128 in CBC mode)</strong>.</p>
+                        <ul>
+                            <li><strong>Database administrators cannot read your entries</strong> - even with database access</li>
+                            <li><strong>Backups are encrypted</strong> - your data is safe even in backups</li>
+                            <li><strong>Decryption happens only when you access your entries</strong></li>
+                        </ul>
+
+                        <h3 class="h5 mb-3 mt-4">🤖 How AI Works with Encryption</h3>
+                        <p>You might wonder: "If my entries are encrypted, how does AI analyze them?"</p>
+                        <div class="bg-light p-3 rounded">
+                            <ol class="mb-0">
+                                <li>When you save an entry, it's <strong>temporarily decrypted in memory</strong></li>
+                                <li>The AI analyzes the text and generates sentiment scores</li>
+                                <li>The scores are saved (these are just numbers, not your actual text)</li>
+                                <li>Your entry is <strong>re-encrypted and stored</strong></li>
+                                <li>The decrypted version never touches the disk</li>
+                            </ol>
+                        </div>
+                        <p class="mt-2 small text-muted">This means AI features work perfectly while maintaining encryption at rest.</p>
+
+                        <h3 class="h5 mb-3 mt-4">🌐 Encryption in Transit</h3>
+                        <ul>
+                            <li><strong>HTTPS/TLS</strong> - All data transmitted over secure connections</li>
+                            <li><strong>Secure cookies</strong> - Session data protected from interception</li>
+                        </ul>
+
+                        <h3 class="h5 mb-3 mt-4">👥 What About Shared POVs?</h3>
+                        <p>POV content is also encrypted at rest, just like your regular entries. When you share a POV:</p>
+                        <ul>
+                            <li>The content is encrypted in your friend's journal</li>
+                            <li>Only you, your friend, and the AI (for analysis) can read it</li>
+                            <li>Database admins still cannot read shared content</li>
+                        </ul>
+
+                        <div class="mt-4 p-3 bg-info bg-opacity-10 rounded">
+                            <h6 class="text-info mb-2">Learn More</h6>
+                            <p class="small mb-2">For complete details on data handling and your rights:</p>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'accounts:privacy' %}" class="btn btn-sm btn-outline-primary">Privacy Policy</a>
+                                <a href="{% url 'accounts:terms' %}" class="btn btn-sm btn-outline-primary">Terms of Service</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom CTA -->
+            <div class="text-center mt-5 pt-4 border-top">
+                <h3 class="h4 mb-3">Ready to Start Your Reflekt Journey?</h3>
+                <p class="text-muted mb-4">Join thousands of users discovering insights about themselves through AI-powered journaling.</p>
+                <div class="d-flex gap-3 justify-content-center">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'analytics:dashboard' %}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+                    {% else %}
+                        <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg">Start Free Trial</a>
+                        <a href="{% url 'account_login' %}" class="btn btn-outline-primary btn-lg">Sign In</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+    pre code {
+        font-size: 0.9rem;
+    }
+    section {
+        scroll-margin-top: 80px;
+    }
+</style>
+{% endblock %}

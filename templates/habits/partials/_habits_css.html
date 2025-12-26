@@ -1,0 +1,437 @@
+<style>
+    /* Habits Dashboard Layout */
+    .habits-container {
+        display: flex;
+        min-height: calc(100vh - 56px);
+    }
+
+    .habits-main {
+        flex: 1;
+        padding: 1.5rem;
+        background: #f8fafc;
+    }
+
+    /* Stats Cards */
+    .habits-stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .habits-stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .habits-stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .habits-stat-card .stat-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .habits-stat-card.due .stat-value { color: #f59e0b; }
+    .habits-stat-card.completed .stat-value { color: #22c55e; }
+    .habits-stat-card.rate .stat-value { color: #4f46e5; }
+
+    /* Habit Cards */
+    .habits-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .habit-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .habit-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .habit-card.completed {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+
+    /* Habit Icon */
+    .habit-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    /* Habit Info */
+    .habit-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .habit-name {
+        font-weight: 600;
+        color: #1f2937;
+        text-decoration: none;
+        display: block;
+    }
+
+    .habit-name:hover {
+        color: #4f46e5;
+    }
+
+    .habit-meta {
+        font-size: 0.85rem;
+        color: #6b7280;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .habit-meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    /* Streak Badge */
+    .streak-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #d97706;
+    }
+
+    .streak-badge.fire {
+        background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+        color: #dc2626;
+    }
+
+    /* Check-in Button */
+    .checkin-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 3px solid #d1d5db;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .checkin-btn:hover {
+        border-color: #4f46e5;
+        background: #f5f3ff;
+    }
+
+    .checkin-btn.completed {
+        background: #22c55e;
+        border-color: #22c55e;
+        color: white;
+    }
+
+    .checkin-btn.not-due {
+        border-style: dashed;
+        opacity: 0.5;
+    }
+
+    /* Completion Rate Circle */
+    .completion-rate {
+        width: 50px;
+        height: 50px;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .completion-rate-circle {
+        transform: rotate(-90deg);
+    }
+
+    .completion-rate-bg {
+        fill: none;
+        stroke: #e5e7eb;
+        stroke-width: 4;
+    }
+
+    .completion-rate-fill {
+        fill: none;
+        stroke: #4f46e5;
+        stroke-width: 4;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.3s;
+    }
+
+    .completion-rate-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #4f46e5;
+    }
+
+    /* Habit Detail Page */
+    .habit-detail-header {
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        color: white;
+    }
+
+    .habit-detail-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .habit-detail-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        opacity: 0.9;
+    }
+
+    /* Stats Grid */
+    .habit-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .habit-stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+    }
+
+    .habit-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .habit-stat-label {
+        font-size: 0.8rem;
+        opacity: 0.9;
+    }
+
+    /* Calendar Heatmap */
+    .habit-calendar {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+
+    .calendar-weekday {
+        text-align: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #6b7280;
+        padding: 0.5rem 0;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .calendar-day.empty {
+        background: transparent;
+        cursor: default;
+    }
+
+    .calendar-day.not-due {
+        background: #f9fafb;
+        color: #d1d5db;
+    }
+
+    .calendar-day.due {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .calendar-day.completed {
+        background: #22c55e;
+        color: white;
+    }
+
+    .calendar-day.today {
+        border: 2px solid #4f46e5;
+    }
+
+    .calendar-day.future {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .calendar-day:not(.empty):not(.future):hover {
+        transform: scale(1.1);
+    }
+
+    /* Section Card */
+    .habit-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .habit-section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+    }
+
+    /* Linked Entries */
+    .linked-entry {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.2s;
+    }
+
+    .linked-entry:hover {
+        background: #f3f4f6;
+    }
+
+    .linked-entry-date {
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    /* Form Styling */
+    .habit-form {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .frequency-options {
+        display: none;
+    }
+
+    .frequency-options.active {
+        display: block;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+
+    .weekday-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .weekday-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    /* Color Preview */
+    .icon-preview {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6b7280;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        opacity: 0.5;
+        margin-bottom: 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .habits-main {
+            padding: 1rem;
+        }
+
+        .habit-card {
+            flex-wrap: wrap;
+        }
+
+        .habit-info {
+            order: 1;
+            flex-basis: calc(100% - 60px);
+        }
+
+        .habit-icon {
+            order: 0;
+        }
+
+        .completion-rate,
+        .streak-badge,
+        .checkin-btn {
+            order: 2;
+        }
+    }
+</style>

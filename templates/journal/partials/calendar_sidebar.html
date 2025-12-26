@@ -1,0 +1,62 @@
+<!-- Left Calendar Sidebar - Continuous Scroll (White Style) -->
+<div class="calendar-sidebar-left">
+    <!-- Header -->
+    <div class="calendar-header-bar d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-calendar3 me-2"></i>Calendar</span>
+        <button type="button" class="btn btn-sm btn-light py-0 px-2" id="todayBtn" title="Go to today">
+            Today
+        </button>
+    </div>
+
+    <!-- Weekday Headers (Fixed at top) -->
+    <div class="calendar-weekday-header">
+        <span>Sun</span>
+        <span>Mon</span>
+        <span>Tue</span>
+        <span>Wed</span>
+        <span>Thu</span>
+        <span>Fri</span>
+        <span>Sat</span>
+    </div>
+
+    <!-- Scrollable Months Container -->
+    <div class="calendar-scroll-container" id="calendarScroll">
+        {% for month in calendar_months %}
+        <div class="calendar-month-section" data-year="{{ month.year }}" data-month="{{ month.month }}">
+            <div class="month-header">
+                <strong>{{ month.month_name }}</strong> {{ month.year }}
+            </div>
+            <div class="calendar-days-grid">
+                {% for week in month.weeks %}
+                    {% for day in week %}
+                        {% if day.in_month %}
+                            {% if day.has_entry %}
+                                <a href="{% url 'journal:entry_list' %}?date={{ day.date|date:'Y-m-d' }}"
+                                   class="cal-day has-entry {% if day.is_today %}today{% endif %} {% if selected_date == day.date|date:'Y-m-d' %}selected{% endif %}"
+                                   title="View entry for {{ day.date|date:'M j, Y' }}">
+                                    {{ day.day }}
+                                </a>
+                            {% else %}
+                                <a href="{% url 'journal:entry_create' %}?date={{ day.date|date:'Y-m-d' }}"
+                                   class="cal-day {% if day.is_today %}today{% endif %}"
+                                   title="Create entry for {{ day.date|date:'M j, Y' }}">
+                                    {{ day.day }}
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <span class="cal-day empty"></span>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Quick Actions at bottom -->
+    <div class="calendar-quick-actions">
+        <a href="{% url 'journal:entry_create' %}" class="btn btn-primary btn-sm w-100">
+            <i class="bi bi-plus me-1"></i>New Entry
+        </a>
+    </div>
+</div>

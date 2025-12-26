@@ -1,0 +1,48 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Delete Goal{% endblock %}
+
+{% block dashboard_css %}
+{% include 'goals/partials/_goals_css.html' %}
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="goals-container px-4 py-4">
+    <div class="goals-main" style="max-width: 600px; margin: 0 auto;">
+        <div class="goal-form text-center">
+            <div class="mb-4">
+                <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+            </div>
+
+            <h1 class="h4 mb-3">Delete Goal</h1>
+
+            <p class="mb-4">
+                Are you sure you want to delete <strong>"{{ goal.title }}"</strong>?
+            </p>
+
+            <div class="alert alert-warning text-start">
+                <i class="bi bi-info-circle me-2"></i>
+                This will also delete:
+                <ul class="mb-0 mt-2">
+                    <li>{{ goal.milestones.count }} milestone(s)</li>
+                    <li>{{ goal.progress_logs.count }} progress log(s)</li>
+                </ul>
+                <small class="text-muted">Linked journal entries will not be deleted.</small>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="{% url 'goals:goal_detail' pk=goal.pk %}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Delete Goal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}

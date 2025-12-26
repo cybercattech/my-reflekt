@@ -1,0 +1,718 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load subscription_tags %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block dashboard_css %}
+<style>
+.premium-locked {
+    position: relative;
+    overflow: hidden;
+}
+.premium-locked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+}
+.premium-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 11;
+    text-align: center;
+    width: 90%;
+}
+.premium-badge {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <h1 class="mb-4"><i class="bi bi-graph-up me-2"></i>Dashboard</h1>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Total Entries</h6>
+                            <h2 class="mb-0">{{ stats.total_entries|default:0 }}</h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Total Words</h6>
+                            <h2 class="mb-0">{{ stats.total_words|default:0|floatformat:0 }}</h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-file-text"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">This Month</h6>
+                            <h2 class="mb-0">{{ current_snapshot.entry_count|default:0 }}</h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-calendar-month"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="opacity-75">Avg Sentiment</h6>
+                            <h2 class="mb-0">
+                                {% if current_snapshot %}
+                                {% if current_snapshot.avg_sentiment > 0 %}+{% endif %}{{ current_snapshot.avg_sentiment|floatformat:2 }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-emoji-smile"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights Section -->
+    {% if insights %}
+    <div class="card mb-4 border-0 bg-light">
+        <div class="card-body">
+            <h6 class="card-title mb-3"><i class="bi bi-lightbulb me-2"></i>Insights</h6>
+            <div class="row g-3">
+                {% for insight in insights %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3">
+                            <span class="badge bg-{{ insight.color }} rounded-circle p-2">
+                                <i class="{{ insight.icon }}"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <p class="mb-0">{{ insight.text|safe }}</p>
+                            {% if insight.detail %}
+                            <small class="text-muted">{{ insight.detail }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Sentiment Trend Chart -->
+        <div class="{% if zodiac_insights %}col-lg-5{% else %}col-lg-8{% endif %}">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-graph-up me-2"></i>Sentiment Trend (Last 6 Months)
+                </div>
+                <div class="card-body">
+                    <canvas id="sentimentChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Month Mood -->
+        <div class="{% if zodiac_insights %}col-lg-3{% else %}col-lg-4{% endif %}">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-pie-chart me-2"></i>This Month's Mood
+                </div>
+                <div class="card-body">
+                    {% if current_snapshot and current_snapshot.mood_distribution %}
+                    <canvas id="moodChart" height="250"></canvas>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-bar-chart display-4"></i>
+                        <p class="mt-2">No data yet this month</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Zodiac Insights (moved up) -->
+        {% if zodiac_insights %}
+        <div class="col-lg-4">
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
+                <div class="card-header" style="background: linear-gradient(135deg, {{ zodiac_insights.element_color }}22 0%, transparent 100%);">
+                    <i class="bi bi-stars me-2"></i>Zodiac: {{ zodiac_insights.symbol }} {{ zodiac_insights.display_name }}
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <span class="display-4">{{ zodiac_insights.symbol }}</span>
+                        <p class="text-muted small mb-0">{{ zodiac_insights.element|title }} Sign</p>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Avg Sentiment</span>
+                        <span class="badge bg-{% if zodiac_insights.avg_sentiment > 0.05 %}success{% elif zodiac_insights.avg_sentiment < -0.05 %}danger{% else %}secondary{% endif %}">
+                            {% if zodiac_insights.avg_sentiment > 0 %}+{% endif %}{{ zodiac_insights.avg_sentiment|floatformat:2 }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Dominant Mood</span>
+                        <span>{{ zodiac_insights.dominant_mood|title }}</span>
+                    </div>
+                    {% for insight in zodiac_insights.insights %}
+                    <div class="alert alert-light small py-2 mb-2">
+                        <i class="bi bi-lightbulb text-warning me-1"></i>{{ insight }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if user|user_is_free %}
+                <div class="premium-overlay">
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium Feature
+                    </div>
+                    <p class="mb-2 small">Unlock zodiac insights</p>
+                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade Now</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Daily Devotion -->
+        {% if daily_devotion %}
+        <div class="col-lg-4">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-primary bg-opacity-10 border-primary">
+                    <i class="bi bi-book me-2"></i>Daily Devotion
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-quote text-primary" style="font-size: 2rem;"></i>
+                        <p class="text-muted small mb-0">{{ daily_devotion.theme }}</p>
+                    </div>
+                    <h6 class="text-primary mb-2">{{ daily_devotion.reference }}</h6>
+                    <p class="fst-italic mb-3 small">"{{ daily_devotion.verse }}"</p>
+                    <hr class="my-3">
+                    <p class="small mb-0">{{ daily_devotion.reflection }}</p>
+                </div>
+                <div class="card-footer bg-light text-center small text-muted">
+                    <i class="bi bi-calendar3 me-1"></i>Day {{ daily_devotion.day_number }} of the year
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Capture Summary Cards -->
+    <div class="row g-4 mt-2">
+        <!-- Books -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-book me-2"></i>Books</span>
+                    <a href="{% url 'analytics:books' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="text-center">
+                            <h3 class="mb-0 text-primary">{{ books_reading|length }}</h3>
+                            <small class="text-muted">Reading</small>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="mb-0 text-success">{{ books_finished_year }}</h3>
+                            <small class="text-muted">Finished ({{ current_year }})</small>
+                        </div>
+                    </div>
+                    {% if books_reading %}
+                    <hr>
+                    <small class="text-muted">Currently reading:</small>
+                    <ul class="list-unstyled mb-0 mt-2">
+                        {% for book in books_reading %}
+                        <li class="mb-1">
+                            <i class="bi bi-book-half text-primary me-1"></i>
+                            {{ book.title|truncatewords:5 }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% if user|user_is_free %}
+                <div class="premium-overlay">
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium
+                    </div>
+                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- People -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-people me-2"></i>People</span>
+                    <a href="{% url 'analytics:people' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h3 class="mb-0 text-success">{{ top_people|length }}</h3>
+                        <small class="text-muted">People tracked</small>
+                    </div>
+                    {% if top_people %}
+                    <hr>
+                    <small class="text-muted">Most mentioned:</small>
+                    <ul class="list-unstyled mb-0 mt-2">
+                        {% for person in top_people|slice:":3" %}
+                        <li class="mb-1 d-flex justify-content-between">
+                            <span>
+                                <i class="bi bi-person text-success me-1"></i>
+                                {{ person.name }}
+                            </span>
+                            <span class="badge bg-light text-dark">{{ person.mention_count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% if user|user_is_free %}
+                <div class="premium-overlay">
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium
+                    </div>
+                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Media Watched -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-film me-2"></i>Media</span>
+                    <a href="{% url 'analytics:media' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h3 class="mb-0 text-info">{{ watched_count_year }}</h3>
+                        <small class="text-muted">Watched ({{ current_year }})</small>
+                    </div>
+                    {% if recent_watched %}
+                    <hr>
+                    <small class="text-muted">Recently watched:</small>
+                    <ul class="list-unstyled mb-0 mt-2">
+                        {% for item in recent_watched|slice:":3" %}
+                        <li class="mb-1">
+                            <i class="bi bi-{% if item.data.type == 'show' %}tv{% else %}camera-reels{% endif %} text-info me-1"></i>
+                            {{ item.data.title|default:"Untitled"|truncatewords:4 }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% if user|user_is_free %}
+                <div class="premium-overlay">
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium
+                    </div>
+                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Fitness -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-activity me-2"></i>Fitness</span>
+                    <a href="{% url 'analytics:fitness' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h3 class="mb-0 text-warning">{{ workout_count_year }}</h3>
+                        <small class="text-muted">Workouts ({{ current_year }})</small>
+                    </div>
+                    {% if workout_count_year > 0 %}
+                    <hr>
+                    <div class="text-center">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar-check me-1"></i>
+                            Keep up the great work!
+                        </small>
+                    </div>
+                    {% else %}
+                    <hr>
+                    <div class="text-center">
+                        <small class="text-muted">
+                            Use <code>/workout</code> in your entries to track!
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if user|user_is_free %}
+                <div class="premium-overlay">
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium
+                    </div>
+                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Environmental Insights (Moon, Weather, Zodiac) -->
+    {% if moon_correlation.phases or weather_correlation.conditions or zodiac_insights %}
+    <div class="row g-4 mt-2">
+        <!-- Moon Phase Patterns -->
+        {% if moon_correlation.phases %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm {% if user|user_is_free %}premium-locked{% endif %}">
+                <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <i class="bi bi-moon-stars me-2"></i>🌙 Lunar Mood Patterns
+                    <span class="float-end small opacity-75">
+                        <i class="bi bi-info-circle me-1"></i>{{ moon_correlation.total_entries }} entries (last {{ moon_correlation.period_days }} days)
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Insights in One Row -->
+                    {% if moon_correlation.insights %}
+                    <div class="row g-2 mb-3">
+                        {% for insight in moon_correlation.insights %}
+                        <div class="col-md-4">
+                            <div class="alert alert-primary border-0 mb-0 py-2 px-3 h-100" style="background-color: #f0f4ff;">
+                                <small class="mb-0">{{ insight }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Eight Moon Phases in One Row -->
+                    <div class="row g-2">
+                        {% for phase in moon_correlation.phases %}
+                        <div class="col-6 col-sm-4 col-md-3 col-lg-auto" style="flex: 1 1 0;">
+                            <div class="text-center p-2 rounded border h-100 {% if forloop.first %}bg-light{% endif %}"
+                                 style="{% if forloop.first %}border-color: {% if phase.sentiment_label == 'positive' %}#22c55e{% elif phase.sentiment_label == 'negative' %}#ef4444{% else %}#6b7280{% endif %} !important; border-width: 2px !important;{% endif %}">
+                                <div class="fs-3 mb-1">
+                                    {% if phase.phase == 'full_moon' %}🌕
+                                    {% elif phase.phase == 'new_moon' %}🌑
+                                    {% elif phase.phase == 'first_quarter' %}🌓
+                                    {% elif phase.phase == 'last_quarter' %}🌗
+                                    {% elif phase.phase == 'waxing_crescent' %}🌒
+                                    {% elif phase.phase == 'waxing_gibbous' %}🌔
+                                    {% elif phase.phase == 'waning_crescent' %}🌘
+                                    {% elif phase.phase == 'waning_gibbous' %}🌖
+                                    {% endif %}
+                                </div>
+                                <div class="fw-medium small mb-1" style="font-size: 0.75rem; line-height: 1.2;">
+                                    {{ phase.display_name }}
+                                </div>
+                                <div class="mb-1">
+                                    <span class="badge bg-{% if phase.sentiment_label == 'positive' %}success{% elif phase.sentiment_label == 'negative' %}danger{% else %}secondary{% endif %} small">
+                                        {% if phase.avg_sentiment > 0 %}+{% endif %}{{ phase.avg_sentiment|floatformat:2 }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ phase.count }} entries</small>
+                                </div>
+                                {% if phase.dominant_mood %}
+                                <div>
+                                    <small class="text-muted" style="font-size: 0.65rem;">{{ phase.dominant_mood }}</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if user|user_is_free %}
+                <div class="premium-overlay">
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium Feature
+                    </div>
+                    <p class="mb-2">Unlock moon phase insights and correlations</p>
+                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-warning text-dark">Upgrade Now</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Weather Impact -->
+        {% if weather_correlation.conditions %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-cloud-sun me-2"></i>Weather Impact
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-3">How weather affects your mood (last 90 days)</p>
+                    {% for condition in weather_correlation.conditions|slice:":4" %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <i class="{{ condition.icon }} me-1"></i>
+                            <span>{{ condition.display_name }}</span>
+                            {% if condition.avg_temperature %}<small class="text-muted">({{ condition.avg_temperature|floatformat:0 }}°C)</small>{% endif %}
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-{% if condition.sentiment_label == 'positive' %}success{% elif condition.sentiment_label == 'negative' %}danger{% else %}secondary{% endif %}">
+                                {% if condition.avg_sentiment > 0 %}+{% endif %}{{ condition.avg_sentiment|floatformat:2 }}
+                            </span>
+                            <small class="text-muted ms-1">({{ condition.count }})</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% for insight in weather_correlation.insights %}
+                    <div class="alert alert-light small py-2 mb-0 mt-3">
+                        <i class="bi bi-lightbulb text-warning me-1"></i>{{ insight }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% elif user.profile.city == '' %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-dashed">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-cloud-sun display-4 text-muted"></i>
+                    <p class="text-muted mt-3 mb-2">Weather tracking not enabled</p>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-primary">
+                        Add your city in Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Recent Entries & Quick Links -->
+    <div class="row g-4 mt-2">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-clock-history me-2"></i>Recent Entries</span>
+                    <a href="{% url 'journal:entry_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for entry in recent_entries %}
+                    <li class="list-group-item">
+                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="text-decoration-none">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="me-2">{{ entry.mood_emoji }}</span>
+                                    <strong>{{ entry.entry_date|date:"M j" }}</strong>
+                                    {% if entry.title %} - {{ entry.title }}{% endif %}
+                                </div>
+                                {% if entry.analysis %}
+                                <span class="badge bg-{% if entry.analysis.sentiment_label == 'positive' %}success{% elif entry.analysis.sentiment_label == 'negative' %}danger{% else %}secondary{% endif %}">
+                                    {{ entry.analysis.detected_mood }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted py-4">
+                        No entries yet. <a href="{% url 'journal:entry_create' %}">Write your first entry!</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightning me-2"></i>Quick Actions
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'journal:entry_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>New Entry
+                        </a>
+                        {% if user|user_is_premium %}
+                        <a href="{% url 'analytics:yearly' current_year %}" class="btn btn-outline-primary">
+                            <i class="bi bi-calendar-check me-2"></i>{{ current_year }} Year in Review
+                        </a>
+                        {% else %}
+                        <a href="{% url 'accounts:upgrade' %}" class="btn btn-outline-warning">
+                            <i class="bi bi-star me-2"></i>{{ current_year }} Year in Review
+                            <span class="badge bg-warning text-dark ms-1">Premium</span>
+                        </a>
+                        {% endif %}
+                        {% if current_snapshot %}
+                            {% if user|user_is_premium %}
+                            <a href="{% url 'analytics:monthly' current_year current_month %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-calendar-month me-2"></i>This Month Details
+                            </a>
+                            {% else %}
+                            <a href="{% url 'accounts:upgrade' %}" class="btn btn-outline-warning">
+                                <i class="bi bi-star me-2"></i>This Month Details
+                                <span class="badge bg-warning text-dark ms-1">Premium</span>
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                        {% if user|user_is_premium %}
+                        <a href="{% url 'analytics:captures' %}" class="btn btn-outline-info">
+                            <i class="bi bi-collection me-2"></i>All Captures
+                        </a>
+                        {% else %}
+                        <a href="{% url 'accounts:upgrade' %}" class="btn btn-outline-warning">
+                            <i class="bi bi-star me-2"></i>All Captures
+                            <span class="badge bg-warning text-dark ms-1">Premium</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Travel Section (if any) -->
+            {% if travel_entries %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="bi bi-geo-alt me-2"></i>Places Visited ({{ current_year }})
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for entry in travel_entries|slice:":3" %}
+                    <li class="list-group-item">
+                        <i class="bi bi-pin-map text-danger me-1"></i>
+                        {{ entry.data.location|default:entry.data.name|default:"Unknown" }}
+                        <small class="text-muted float-end">{{ entry.entry.entry_date|date:"M j" }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script>
+// Sentiment Trend Chart
+const sentimentCtx = document.getElementById('sentimentChart');
+if (sentimentCtx) {
+    const snapshots = {{ snapshots_json|safe }};
+    const labels = snapshots.map(s => s.month_name + ' ' + s.year);
+    const data = snapshots.map(s => s.avg_sentiment);
+
+    new Chart(sentimentCtx, {
+        type: 'line',
+        data: {
+            labels: labels.length ? labels : ['No data'],
+            datasets: [{
+                label: 'Average Sentiment',
+                data: data.length ? data : [0],
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    min: -1,
+                    max: 1,
+                    ticks: {
+                        callback: function(value) {
+                            if (value === 0) return 'Neutral';
+                            if (value === 1) return 'Positive';
+                            if (value === -1) return 'Negative';
+                            return value;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// Mood Distribution Chart
+const moodCtx = document.getElementById('moodChart');
+if (moodCtx) {
+    const moodData = {{ mood_distribution_json|safe }};
+    const moodLabels = Object.keys(moodData);
+    const moodValues = Object.values(moodData);
+
+    if (moodLabels.length > 0) {
+        const moodColors = {
+            'ecstatic': '#a855f7',
+            'happy': '#22c55e',
+            'neutral': '#6b7280',
+            'sad': '#3b82f6',
+            'angry': '#ef4444'
+        };
+
+        new Chart(moodCtx, {
+            type: 'doughnut',
+            data: {
+                labels: moodLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+                datasets: [{
+                    data: moodValues,
+                    backgroundColor: moodLabels.map(l => moodColors[l] || '#6b7280')
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+}
+</script>
+{% endblock dashboard_js %}

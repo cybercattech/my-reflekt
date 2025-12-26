@@ -1,0 +1,180 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Manage Subscription{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4"><i class="bi bi-credit-card me-2"></i>Manage Subscription</h1>
+
+            <!-- Current Plan Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Current Plan</h5>
+
+                    {% if profile.is_premium %}
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <h3 class="mb-1">
+                                    {% if profile.subscription_plan == 'individual_monthly' %}
+                                        Individual - Monthly
+                                    {% elif profile.subscription_plan == 'individual_yearly' %}
+                                        Individual - Yearly
+                                    {% elif profile.subscription_plan == 'family_monthly' %}
+                                        Family - Monthly
+                                    {% elif profile.subscription_plan == 'family_yearly' %}
+                                        Family - Yearly
+                                    {% else %}
+                                        Premium
+                                    {% endif %}
+                                </h3>
+                                <p class="text-muted mb-0">
+                                    {% if profile.subscription_plan == 'individual_monthly' %}
+                                        $10 per month
+                                    {% elif profile.subscription_plan == 'individual_yearly' %}
+                                        $100 per year
+                                    {% elif profile.subscription_plan == 'family_monthly' %}
+                                        $20 per month
+                                    {% elif profile.subscription_plan == 'family_yearly' %}
+                                        $200 per year
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <span class="badge bg-success" style="font-size: 1rem;">
+                                {% if profile.subscription_status %}
+                                    {{ profile.subscription_status|title }}
+                                {% else %}
+                                    Active
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {% if profile.subscription_start_date %}
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-check me-1"></i>
+                                Started: {{ profile.subscription_start_date|date:"F j, Y" }}
+                            </small>
+                        </div>
+                        {% endif %}
+
+                        {% if subscription %}
+                            {% if subscription.cancel_at_period_end %}
+                                <div class="alert alert-warning mt-3">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    Your subscription will be cancelled on {{ subscription.current_period_end|date:"F j, Y" }}.
+                                    You will retain access until then.
+                                </div>
+                            {% else %}
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-arrow-repeat me-1"></i>
+                                        Next billing date: {{ subscription.current_period_end|date:"F j, Y" }}
+                                    </small>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-star text-muted" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3 mb-2">Free Plan</h4>
+                            <p class="text-muted mb-3">You're currently on the free plan.</p>
+                            <a href="{% url 'accounts:pricing' %}" class="btn btn-primary">
+                                <i class="bi bi-arrow-up-circle me-2"></i>Upgrade to Premium
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if profile.is_premium %}
+            <!-- Subscription Actions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Subscription Actions</h5>
+
+                    <div class="list-group">
+                        <a href="{% url 'accounts:pricing' %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="bi bi-arrow-up-circle me-2"></i>Change Plan</h6>
+                                    <p class="mb-0 text-muted small">Switch between monthly and yearly billing or change plan tier</p>
+                                </div>
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+
+                        {% if subscription and not subscription.cancel_at_period_end %}
+                        <a href="#cancelModal" data-bs-toggle="modal" class="list-group-item list-group-item-action text-danger">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="bi bi-x-circle me-2"></i>Cancel Subscription</h6>
+                                    <p class="mb-0 small">End your subscription at the end of the current billing period</p>
+                                </div>
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Your Premium Features</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited journal entries</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Goals & Habits tracking</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Captures (books, movies, etc.)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Moon phase insights</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Zodiac-based insights</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Year & Month in Review</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Subscription Modal -->
+{% if profile.is_premium and subscription and not subscription.cancel_at_period_end %}
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Subscription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel your subscription?</p>
+                <ul class="text-muted small">
+                    <li>You'll retain access until {{ subscription.current_period_end|date:"F j, Y" }}</li>
+                    <li>After that date, you'll be downgraded to the Free plan</li>
+                    <li>Your data will be preserved, but premium features will be locked</li>
+                    <li>You can re-subscribe at any time</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Subscription</button>
+                <form method="post" action="{% url 'accounts:cancel_subscription' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Cancel Subscription</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock dashboard_content %}

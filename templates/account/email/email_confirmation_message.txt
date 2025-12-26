@@ -1,0 +1,19 @@
+Hello!
+
+Thank you for signing up for Reflekt - Your Writing, Understood.
+
+To complete your registration and start journaling, please verify your email address by clicking the link below:
+
+{{ activate_url }}
+
+This verification link will expire in 3 days.
+
+If you didn't create a Reflekt account, you can safely ignore this email.
+
+Welcome to Reflekt! We're excited to help you understand your writing over time with AI-powered insights.
+
+Best,
+The Reflekt Team
+
+---
+Need help? Visit https://myreflekt.net or reply to this email.

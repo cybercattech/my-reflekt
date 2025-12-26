@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-dark text-white py-5">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Your Writing, Understood Over Time</h1>
+                <p class="lead mb-4">
+                    The journaling platform that turns your daily thoughts into actionable insights.
+                    AI-powered analysis, encrypted privacy, and powerful tracking—all in one place.
+                </p>
+                <div class="d-flex gap-3 mb-3">
+                    <a href="{% url 'accounts:pricing' %}" class="btn btn-primary btn-lg px-4">
+                        Start 14-Day Free Trial
+                    </a>
+                    <a href="{% url 'account_login' %}" class="btn btn-outline-light btn-lg">
+                        Login
+                    </a>
+                </div>
+                <p class="text-white-50 small">
+                    <i class="bi bi-shield-check me-1"></i> No credit card required •
+                    <i class="bi bi-lock me-1"></i> End-to-end encrypted •
+                    <i class="bi bi-download me-1"></i> Import from Day One, Notion & more
+                </p>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block text-center">
+                <div class="display-1">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container py-4">
+        <h2 class="text-center mb-2">Everything You Need to Journal Better</h2>
+        <p class="text-center text-muted mb-5">Powerful features that help you understand yourself over time</p>
+
+        <div class="row g-4">
+            <!-- Row 1 -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-6 text-primary me-3">
+                                <i class="bi bi-pencil-square"></i>
+                            </div>
+                            <h4 class="mb-0">Rich Writing Experience</h4>
+                        </div>
+                        <p class="text-muted">
+                            Write in Markdown or rich text editor. Attach images, audio, and videos.
+                            Distraction-free interface lets you focus on your thoughts.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-6 text-primary me-3">
+                                <i class="bi bi-graph-up-arrow"></i>
+                            </div>
+                            <h4 class="mb-0">AI Sentiment Analysis</h4>
+                        </div>
+                        <p class="text-muted">
+                            Understand your emotional patterns with advanced sentiment analysis.
+                            Track mood trends, identify triggers, and see what makes you happy.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-6 text-primary me-3">
+                                <i class="bi bi-lock-fill"></i>
+                            </div>
+                            <h4 class="mb-0">Encrypted & Private</h4>
+                        </div>
+                        <p class="text-muted">
+                            Your entries are encrypted at rest in the database. Even if someone
+                            gains database access, they can't read your private thoughts.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-6 text-primary me-3">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <h4 class="mb-0">Year in Review</h4>
+                        </div>
+                        <p class="text-muted">
+                            Automatic annual summaries with highlights, challenges, and emotional
+                            patterns. See your growth and evolution over time.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-6 text-primary me-3">
+                                <i class="bi bi-bullseye"></i>
+                            </div>
+                            <h4 class="mb-0">Goals & Habits</h4>
+                        </div>
+                        <p class="text-muted">
+                            Track goals, build habits, and see your progress. Link entries to goals
+                            and celebrate milestones as you achieve them.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-6 text-primary me-3">
+                                <i class="bi bi-book"></i>
+                            </div>
+                            <h4 class="mb-0">Life Captures</h4>
+                        </div>
+                        <p class="text-muted">
+                            Track books you've read, movies you've watched, places you've visited,
+                            and people you've met. Build a rich archive of your life.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-6 text-primary me-3">
+                                <i class="bi bi-moon-stars"></i>
+                            </div>
+                            <h4 class="mb-0">Moon & Zodiac Insights</h4>
+                        </div>
+                        <p class="text-muted">
+                            Discover how moon phases and zodiac influences correlate with your moods
+                            and emotional patterns. Optional feature for the curious.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-6 text-primary me-3">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <h4 class="mb-0">Friends & Sharing</h4>
+                        </div>
+                        <p class="text-muted">
+                            Share specific entries with friends. Get their perspective on your
+                            experiences. Build deeper connections through shared reflection.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-6 text-primary me-3">
+                                <i class="bi bi-download"></i>
+                            </div>
+                            <h4 class="mb-0">Import from Anywhere</h4>
+                        </div>
+                        <p class="text-muted">
+                            Bring your existing journals from Day One, Daylio, Notion, Stoic, and more.
+                            Don't start over—continue your journaling journey.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Import Section -->
+<section class="bg-light py-5">
+    <div class="container py-4">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h2 class="mb-4">Bring Your Existing Journal</h2>
+                <p class="lead text-muted mb-4">
+                    Already journaling somewhere else? Import your entries and continue your journey without starting over.
+                </p>
+                <p class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <strong>Day One</strong> - Import your private journal entries
+                </p>
+                <p class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <strong>Daylio</strong> - Bring your mood tracking data
+                </p>
+                <p class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <strong>Notion</strong> - Import your notes and journal pages
+                </p>
+                <p class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <strong>Stoic</strong> - Transfer your daily reflections
+                </p>
+                <p class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <strong>Plain Text/Markdown</strong> - Import any .txt or .md files
+                </p>
+                <p class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <strong>PDF & Word Docs</strong> - We'll extract your entries
+                </p>
+                <p class="text-muted small mt-4">
+                    <i class="bi bi-info-circle me-1"></i>
+                    All imports preserve dates, metadata, and formatting. Your history stays intact.
+                </p>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="p-4">
+                    <div class="display-1 mb-3">
+                        <i class="bi bi-arrow-down-circle text-primary"></i>
+                    </div>
+                    <h4 class="mb-3">Easy Import Process</h4>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">1</div>
+                            <div class="text-start">
+                                <strong>Export</strong> from your current app
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">2</div>
+                            <div class="text-start">
+                                <strong>Upload</strong> to Reflekt
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">3</div>
+                            <div class="text-start">
+                                <strong>Done!</strong> All your entries are ready
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5">
+    <div class="container py-4">
+        <h2 class="text-center mb-5">How Reflekt Works</h2>
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold">1</span>
+                </div>
+                <h5>Write</h5>
+                <p class="text-muted small">Journal daily, weekly, or whenever you feel like it. No pressure, no streaks.</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold">2</span>
+                </div>
+                <h5>Analyze</h5>
+                <p class="text-muted small">AI analyzes sentiment, mood, and themes automatically in the background.</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold">3</span>
+                </div>
+                <h5>Discover</h5>
+                <p class="text-muted small">View patterns and insights on your personal dashboard. See your trends.</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold">4</span>
+                </div>
+                <h5>Reflect</h5>
+                <p class="text-muted small">Get annual reviews that turn your entries into meaningful narratives.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5 bg-primary text-white">
+    <div class="container py-4 text-center">
+        <h2 class="mb-4">Start Your 14-Day Free Trial</h2>
+        <p class="lead mb-4">
+            No credit card required. Full access to all features. Cancel anytime.
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{% url 'accounts:pricing' %}" class="btn btn-light btn-lg px-5">
+                Try Reflekt Free
+            </a>
+            <a href="{% url 'accounts:pricing' %}" class="btn btn-outline-light btn-lg">
+                View Pricing
+            </a>
+        </div>
+        <p class="mt-4 mb-2 text-white-50 small">
+            <a href="{% url 'features' %}" class="text-white text-decoration-none">
+                <i class="bi bi-lightbulb me-1"></i>Learn how AI and POV sharing work
+            </a>
+        </p>
+        <p class="mb-0 text-white-50 small">
+            Join thousands of users who trust Reflekt with their thoughts
+        </p>
+    </div>
+</section>
+{% endblock %}

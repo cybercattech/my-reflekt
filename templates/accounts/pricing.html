@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - Reflekt{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pricing-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 0 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .billing-toggle {
+        display: inline-flex;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50px;
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .billing-toggle button {
+        padding: 0.5rem 1.5rem;
+        border: none;
+        background: transparent;
+        color: white;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .billing-toggle button.active {
+        background: white;
+        color: #667eea;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .pricing-card {
+        border: 2px solid #e0e0e0;
+        border-radius: 1rem;
+        padding: 2rem;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pricing-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.15);
+        transform: translateY(-5px);
+    }
+
+    .pricing-card.featured {
+        border-color: #667eea;
+        border-width: 3px;
+        position: relative;
+    }
+
+    .featured-badge {
+        position: absolute;
+        top: -15px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .price {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #667eea;
+        margin: 1rem 0;
+    }
+
+    .price-period {
+        font-size: 1rem;
+        color: #6c757d;
+        font-weight: 400;
+    }
+
+    .yearly-price {
+        display: none;
+    }
+
+    .billing-toggle button[data-period="yearly"].active ~ .pricing-cards .yearly-price {
+        display: block;
+    }
+
+    .billing-toggle button[data-period="yearly"].active ~ .pricing-cards .monthly-price {
+        display: none;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 2rem 0;
+        flex-grow: 1;
+    }
+
+    .feature-list li {
+        padding: 0.75rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .feature-list li i {
+        color: #667eea;
+        font-size: 1.25rem;
+    }
+
+    .btn-select-plan {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .btn-select-plan:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+
+    .savings-badge {
+        display: inline-block;
+        background: #28a745;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pricing-header text-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3">Choose Your Plan</h1>
+        <p class="lead mb-3">Start with a 14-day free trial. No credit card required.</p>
+        <p class="text-white-50 mb-4">
+            <i class="bi bi-check-circle me-1"></i> Full access to all premium features •
+            <i class="bi bi-check-circle me-1"></i> Cancel anytime •
+            <i class="bi bi-check-circle me-1"></i> No commitments
+        </p>
+
+        <div class="billing-toggle">
+            <button type="button" class="active" data-period="monthly" onclick="toggleBilling('monthly')">
+                Monthly
+            </button>
+            <button type="button" data-period="yearly" onclick="toggleBilling('yearly')">
+                Yearly
+                <span class="savings-badge">Save 17%</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5 pricing-cards">
+    <div class="row g-4">
+        <!-- Free Plan -->
+        <div class="col-lg-4">
+            <div class="pricing-card">
+                <h3 class="fw-bold">Free</h3>
+                <div class="price">
+                    $0
+                    <span class="price-period">/month</span>
+                </div>
+                <p class="text-muted">Perfect for getting started</p>
+
+                <ul class="feature-list">
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Daily journaling</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Basic sentiment analysis (VADER)</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Simple dashboard overview</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-x-circle text-muted"></i>
+                        <span class="text-muted">Goals & Habits tracking</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-x-circle text-muted"></i>
+                        <span class="text-muted">Captures (books, movies, etc.)</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-x-circle text-muted"></i>
+                        <span class="text-muted">Moon & Zodiac insights</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-x-circle text-muted"></i>
+                        <span class="text-muted">Year/Month in Review</span>
+                    </li>
+                </ul>
+
+                {% if user.is_authenticated %}
+                    {% if not user.profile.is_premium %}
+                        <button class="btn btn-outline-secondary" disabled>Current Plan</button>
+                    {% else %}
+                        <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-secondary">
+                            Go to Dashboard
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'accounts:select_plan' %}?plan=free" class="btn btn-outline-secondary">
+                        Sign Up Free
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Individual Plan -->
+        <div class="col-lg-4">
+            <div class="pricing-card featured">
+                <span class="featured-badge">Most Popular</span>
+                <h3 class="fw-bold">Individual</h3>
+                <div class="monthly-price">
+                    <div class="price">
+                        $10
+                        <span class="price-period">/month</span>
+                    </div>
+                    <p class="text-success fw-bold mb-0">14-day free trial included</p>
+                </div>
+                <div class="yearly-price">
+                    <div class="price">
+                        $100
+                        <span class="price-period">/year</span>
+                    </div>
+                    <p class="text-success fw-bold mb-1">Save $20/year</p>
+                    <p class="text-success small">14-day free trial included</p>
+                </div>
+                <p class="text-muted">Everything you need for personal growth</p>
+
+                <ul class="feature-list">
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span><strong>Everything in Free</strong></span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Goals & Habits tracking</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Captures (books, movies, places & more)</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Moon phase insights</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Zodiac-based insights</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Year & Month in Review</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Advanced analytics</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>1 user account</span>
+                    </li>
+                </ul>
+
+                {% if user.is_authenticated %}
+                    {% if user.profile.is_premium %}
+                        <button class="btn btn-select-plan" disabled>Current Plan</button>
+                    {% else %}
+                        <form method="post" action="{% url 'accounts:create_checkout' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="plan" class="plan-input" value="individual_monthly">
+                            <button type="submit" class="btn btn-select-plan">Select Plan</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'accounts:select_plan' %}?plan=individual_monthly" class="btn btn-select-plan select-plan-link" data-plan="individual_monthly">
+                        Get Started
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Family Plan -->
+        <div class="col-lg-4">
+            <div class="pricing-card">
+                <h3 class="fw-bold">Family</h3>
+                <div class="monthly-price">
+                    <div class="price">
+                        $20
+                        <span class="price-period">/month</span>
+                    </div>
+                    <p class="text-success fw-bold mb-0">14-day free trial included</p>
+                </div>
+                <div class="yearly-price">
+                    <div class="price">
+                        $200
+                        <span class="price-period">/year</span>
+                    </div>
+                    <p class="text-success fw-bold mb-1">Save $40/year</p>
+                    <p class="text-success small">14-day free trial included</p>
+                </div>
+                <p class="text-muted">Perfect for families & close friends</p>
+
+                <ul class="feature-list">
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span><strong>Everything in Individual</strong></span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span><strong>Up to 4 user accounts</strong></span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Shared family insights</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Individual privacy for each user</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Save 50% per person vs Individual</span>
+                    </li>
+                </ul>
+
+                {% if user.is_authenticated %}
+                    {% if user.profile.subscription_plan == 'family_monthly' or user.profile.subscription_plan == 'family_yearly' %}
+                        <button class="btn btn-select-plan" disabled>Current Plan</button>
+                    {% else %}
+                        <form method="post" action="{% url 'accounts:create_checkout' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="plan" class="plan-input" value="family_monthly">
+                            <button type="submit" class="btn btn-select-plan">Select Plan</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'accounts:select_plan' %}?plan=family_monthly" class="btn btn-select-plan select-plan-link" data-plan="family_monthly">
+                        Get Started
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ Section -->
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            Can I switch between plans?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes! You can upgrade or downgrade your plan at any time. Changes will be prorated based on your billing cycle.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            How does the Family plan work?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            The Family plan allows up to 4 people to have their own individual accounts with full premium features. Each person maintains their own private journal and data.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            Can I cancel anytime?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Absolutely. You can cancel your subscription at any time. You'll continue to have access to premium features until the end of your current billing period.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            What payment methods do you accept?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We accept all major credit cards, debit cards, and digital wallets through our secure payment processor, Stripe.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleBilling(period) {
+    // Toggle active state on buttons
+    document.querySelectorAll('.billing-toggle button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`button[data-period="${period}"]`).classList.add('active');
+
+    // Update plan inputs (for authenticated users)
+    document.querySelectorAll('.plan-input').forEach(input => {
+        const currentPlan = input.value;
+        if (period === 'yearly') {
+            input.value = currentPlan.replace('_monthly', '_yearly');
+        } else {
+            input.value = currentPlan.replace('_yearly', '_monthly');
+        }
+    });
+
+    // Update select-plan-link hrefs (for non-authenticated users)
+    document.querySelectorAll('.select-plan-link').forEach(link => {
+        const url = new URL(link.href);
+        const currentPlan = url.searchParams.get('plan');
+        if (currentPlan) {
+            let newPlan = currentPlan;
+            if (period === 'yearly') {
+                newPlan = currentPlan.replace('_monthly', '_yearly');
+            } else {
+                newPlan = currentPlan.replace('_yearly', '_monthly');
+            }
+            url.searchParams.set('plan', newPlan);
+            link.href = url.toString();
+        }
+    });
+
+    // Toggle price display
+    if (period === 'yearly') {
+        document.querySelectorAll('.monthly-price').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.yearly-price').forEach(el => el.style.display = 'block');
+    } else {
+        document.querySelectorAll('.monthly-price').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.yearly-price').forEach(el => el.style.display = 'none');
+    }
+}
+</script>
+{% endblock %}

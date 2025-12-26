@@ -1,0 +1,215 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit{% else %}New{% endif %} Habit{% endblock %}
+
+{% block dashboard_css %}
+{% include 'habits/partials/_habits_css.html' %}
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-repeat text-primary me-2"></i>
+                {% if is_edit %}Edit Habit{% else %}Create New Habit{% endif %}
+            </h1>
+            <p class="text-muted mb-0">Build consistency, one day at a time</p>
+        </div>
+        <a href="{% if is_edit %}{% url 'habits:habit_detail' pk=habit.pk %}{% else %}{% url 'habits:habit_list' %}{% endif %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg me-1"></i>Cancel
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <form method="post" class="habit-form">
+                {% csrf_token %}
+
+                <!-- Preview Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted">Preview</h6>
+                        <div class="d-flex align-items-center gap-3">
+                            <div id="iconPreview" class="icon-preview" style="background: {{ form.color.value|default:'#4f46e5' }}; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                                <i id="iconClass" class="{{ form.icon.value|default:'bi-check-circle' }}" style="font-size: 1.25rem;"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold" id="namePreview">{{ form.name.value|default:'Habit Name' }}</div>
+                                <div class="text-muted small" id="frequencyPreview">Every day</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Basic Info -->
+            <div class="mb-4">
+                <label for="id_name" class="form-label">Habit Name *</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="id_description" class="form-label">Description</label>
+                {{ form.description }}
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label for="id_icon" class="form-label">Icon</label>
+                    {{ form.icon }}
+                    <div class="form-text">
+                        <a href="https://icons.getbootstrap.com/" target="_blank">Browse icons</a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="id_color" class="form-label">Color</label>
+                    {{ form.color }}
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="id_category" class="form-label">Category</label>
+                {{ form.category }}
+            </div>
+
+            <!-- Frequency -->
+            <div class="mb-4">
+                <label for="id_frequency_type" class="form-label">Frequency</label>
+                {{ form.frequency_type }}
+
+                <!-- X times per week option -->
+                <div id="timesPerWeekOption" class="frequency-options">
+                    <label for="id_times_per_week" class="form-label">How many times per week?</label>
+                    {{ form.times_per_week }}
+                </div>
+
+                <!-- Specific days option -->
+                <div id="specificDaysOption" class="frequency-options">
+                    <label class="form-label">Which days?</label>
+                    <div class="weekday-checkboxes">
+                        {% for value, label in form.specific_days_choices.field.choices %}
+                        <div class="weekday-checkbox">
+                            <input type="checkbox" name="specific_days_choices" value="{{ value }}"
+                                   id="day_{{ value }}" class="form-check-input"
+                                   {% if value in form.specific_days_choices.value %}checked{% endif %}>
+                            <label for="day_{{ value }}" class="form-check-label">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.specific_days_choices.errors %}
+                    <div class="text-danger small mt-1">{{ form.specific_days_choices.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label for="id_start_date" class="form-label">Start Date</label>
+                    {{ form.start_date }}
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check mt-4 pt-2">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="id_is_active">Active</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-flex gap-2 justify-content-end mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg me-1"></i>
+                    {% if is_edit %}Save Changes{% else %}Create Habit{% endif %}
+                </button>
+            </div>
+            </form>
+        </div>
+
+        <!-- Sidebar Tips -->
+        <div class="col-lg-4">
+            <div class="card bg-light border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-lightbulb text-warning me-2"></i>Tips for Success</h5>
+                    <ul class="small text-muted mb-0">
+                        <li class="mb-2"><strong>Start small</strong> - Begin with habits that take less than 2 minutes</li>
+                        <li class="mb-2"><strong>Be specific</strong> - "Exercise" is vague, "Walk 10 minutes" is clear</li>
+                        <li class="mb-2"><strong>Stack habits</strong> - Link new habits to existing routines</li>
+                        <li><strong>Track progress</strong> - Seeing your streak builds motivation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white;">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-fire me-2"></i>Habit Streaks</h5>
+                    <p class="card-text small opacity-75 mb-0">
+                        Consistency is key! Your streak will grow each day you complete this habit. Don't break the chain!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const frequencyType = document.getElementById('id_frequency_type');
+    const timesOption = document.getElementById('timesPerWeekOption');
+    const daysOption = document.getElementById('specificDaysOption');
+    const nameInput = document.getElementById('id_name');
+    const iconInput = document.getElementById('id_icon');
+    const colorInput = document.getElementById('id_color');
+
+    function updateFrequencyOptions() {
+        const value = frequencyType.value;
+        timesOption.classList.remove('active');
+        daysOption.classList.remove('active');
+
+        if (value === 'x_per_week') {
+            timesOption.classList.add('active');
+        } else if (value === 'specific_days') {
+            daysOption.classList.add('active');
+        }
+
+        // Update preview
+        const freqPreview = document.getElementById('frequencyPreview');
+        if (value === 'daily') freqPreview.textContent = 'Every day';
+        else if (value === 'weekly') freqPreview.textContent = 'Once per week';
+        else if (value === 'x_per_week') {
+            const times = document.getElementById('id_times_per_week').value;
+            freqPreview.textContent = times + 'x per week';
+        }
+        else if (value === 'specific_days') freqPreview.textContent = 'Specific days';
+    }
+
+    frequencyType.addEventListener('change', updateFrequencyOptions);
+    updateFrequencyOptions();
+
+    // Live preview updates
+    nameInput.addEventListener('input', function() {
+        document.getElementById('namePreview').textContent = this.value || 'Habit Name';
+    });
+
+    iconInput.addEventListener('input', function() {
+        document.getElementById('iconClass').className = this.value || 'bi-check-circle';
+    });
+
+    colorInput.addEventListener('input', function() {
+        document.getElementById('iconPreview').style.background = this.value;
+    });
+
+    document.getElementById('id_times_per_week').addEventListener('input', function() {
+        if (frequencyType.value === 'x_per_week') {
+            document.getElementById('frequencyPreview').textContent = this.value + 'x per week';
+        }
+    });
+});
+</script>
+{% endblock dashboard_js %}

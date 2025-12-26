@@ -1,0 +1,16 @@
+New Friend Request on Reflekt
+==============================
+
+Hi {{ recipient_name }},
+
+{{ sender_name }} ({{ sender_email }}) would like to connect with you on Reflekt!
+
+{% if message %}
+They wrote: "{{ message }}"
+
+{% endif %}
+Log in to your Reflekt account to accept or decline this request:
+{{ profile_url }}
+
+---
+This email was sent by Reflekt. If you didn't expect this, you can safely ignore it.

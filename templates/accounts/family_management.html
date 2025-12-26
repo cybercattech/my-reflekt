@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Family Plan Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-people text-primary me-2"></i>Family Plan Management
+                    </h1>
+                    <p class="text-muted mb-0">Manage who has access to your family plan</p>
+                </div>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Profile
+                </a>
+            </div>
+
+            <!-- Plan Info Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-2">
+                                <i class="bi bi-shield-check text-success me-2"></i>Family Plan Active
+                            </h5>
+                            <p class="text-muted mb-0">
+                                You can add up to {{ max_members }} family members to your plan.
+                                Each member gets full premium access.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <div class="d-inline-block">
+                                <div class="text-muted small">Members</div>
+                                <div class="h3 mb-0">
+                                    <span class="text-primary">{{ member_count }}</span>
+                                    <span class="text-muted">/ {{ max_members }}</span>
+                                </div>
+                                <div class="small {% if slots_remaining > 0 %}text-success{% else %}text-warning{% endif %}">
+                                    {{ slots_remaining }} slot{{ slots_remaining|pluralize }} remaining
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Family Members List -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-people me-2"></i>Current Members</span>
+                            <span class="badge bg-primary">{{ member_count }}</span>
+                        </div>
+                        <div class="card-body">
+                            {% if family_members %}
+                                <div class="list-group list-group-flush" id="familyMembersList">
+                                    {% for membership in family_members %}
+                                    <div class="list-group-item px-0" id="member-{{ membership.id }}">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-7">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                                        <i class="bi bi-person-fill text-primary"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0">
+                                                            {{ membership.member.get_full_name|default:membership.member.email }}
+                                                        </h6>
+                                                        <small class="text-muted">{{ membership.member.email }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mt-2 mt-md-0">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar-event me-1"></i>
+                                                    Joined {{ membership.created_at|date:"M d, Y" }}
+                                                </small>
+                                            </div>
+                                            <div class="col-md-2 text-md-end mt-2 mt-md-0">
+                                                <button
+                                                    class="btn btn-sm btn-outline-danger remove-member-btn"
+                                                    data-member-id="{{ membership.id }}"
+                                                    data-member-email="{{ membership.member.email }}"
+                                                    onclick="confirmRemoveMember({{ membership.id }}, '{{ membership.member.email|escapejs }}')"
+                                                >
+                                                    <i class="bi bi-trash me-1"></i>Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-3 mb-0">No family members added yet</p>
+                                    <small class="text-muted">Add members using the form on the right</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Member Form -->
+                <div class="col-lg-4 mt-4 mt-lg-0">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success bg-opacity-10">
+                            <i class="bi bi-person-plus me-2"></i>Add Family Member
+                        </div>
+                        <div class="card-body">
+                            {% if slots_remaining > 0 %}
+                                <form id="addMemberForm">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="memberEmail" class="form-label">Email Address</label>
+                                        <input
+                                            type="email"
+                                            class="form-control"
+                                            id="memberEmail"
+                                            name="email"
+                                            placeholder="family@example.com"
+                                            required
+                                        >
+                                        <div class="form-text">
+                                            The person must have a Reflekt account already.
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="bi bi-plus-circle me-2"></i>Add to Family Plan
+                                    </button>
+                                </form>
+
+                                <div class="alert alert-light border mt-3 mb-0">
+                                    <small>
+                                        <strong>Note:</strong> When you add a family member:
+                                        <ul class="mb-0 mt-2 ps-3">
+                                            <li>They get immediate premium access</li>
+                                            <li>They can use all premium features</li>
+                                            <li>You can remove them at any time</li>
+                                        </ul>
+                                    </small>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning mb-0">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Family plan limit reached</strong>
+                                    <p class="mb-0 small mt-2">You've reached the maximum of {{ max_members }} family members. Remove a member to add someone new.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Help Card -->
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-body">
+                            <h6 class="mb-3"><i class="bi bi-question-circle me-2"></i>Need Help?</h6>
+                            <p class="small text-muted mb-2">
+                                <strong>How to add members:</strong><br>
+                                They must have a Reflekt account first. Send them to your signup page and have them create an account, then add their email here.
+                            </p>
+                            <p class="small text-muted mb-0">
+                                <strong>What happens when I remove someone:</strong><br>
+                                They lose premium access immediately and revert to the free plan. Their journal entries are not deleted.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Remove Member Confirmation Modal -->
+<div class="modal fade" id="removeConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>Remove Family Member
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove <strong id="removeMemberEmail"></strong> from your family plan?</p>
+                <div class="alert alert-warning">
+                    <small>
+                        <i class="bi bi-info-circle me-1"></i>
+                        They will immediately lose premium access and revert to the free plan. Their journal data will not be deleted.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveBtn">
+                    <i class="bi bi-trash me-1"></i>Remove Member
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add family member
+document.getElementById('addMemberForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+
+    fetch('{% url "accounts:add_family_member" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showToast('success', data.message);
+
+            // Clear form
+            document.getElementById('memberEmail').value = '';
+
+            // Reload page to show updated list
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast('danger', data.error || 'Failed to add family member');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('danger', 'An error occurred. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    });
+});
+
+// Remove family member
+let memberToRemove = null;
+
+function confirmRemoveMember(memberId, memberEmail) {
+    memberToRemove = memberId;
+    document.getElementById('removeMemberEmail').textContent = memberEmail;
+
+    const modal = new bootstrap.Modal(document.getElementById('removeConfirmModal'));
+    modal.show();
+}
+
+document.getElementById('confirmRemoveBtn').addEventListener('click', function() {
+    if (!memberToRemove) return;
+
+    const btn = this;
+    const originalBtnText = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Removing...';
+
+    fetch(`/accounts/family/remove/${memberToRemove}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal'));
+            modal.hide();
+
+            // Show success message
+            showToast('success', data.message);
+
+            // Reload page
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast('danger', data.error || 'Failed to remove family member');
+            btn.disabled = false;
+            btn.innerHTML = originalBtnText;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('danger', 'An error occurred. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = originalBtnText;
+    });
+});
+
+// Toast notification helper
+function showToast(type, message) {
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type} border-0 position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+
+    const toastContainer = document.createElement('div');
+    toastContainer.innerHTML = toastHtml;
+    document.body.appendChild(toastContainer);
+
+    const toastElement = toastContainer.querySelector('.toast');
+    const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 3000 });
+    toast.show();
+
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastContainer.remove();
+    });
+}
+</script>
+{% endblock %}

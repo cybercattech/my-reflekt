@@ -1,0 +1,191 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit{% else %}New{% endif %} Goal{% endblock %}
+
+{% block dashboard_css %}
+{% include 'goals/partials/_goals_css.html' %}
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-bullseye text-primary me-2"></i>
+                {% if is_edit %}Edit Goal{% else %}Create SMART Goal{% endif %}
+            </h1>
+            <p class="text-muted mb-0">Define your goal using the SMART framework</p>
+        </div>
+        <a href="{% if is_edit %}{% url 'goals:goal_detail' pk=goal.pk %}{% else %}{% url 'goals:goal_list' %}{% endif %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg me-1"></i>Cancel
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <form method="post" class="goal-form">
+            {% csrf_token %}
+
+            <!-- Specific -->
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i class="bi bi-bullseye text-primary"></i>
+                    Specific
+                    <span class="badge bg-primary ms-2">S</span>
+                </h2>
+                <p class="text-muted small mb-3">What exactly do you want to accomplish?</p>
+
+                <div class="mb-3">
+                    <label for="id_title" class="form-label">Goal Title *</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_description" class="form-label">Description</label>
+                    {{ form.description }}
+                    <div class="form-text">Describe your goal in detail - the more specific, the better.</div>
+                </div>
+            </div>
+
+            <!-- Measurable -->
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i class="bi bi-rulers text-info"></i>
+                    Measurable
+                    <span class="badge bg-info ms-2">M</span>
+                </h2>
+                <p class="text-muted small mb-3">How will you know when you've achieved it?</p>
+
+                <div class="mb-3">
+                    <label for="id_success_criteria" class="form-label">Success Criteria</label>
+                    {{ form.success_criteria }}
+                    <div class="form-text">What will success look like? Be specific about outcomes.</div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="id_target_value" class="form-label">Target Value</label>
+                        {{ form.target_value }}
+                        <div class="form-text">Optional numeric target</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="id_unit" class="form-label">Unit</label>
+                        {{ form.unit }}
+                        <div class="form-text">e.g., books, miles, hours</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievable -->
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i class="bi bi-check2-circle text-success"></i>
+                    Achievable
+                    <span class="badge bg-success ms-2">A</span>
+                </h2>
+                <p class="text-muted small mb-3">Is this goal realistic given your current situation?</p>
+
+                <div class="mb-3">
+                    <label for="id_why_achievable" class="form-label">Why is this achievable?</label>
+                    {{ form.why_achievable }}
+                    <div class="form-text">What resources, skills, or support do you have to achieve this?</div>
+                </div>
+            </div>
+
+            <!-- Relevant -->
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i class="bi bi-heart text-danger"></i>
+                    Relevant
+                    <span class="badge bg-danger ms-2">R</span>
+                </h2>
+                <p class="text-muted small mb-3">Does this goal matter to you?</p>
+
+                <div class="mb-3">
+                    <label for="id_relevance" class="form-label">Why is this important?</label>
+                    {{ form.relevance }}
+                    <div class="form-text">How does this goal align with your values and life direction?</div>
+                </div>
+            </div>
+
+            <!-- Time-bound -->
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i class="bi bi-clock text-warning"></i>
+                    Time-Bound
+                    <span class="badge bg-warning text-dark ms-2">T</span>
+                </h2>
+                <p class="text-muted small mb-3">When do you want to achieve this?</p>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_start_date" class="form-label">Start Date</label>
+                        {{ form.start_date }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_due_date" class="form-label">Due Date</label>
+                        {{ form.due_date }}
+                        <div class="form-text">When should this be completed?</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organization -->
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i class="bi bi-gear text-secondary"></i>
+                    Organization
+                </h2>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="id_category" class="form-label">Category</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="id_priority" class="form-label">Priority</label>
+                        {{ form.priority }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="id_status" class="form-label">Status</label>
+                        {{ form.status }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-flex gap-2 justify-content-end mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg me-1"></i>
+                    {% if is_edit %}Save Changes{% else %}Create Goal{% endif %}
+                </button>
+            </div>
+            </form>
+        </div>
+
+        <!-- Sidebar Tips -->
+        <div class="col-lg-4">
+            <div class="card bg-light border-0">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-lightbulb text-warning me-2"></i>SMART Goals</h5>
+                    <p class="card-text small text-muted">
+                        SMART goals help you create clear, achievable objectives:
+                    </p>
+                    <ul class="small text-muted mb-0">
+                        <li><strong>Specific</strong> - Clear and well-defined</li>
+                        <li><strong>Measurable</strong> - Track your progress</li>
+                        <li><strong>Achievable</strong> - Realistic and attainable</li>
+                        <li><strong>Relevant</strong> - Aligned with your values</li>
+                        <li><strong>Time-bound</strong> - Has a deadline</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}

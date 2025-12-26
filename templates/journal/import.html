@@ -1,0 +1,462 @@
+{% extends 'base.html' %}
+
+{% block title %}Import Entries{% endblock %}
+
+{% block extra_css %}
+{% include 'journal/partials/sidebar_css.html' %}
+<style>
+    .import-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .upload-area {
+        border: 2px dashed #d1d5db;
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+        background: #f9fafb;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+        border-color: #4f46e5;
+        background: #eef2ff;
+    }
+
+    .upload-area i {
+        font-size: 3rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    .format-options {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .format-option {
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .format-option:hover {
+        background: #e5e7eb;
+    }
+
+    .format-option.selected {
+        background: #eef2ff;
+        border: 1px solid #4f46e5;
+    }
+
+    .preview-entry {
+        border-left: 3px solid #4f46e5;
+        background: #f9fafb;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .preview-entry .date {
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    .preview-entry .title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .preview-entry .content-preview {
+        font-size: 0.9rem;
+        color: #4b5563;
+        max-height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .result-card {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: none;
+        border-radius: 12px;
+    }
+
+    .result-card.error {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    }
+
+    .supported-formats {
+        font-size: 0.85rem;
+    }
+
+    .supported-formats li {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4 px-lg-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-md-4 mb-4 ps-lg-4">
+            <div class="calendar-sidebar">
+                {% include 'journal/partials/sidebar.html' %}
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9 col-md-8 pe-lg-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="bi bi-upload me-2"></i>Import Entries</h1>
+                <a href="{% url 'journal:entry_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Journal
+                </a>
+            </div>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if show_results %}
+            <!-- Import Results -->
+            <div class="card result-card mb-4 {% if errors %}error{% endif %}">
+                <div class="card-body text-center py-4">
+                    {% if imported_count > 0 %}
+                    <div class="display-4 mb-2"><i class="bi bi-check-circle text-success"></i></div>
+                    <h3>Import Complete!</h3>
+                    <p class="text-muted">
+                        Successfully imported {{ imported_count }} entr{{ imported_count|pluralize:"y,ies" }}.
+                        {% if skipped_count > 0 %}Skipped {{ skipped_count }} duplicate{{ skipped_count|pluralize }}.{% endif %}
+                    </p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <button type="button" class="btn btn-success" id="analyzeBtn" onclick="analyzeEntries()">
+                            <i class="bi bi-cpu me-1"></i>Analyze Entries
+                        </button>
+                        <a href="{% url 'journal:entry_list' %}" class="btn btn-primary">
+                            <i class="bi bi-journal-text me-1"></i>View Journal
+                        </a>
+                    </div>
+                    <div id="analyzeStatus" class="mt-3" style="display: none;">
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" id="analyzeProgress" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted" id="analyzeText">Analyzing entries...</small>
+                    </div>
+                    {% else %}
+                    <div class="display-4 mb-2"><i class="bi bi-exclamation-circle text-warning"></i></div>
+                    <h3>No Entries Imported</h3>
+                    <p class="text-muted">All entries were duplicates or there was an error.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if errors %}
+            <div class="card border-danger mb-4">
+                <div class="card-header bg-danger text-white">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Errors
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+
+            {% if show_preview %}
+            <!-- Preview -->
+            <div class="card import-card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-eye me-2"></i>Preview ({{ preview_entries|length }} of {{ total_entries }})
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    {% for entry in preview_entries %}
+                    <div class="preview-entry">
+                        <div class="date">{{ entry.entry_date|date:"l, F j, Y" }}</div>
+                        <div class="title">{{ entry.title }}</div>
+                        <div class="content-preview">{{ entry.content|truncatechars:200 }}</div>
+                        {% if entry.tags %}
+                        <div class="mt-2">
+                            {% for tag in entry.tags %}
+                            <span class="badge bg-secondary">#{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer bg-white">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="import">
+                        <input type="hidden" name="format" value="{{ request.POST.format }}">
+                        <!-- Re-include the file for import -->
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="skip_duplicates" id="skipDuplicates" checked>
+                                <label class="form-check-label" for="skipDuplicates">
+                                    Skip duplicate entries (same date & title)
+                                </label>
+                            </div>
+                            <div>
+                                <a href="{% url 'journal:import_entries' %}" class="btn btn-outline-secondary me-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-download me-1"></i>Import {{ total_entries }} Entries
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if not show_results and not show_preview %}
+            <!-- Upload Form -->
+            <div class="card import-card mb-4">
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="importForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="preview">
+
+                        <!-- File Upload -->
+                        <div class="upload-area mb-4" id="uploadArea">
+                            <i class="bi bi-file-earmark-text d-block"></i>
+                            <h5>Drop your export file here</h5>
+                            <p class="text-muted mb-2">or click to browse</p>
+                            <p class="text-muted small">Supports .txt and .md files</p>
+                            <input type="file" name="file" id="fileInput" accept=".txt,.md,.markdown" style="display:none;">
+                            <div id="fileName" class="mt-2 text-primary fw-semibold"></div>
+                        </div>
+
+                        <!-- Format Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Export Format</label>
+                            <div class="format-options">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="format-option d-block selected" data-format="auto">
+                                            <input type="radio" name="format" value="auto" checked class="d-none">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-magic me-2 text-primary"></i>
+                                                <div>
+                                                    <div class="fw-semibold">Auto-detect</div>
+                                                    <small class="text-muted">Automatically detect format</small>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="format-option d-block" data-format="diarly">
+                                            <input type="radio" name="format" value="diarly" class="d-none">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-journal-bookmark me-2 text-success"></i>
+                                                <div>
+                                                    <div class="fw-semibold">Diarly</div>
+                                                    <small class="text-muted">Diarly app export</small>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="format-option d-block" data-format="markdown">
+                                            <input type="radio" name="format" value="markdown" class="d-none">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-markdown me-2 text-info"></i>
+                                                <div>
+                                                    <div class="fw-semibold">Markdown</div>
+                                                    <small class="text-muted">Generic markdown</small>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100" id="previewBtn" disabled>
+                            <i class="bi bi-eye me-2"></i>Preview Import
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Supported Formats Info -->
+            <div class="card import-card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Supported Formats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-journal-bookmark text-success me-2"></i>Diarly Export</h6>
+                            <ul class="supported-formats text-muted">
+                                <li>Entries separated by <code>Date:</code> headers</li>
+                                <li>Supports embedded images (URLs preserved)</li>
+                                <li>Extracts hashtags as entry tags</li>
+                                <li>Preserves location information</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-markdown text-info me-2"></i>Generic Markdown</h6>
+                            <ul class="supported-formats text-muted">
+                                <li>Entries separated by <code>---</code> or date headings</li>
+                                <li>Date should be in heading (# January 1, 2024)</li>
+                                <li>Supports hashtags as tags</li>
+                                <li>Works with Day One, Bear, and other exports</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const previewBtn = document.getElementById('previewBtn');
+    const formatOptions = document.querySelectorAll('.format-option');
+
+    if (uploadArea) {
+        // Click to browse
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileName();
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', updateFileName);
+
+        function updateFileName() {
+            if (fileInput.files.length > 0) {
+                fileName.textContent = fileInput.files[0].name;
+                previewBtn.disabled = false;
+            } else {
+                fileName.textContent = '';
+                previewBtn.disabled = true;
+            }
+        }
+
+        // Format selection
+        formatOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                formatOptions.forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                this.querySelector('input').checked = true;
+            });
+        });
+    }
+});
+
+// Analyze entries function
+let isAnalyzing = false;
+let totalToAnalyze = 0;
+let totalAnalyzed = 0;
+
+function analyzeEntries() {
+    if (isAnalyzing) return;
+
+    const btn = document.getElementById('analyzeBtn');
+    const status = document.getElementById('analyzeStatus');
+    const progress = document.getElementById('analyzeProgress');
+    const text = document.getElementById('analyzeText');
+
+    isAnalyzing = true;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Analyzing...';
+    status.style.display = 'block';
+
+    function runBatch() {
+        fetch('{% url "journal:analyze_entries" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ limit: 25 })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                totalAnalyzed += data.analyzed;
+
+                if (totalToAnalyze === 0) {
+                    totalToAnalyze = data.total_unanalyzed;
+                }
+
+                const percent = totalToAnalyze > 0
+                    ? Math.round((totalAnalyzed / totalToAnalyze) * 100)
+                    : 100;
+
+                progress.style.width = percent + '%';
+                text.textContent = `Analyzed ${totalAnalyzed} of ${totalToAnalyze} entries...`;
+
+                if (data.remaining > 0) {
+                    // Continue with next batch
+                    setTimeout(runBatch, 100);
+                } else {
+                    // Done!
+                    isAnalyzing = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Analysis Complete!';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                    progress.classList.remove('progress-bar-animated', 'progress-bar-striped');
+                    text.textContent = `Successfully analyzed ${totalAnalyzed} entries!`;
+                }
+            } else {
+                throw new Error('Analysis failed');
+            }
+        })
+        .catch(error => {
+            isAnalyzing = false;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Retry Analysis';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-warning');
+            text.textContent = 'Error during analysis. Click to retry.';
+            console.error('Analysis error:', error);
+        });
+    }
+
+    runBatch();
+}
+</script>
+{% endblock %}

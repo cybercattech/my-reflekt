@@ -1,0 +1,421 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Media Dashboard{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .media-row:hover {
+        background-color: #f3f4f6;
+        cursor: pointer;
+    }
+</style>
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <!-- Header with Year Selector -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'analytics:captures' %}">Captures</a></li>
+                    <li class="breadcrumb-item active">Media</li>
+                </ol>
+            </nav>
+            <h1><i class="bi bi-film me-2"></i>Movies & Shows</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label for="yearSelect" class="form-label mb-0 text-muted">Year:</label>
+            <select id="yearSelect" class="form-select form-select-sm" style="width: auto;" onchange="window.location.href='?year=' + this.value">
+                {% for y in available_years %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Total Watched</h6>
+                            <h2 class="mb-0">{{ total }}</h2>
+                            <small class="text-white-50">in {{ year }}</small>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-film"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Movies</h6>
+                            <h2 class="mb-0">{{ by_type.movie|default:0 }}</h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-camera-reels"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">TV Shows</h6>
+                            <h2 class="mb-0">{{ by_type.show|default:0 }}</h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-tv"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Monthly Chart -->
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart me-2"></i>Watched by Month ({{ year }})
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Distribution -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-star me-2"></i>Rating Distribution
+                </div>
+                <div class="card-body">
+                    {% if by_rating %}
+                    <canvas id="ratingChart" height="250"></canvas>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-star display-4"></i>
+                        <p class="mt-2">No ratings yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Watched List -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="bi bi-list me-2"></i>All Watched in {{ year }}
+        </div>
+        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-hover mb-0">
+                <thead class="sticky-top bg-white">
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Rating</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in watched %}
+                    <tr class="media-row" data-media-id="{{ item.pk }}">
+                        <td>
+                            <strong>{{ item.data.title|default:"Untitled" }}</strong>
+                            {% if item.data.notes %}
+                            <small class="text-muted d-block">{{ item.data.notes|truncatewords:10 }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% with type=item.data.type|default:"movie" %}
+                            <span class="badge bg-{% if type == 'movie' %}primary{% else %}success{% endif %}">
+                                <i class="bi bi-{% if type == 'movie' %}camera-reels{% else %}tv{% endif %} me-1"></i>{{ type|title }}
+                            </span>
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% if item.data.rating %}
+                            <span class="text-warning">
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= item.data.rating %}
+                                <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                <i class="bi bi-star"></i>
+                                {% endif %}
+                                {% endfor %}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.entry.entry_date|date:"M j" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            No media watched in {{ year }}. Use <code>/watched</code> to track!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Media Edit Modal -->
+<div class="modal fade" id="mediaEditModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-film me-2"></i>Edit Media</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editMediaId">
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-control" id="editMediaTitle">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Type</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="mediaType" id="typeMovie" value="movie">
+                        <label class="btn btn-outline-primary" for="typeMovie">
+                            <i class="bi bi-camera-reels me-1"></i>Movie
+                        </label>
+                        <input type="radio" class="btn-check" name="mediaType" id="typeShow" value="show">
+                        <label class="btn btn-outline-success" for="typeShow">
+                            <i class="bi bi-tv me-1"></i>TV Show
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Rating</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="mediaRating" id="mediaRating0" value="">
+                        <label class="btn btn-outline-secondary" for="mediaRating0">None</label>
+                        <input type="radio" class="btn-check" name="mediaRating" id="mediaRating1" value="1">
+                        <label class="btn btn-outline-warning" for="mediaRating1">1★</label>
+                        <input type="radio" class="btn-check" name="mediaRating" id="mediaRating2" value="2">
+                        <label class="btn btn-outline-warning" for="mediaRating2">2★</label>
+                        <input type="radio" class="btn-check" name="mediaRating" id="mediaRating3" value="3">
+                        <label class="btn btn-outline-warning" for="mediaRating3">3★</label>
+                        <input type="radio" class="btn-check" name="mediaRating" id="mediaRating4" value="4">
+                        <label class="btn btn-outline-warning" for="mediaRating4">4★</label>
+                        <input type="radio" class="btn-check" name="mediaRating" id="mediaRating5" value="5">
+                        <label class="btn btn-outline-warning" for="mediaRating5">5★</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control" id="editMediaNotes" rows="3" placeholder="Any thoughts about this movie/show..."></textarea>
+                </div>
+                <div class="text-muted small">
+                    <i class="bi bi-calendar me-1"></i>
+                    <span id="mediaDate"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger me-auto" id="deleteMediaBtn">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveMediaBtn">
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Media Edit Modal
+    const mediaModal = new bootstrap.Modal(document.getElementById('mediaEditModal'));
+    let currentMediaId = null;
+
+    document.querySelectorAll('.media-row').forEach(row => {
+        row.addEventListener('click', function() {
+            currentMediaId = this.dataset.mediaId;
+            loadMediaDetails(currentMediaId);
+        });
+    });
+
+    async function loadMediaDetails(mediaId) {
+        try {
+            const resp = await fetch(`/dashboard/api/media/${mediaId}/`);
+            const data = await resp.json();
+
+            document.getElementById('editMediaId').value = data.id;
+            document.getElementById('editMediaTitle').value = data.title || '';
+            document.getElementById('editMediaNotes').value = data.notes || '';
+
+            // Set type
+            const typeRadio = document.querySelector(`input[name="mediaType"][value="${data.type || 'movie'}"]`);
+            if (typeRadio) typeRadio.checked = true;
+
+            // Set rating
+            const ratingValue = data.rating || '';
+            const ratingRadio = document.querySelector(`input[name="mediaRating"][value="${ratingValue}"]`);
+            if (ratingRadio) ratingRadio.checked = true;
+
+            // Show date
+            document.getElementById('mediaDate').textContent = data.entry_date ? `Watched on ${data.entry_date}` : '';
+
+            mediaModal.show();
+        } catch (e) {
+            console.error('Failed to load media:', e);
+            alert('Failed to load media details');
+        }
+    }
+
+    document.getElementById('saveMediaBtn').addEventListener('click', async function() {
+        const mediaType = document.querySelector('input[name="mediaType"]:checked')?.value || 'movie';
+        const rating = document.querySelector('input[name="mediaRating"]:checked')?.value || '';
+
+        const data = {
+            title: document.getElementById('editMediaTitle').value,
+            type: mediaType,
+            rating: rating,
+            notes: document.getElementById('editMediaNotes').value
+        };
+
+        try {
+            const resp = await fetch(`/dashboard/api/media/${currentMediaId}/update/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (resp.ok) {
+                mediaModal.hide();
+                location.reload();
+            } else {
+                alert('Failed to save changes');
+            }
+        } catch (e) {
+            console.error('Save failed:', e);
+            alert('Failed to save changes');
+        }
+    });
+
+    document.getElementById('deleteMediaBtn').addEventListener('click', async function() {
+        if (!confirm('Delete this entry? This cannot be undone.')) return;
+
+        try {
+            const resp = await fetch(`/dashboard/api/media/${currentMediaId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+
+            if (resp.ok) {
+                mediaModal.hide();
+                location.reload();
+            } else {
+                alert('Failed to delete');
+            }
+        } catch (e) {
+            console.error('Delete failed:', e);
+            alert('Failed to delete');
+        }
+    });
+});
+
+// Monthly Chart
+const monthlyCtx = document.getElementById('monthlyChart');
+if (monthlyCtx) {
+    const monthlyCounts = {{ monthly_counts|safe }};
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Watched',
+                data: monthlyCounts,
+                backgroundColor: '#0dcaf0',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// Rating Distribution Chart
+const ratingCtx = document.getElementById('ratingChart');
+if (ratingCtx) {
+    {% if by_rating %}
+    const ratingData = {{ by_rating|safe }};
+    const ratingLabels = Object.keys(ratingData).map(r => r + ' stars');
+    const ratingValues = Object.values(ratingData);
+    const ratingColors = {
+        '1': '#ef4444',
+        '2': '#f97316',
+        '3': '#eab308',
+        '4': '#84cc16',
+        '5': '#22c55e'
+    };
+
+    new Chart(ratingCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ratingLabels,
+            datasets: [{
+                data: ratingValues,
+                backgroundColor: Object.keys(ratingData).map(r => ratingColors[r] || '#6b7280')
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    {% endif %}
+}
+</script>
+{% endblock dashboard_js %}

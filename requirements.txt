@@ -1,0 +1,51 @@
+# Django Core
+Django>=5.0,<6.0
+psycopg[binary]>=3.1
+
+# Authentication
+django-allauth>=0.60
+
+# Background Tasks
+celery>=5.3
+redis>=5.0
+
+# Frontend
+django-htmx>=1.17
+django-bootstrap5>=24.2
+
+# NLP / Sentiment Analysis
+vaderSentiment>=3.3
+
+# Markdown & Sanitization
+markdown>=3.5
+bleach>=6.1
+
+# Utils
+python-dotenv>=1.0
+django-environ>=0.11
+whitenoise>=6.6
+certifi>=2024.0  # SSL certificate verification (Python 3.13 on macOS)
+requests>=2.31  # HTTP library for weather API
+
+# Payment Processing
+stripe>=8.0
+
+# Database Encryption
+django-encrypted-model-fields>=0.6.5
+cryptography>=46.0
+
+# String Matching
+rapidfuzz>=3.0.0
+
+# Media Storage
+boto3>=1.35
+django-storages>=1.14
+Pillow>=10.4
+
+# Production
+gunicorn>=21.0
+
+# Development
+django-debug-toolbar>=4.2
+textblob
+jwt
