@@ -856,6 +856,30 @@
     </div>
 </div>
 
+<!-- Capture Form Modal (for /watched, /travel, /workout, etc.) -->
+<div class="modal fade" id="captureFormModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title d-flex align-items-center mb-0">
+                    <i class="bi bi-plus-circle me-2" id="captureFormIcon"></i>
+                    <span id="captureFormTitle">Log</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <form id="captureForm">
+                    <div id="captureFormFields"></div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .quick-picker-list {
     max-height: 250px;
@@ -1140,7 +1164,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Slash command configuration
     const slashCommands = [
         { command: '/person', name: 'Person', icon: 'bi-person', description: 'Tag a person', special: 'quick_picker', pickerType: 'person' },
-        { command: '/book', name: 'Book', icon: 'bi-book', description: 'Tag a book', special: 'quick_picker', pickerType: 'book' },
+        { command: '/book', name: 'Book', icon: 'bi-book', description: 'Log a book you\'re reading', special: 'quick_picker', pickerType: 'book' },
+        { command: '/watched', name: 'Watched', icon: 'bi-film', description: 'Log a movie or show', special: 'capture_form', captureType: 'watched' },
+        { command: '/travel', name: 'Travel', icon: 'bi-geo-alt', description: 'Log a trip or journey', special: 'capture_form', captureType: 'travel' },
+        { command: '/workout', name: 'Workout', icon: 'bi-heart-pulse', description: 'Log exercise', special: 'capture_form', captureType: 'workout' },
+        { command: '/place', name: 'Place', icon: 'bi-pin-map', description: 'Log where you are', special: 'capture_form', captureType: 'place' },
+        { command: '/meal', name: 'Meal', icon: 'bi-cup-hot', description: 'Log what you ate', special: 'capture_form', captureType: 'meal' },
+        { command: '/dream', name: 'Dream', icon: 'bi-cloud-moon', description: 'Flag as dream journal', special: 'capture_form', captureType: 'dream' },
+        { command: '/gratitude', name: 'Gratitude', icon: 'bi-heart', description: 'Log things you\'re grateful for', special: 'capture_form', captureType: 'gratitude' },
         { command: '/goal', name: 'Goal', icon: 'bi-bullseye', description: 'Link to a goal', special: 'goal_picker' },
         { command: '/habit', name: 'Habit', icon: 'bi-repeat', description: 'Link to a habit & create check-in', special: 'habit_picker' },
     ];
@@ -1313,6 +1344,8 @@ document.addEventListener('DOMContentLoaded', function() {
             showGoalPicker();
         } else if (cmd.special === 'habit_picker') {
             showHabitPicker();
+        } else if (cmd.special === 'capture_form') {
+            showCaptureForm(cmd);
         }
     }
 
@@ -1488,6 +1521,203 @@ document.addEventListener('DOMContentLoaded', function() {
         const name = document.getElementById('quickPickerSearch').value.trim();
         if (name) {
             createPickerItem(name);
+        }
+    });
+
+    // =================================================================
+    // CAPTURE FORM (for /watched, /travel, /workout, etc.)
+    // =================================================================
+
+    // Field definitions for each capture type (matches backend SLASH_COMMANDS)
+    const captureFormFields = {
+        watched: [
+            { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Movie or show name' },
+            { name: 'type', label: 'Type', type: 'select', required: false,
+              options: [['movie', 'Movie'], ['show', 'TV Show'], ['documentary', 'Documentary']] },
+            { name: 'rating', label: 'Rating', type: 'rating', required: false },
+        ],
+        travel: [
+            { name: 'mode', label: 'Mode', type: 'select', required: true,
+              options: [['car', 'Car'], ['plane', 'Plane'], ['train', 'Train'], ['bus', 'Bus'],
+                       ['walk', 'Walk'], ['bike', 'Bike'], ['boat', 'Boat']] },
+            { name: 'origin', label: 'From', type: 'text', required: true, placeholder: 'Starting point' },
+            { name: 'destination', label: 'To', type: 'text', required: true, placeholder: 'Destination' },
+        ],
+        workout: [
+            { name: 'type', label: 'Type', type: 'select', required: true,
+              options: [['run', 'Running'], ['walk', 'Walking'], ['gym', 'Gym'], ['yoga', 'Yoga'],
+                       ['swim', 'Swimming'], ['bike', 'Cycling'], ['hike', 'Hiking'],
+                       ['sports', 'Sports'], ['other', 'Other']] },
+            { name: 'duration', label: 'Duration (min)', type: 'number', required: false, placeholder: '30' },
+            { name: 'intensity', label: 'Intensity', type: 'select', required: false,
+              options: [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']] },
+        ],
+        place: [
+            { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Place name' },
+            { name: 'type', label: 'Type', type: 'select', required: false,
+              options: [['restaurant', 'Restaurant'], ['cafe', 'Cafe'], ['bar', 'Bar'],
+                       ['park', 'Park'], ['office', 'Office'], ['home', 'Home'],
+                       ['store', 'Store'], ['gym', 'Gym'], ['other', 'Other']] },
+        ],
+        meal: [
+            { name: 'meal', label: 'Meal', type: 'select', required: true,
+              options: [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snack', 'Snack']] },
+            { name: 'what', label: 'What', type: 'text', required: true, placeholder: 'What did you eat?' },
+        ],
+        dream: [],  // No fields, just a flag
+        gratitude: [
+            { name: 'item1', label: 'Grateful for...', type: 'text', required: true, placeholder: 'Something you\'re grateful for' },
+            { name: 'item2', label: 'Also grateful for...', type: 'text', required: false },
+            { name: 'item3', label: 'And grateful for...', type: 'text', required: false },
+        ],
+    };
+
+    const captureFormModal = new bootstrap.Modal(document.getElementById('captureFormModal'));
+    let currentCaptureType = null;
+
+    function showCaptureForm(cmd) {
+        currentCaptureType = cmd.captureType;
+        const fields = captureFormFields[cmd.captureType] || [];
+
+        document.getElementById('captureFormTitle').textContent = cmd.name;
+        document.getElementById('captureFormIcon').className = `bi ${cmd.icon} me-2`;
+
+        const fieldsContainer = document.getElementById('captureFormFields');
+
+        if (fields.length === 0) {
+            // No fields (like /dream), just confirm and save
+            fieldsContainer.innerHTML = `<p class="text-muted mb-0">This will mark this entry as a ${cmd.name.toLowerCase()} entry.</p>`;
+        } else {
+            fieldsContainer.innerHTML = fields.map(field => {
+                let inputHtml = '';
+
+                if (field.type === 'text') {
+                    inputHtml = `<input type="text" class="form-control form-control-sm" name="${field.name}"
+                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}">`;
+                } else if (field.type === 'number') {
+                    inputHtml = `<input type="number" class="form-control form-control-sm" name="${field.name}"
+                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" min="0">`;
+                } else if (field.type === 'select') {
+                    const optionsHtml = field.options.map(([val, label]) => `<option value="${val}">${label}</option>`).join('');
+                    inputHtml = `<select class="form-select form-select-sm" name="${field.name}" ${field.required ? 'required' : ''}>
+                                    <option value="">Select...</option>
+                                    ${optionsHtml}
+                                 </select>`;
+                } else if (field.type === 'rating') {
+                    inputHtml = `
+                        <div class="rating-input" data-name="${field.name}">
+                            ${[1,2,3,4,5].map(n => `
+                                <i class="bi bi-star rating-star" data-value="${n}" style="cursor: pointer; font-size: 1.25rem; color: #d1d5db;"></i>
+                            `).join('')}
+                            <input type="hidden" name="${field.name}" value="">
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">${field.label}${field.required ? ' <span class="text-danger">*</span>' : ''}</label>
+                        ${inputHtml}
+                    </div>
+                `;
+            }).join('');
+
+            // Add rating star click handlers
+            setTimeout(() => {
+                fieldsContainer.querySelectorAll('.rating-input').forEach(ratingDiv => {
+                    const stars = ratingDiv.querySelectorAll('.rating-star');
+                    const hiddenInput = ratingDiv.querySelector('input[type="hidden"]');
+
+                    stars.forEach(star => {
+                        star.addEventListener('click', () => {
+                            const value = parseInt(star.dataset.value);
+                            hiddenInput.value = value;
+                            stars.forEach((s, idx) => {
+                                s.classList.toggle('bi-star-fill', idx < value);
+                                s.classList.toggle('bi-star', idx >= value);
+                                s.style.color = idx < value ? '#fbbf24' : '#d1d5db';
+                            });
+                        });
+
+                        star.addEventListener('mouseenter', () => {
+                            const value = parseInt(star.dataset.value);
+                            stars.forEach((s, idx) => {
+                                s.style.color = idx < value ? '#fbbf24' : '#d1d5db';
+                            });
+                        });
+
+                        star.addEventListener('mouseleave', () => {
+                            const currentValue = parseInt(hiddenInput.value) || 0;
+                            stars.forEach((s, idx) => {
+                                s.style.color = idx < currentValue ? '#fbbf24' : '#d1d5db';
+                            });
+                        });
+                    });
+                });
+            }, 100);
+        }
+
+        captureFormModal.show();
+
+        // Focus first input after modal opens
+        setTimeout(() => {
+            const firstInput = fieldsContainer.querySelector('input, select');
+            if (firstInput) firstInput.focus();
+        }, 200);
+    }
+
+    // Handle capture form submission
+    document.getElementById('captureForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const captureData = {};
+        for (const [key, value] of formData.entries()) {
+            if (value) captureData[key] = value;
+        }
+
+        captureFormModal.hide();
+
+        // Ensure entry exists
+        let pk = entryPk;
+        if (!pk) {
+            pk = await quickSaveEntryForCapture();
+            if (pk) entryPk = pk;
+        }
+
+        if (!pk) {
+            alert('Failed to save entry. Please try again.');
+            return;
+        }
+
+        // Save the capture
+        try {
+            const response = await fetch('/journal/api/capture/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    entry_pk: pk,
+                    capture_type: currentCaptureType,
+                    data: captureData
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                // Insert display text into editor
+                const cm = easyMDE.codemirror;
+                const cursor = cm.getCursor();
+                const text = `\n{${currentCaptureType}} ${data.capture.display_text} {/${currentCaptureType}}\n`;
+                cm.replaceRange(text, cursor);
+            } else {
+                alert(data.error || 'Failed to save capture');
+            }
+        } catch (err) {
+            console.error('Failed to save capture:', err);
+            alert('Failed to save capture. Please try again.');
         }
     });
 
