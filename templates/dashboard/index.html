@@ -1,5 +1,6 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% load subscription_tags %}
+{% load challenge_tags %}
 
 {% block title %}Dashboard{% endblock %}
 
@@ -930,6 +931,9 @@
         {% endfor %}
     </div>
     {% endif %}
+
+    <!-- Active Challenges Widget -->
+    {% active_challenges_widget %}
 
     <div class="section-label">Analytics</div>
     <div class="row g-4">

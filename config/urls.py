@@ -14,6 +14,7 @@ urlpatterns = [
     path('habits/', include('apps.habits.urls')),
     path('dashboard/', include('apps.analytics.urls')),
     path('blog/', include('apps.blog.urls')),
+    path('challenges/', include('apps.challenges.urls')),
     path('', include('apps.journal.urls_home')),
 ]
 

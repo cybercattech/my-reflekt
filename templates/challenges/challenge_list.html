@@ -1,0 +1,260 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load subscription_tags %}
+
+{% block title %}Challenges{% endblock %}
+
+{% block dashboard_css %}
+<style>
+.section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+}
+
+.challenge-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    height: 280px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.challenge-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.challenge-card-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.3s ease;
+}
+
+.challenge-card:hover .challenge-card-bg {
+    transform: scale(1.05);
+}
+
+.challenge-card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+}
+
+.challenge-card-content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.5rem;
+    color: white;
+}
+
+.challenge-card-badges {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 3;
+}
+
+.challenge-card-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 3;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.challenge-card-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.challenge-card-desc {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.challenge-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.challenge-card-action {
+    margin-top: 1rem;
+}
+
+.challenge-status-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 3;
+}
+
+/* Active challenge indicator */
+.challenge-card.is-active {
+    border: 3px solid #198754;
+}
+
+.challenge-card.is-completed {
+    border: 3px solid #0dcaf0;
+}
+
+.challenge-card-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.challenge-card-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+
+<!-- Page Header -->
+<div class="text-center mb-5">
+    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+         style="width: 80px; height: 80px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);">
+        <i class="bi bi-trophy-fill text-white" style="font-size: 2rem;"></i>
+    </div>
+    <h1 class="mb-2">Challenges</h1>
+    <p class="text-muted mb-0 mx-auto" style="max-width: 500px;">Join structured journaling challenges to build new habits and earn badges along the way.</p>
+</div>
+
+{% if featured_challenges %}
+<!-- Featured Challenges -->
+<div class="section-label">Featured</div>
+<div class="row g-4 mb-4">
+    {% for challenge in featured_challenges %}
+    <div class="col-md-6">
+        <a href="{% url 'challenges:detail' challenge.slug %}" class="text-decoration-none">
+            <div class="challenge-card {% if challenge.user_status == 'active' %}is-active{% elif challenge.user_status == 'completed' %}is-completed{% endif %}">
+                <div class="challenge-card-bg" style="background: {% if challenge.cover_image %}url('{{ challenge.cover_image }}'){% else %}linear-gradient(135deg, {{ challenge.color }} 0%, {{ challenge.color }}dd 100%){% endif %};"></div>
+                <div class="challenge-card-overlay"></div>
+
+                <div class="challenge-card-badges">
+                    <span class="badge bg-warning text-dark"><i class="bi bi-star-fill me-1"></i>Featured</span>
+                    {% if challenge.requires_premium %}
+                    <span class="badge bg-dark ms-1">PRO</span>
+                    {% endif %}
+                </div>
+
+                {% if challenge.user_status == 'active' %}
+                <div class="challenge-status-badge">
+                    <span class="badge bg-success"><i class="bi bi-play-fill me-1"></i>In Progress</span>
+                </div>
+                {% elif challenge.user_status == 'completed' %}
+                <div class="challenge-status-badge">
+                    <span class="badge bg-info"><i class="bi bi-check-circle me-1"></i>Completed</span>
+                </div>
+                {% else %}
+                <div class="challenge-card-icon">
+                    <i class="{{ challenge.icon }}"></i>
+                </div>
+                {% endif %}
+
+                <div class="challenge-card-content">
+                    <h3 class="challenge-card-title">{{ challenge.title }}</h3>
+                    <p class="challenge-card-desc">{{ challenge.short_description|default:challenge.description|truncatewords:15 }}</p>
+                    <div class="challenge-card-meta">
+                        <span><i class="bi bi-calendar3 me-1"></i>{{ challenge.duration_days }} days</span>
+                        <span><i class="bi bi-clock me-1"></i>{{ challenge.get_cadence_display }}</span>
+                        <span><i class="bi bi-people me-1"></i>{{ challenge.participant_count }} joined</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- All Challenges -->
+<div class="section-label mt-4">All Challenges</div>
+<div class="row g-4">
+    {% for challenge in challenges %}
+    <div class="col-md-6">
+        <a href="{% url 'challenges:detail' challenge.slug %}" class="text-decoration-none">
+            <div class="challenge-card {% if challenge.user_status == 'active' %}is-active{% elif challenge.user_status == 'completed' %}is-completed{% endif %}">
+                <div class="challenge-card-bg" style="background: {% if challenge.cover_image %}url('{{ challenge.cover_image }}'){% else %}linear-gradient(135deg, {{ challenge.color }} 0%, {{ challenge.color }}cc 100%){% endif %};"></div>
+                <div class="challenge-card-overlay"></div>
+
+                {% if challenge.requires_premium %}
+                <div class="challenge-card-badges">
+                    <span class="badge bg-warning text-dark">PRO</span>
+                </div>
+                {% endif %}
+
+                {% if challenge.user_status == 'active' %}
+                <div class="challenge-status-badge">
+                    <span class="badge bg-success"><i class="bi bi-play-fill me-1"></i>In Progress</span>
+                </div>
+                {% elif challenge.user_status == 'completed' %}
+                <div class="challenge-status-badge">
+                    <span class="badge bg-info"><i class="bi bi-check-circle me-1"></i>Completed</span>
+                </div>
+                {% else %}
+                <div class="challenge-card-icon">
+                    <i class="{{ challenge.icon }}"></i>
+                </div>
+                {% endif %}
+
+                <div class="challenge-card-content">
+                    <h3 class="challenge-card-title">{{ challenge.title }}</h3>
+                    <p class="challenge-card-desc">{{ challenge.short_description|default:challenge.description|truncatewords:15 }}</p>
+                    <div class="challenge-card-meta">
+                        <span><i class="bi bi-calendar3 me-1"></i>{{ challenge.duration_days }} days</span>
+                        <span><i class="bi bi-clock me-1"></i>{{ challenge.get_cadence_display }}</span>
+                        <span><i class="bi bi-people me-1"></i>{{ challenge.participant_count }} joined</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="bi bi-trophy text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3 text-muted">No challenges available yet</h4>
+            <p class="text-muted">Check back soon for new journaling challenges!</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

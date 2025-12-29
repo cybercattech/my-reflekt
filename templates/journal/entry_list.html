@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load challenge_tags %}
 
 {% block title %}My Journal{% endblock %}
 
@@ -1295,6 +1296,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Active Challenges Widget -->
+        {% active_challenges_widget %}
 
         {% endif %}
     </div>

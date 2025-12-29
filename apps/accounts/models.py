@@ -625,9 +625,28 @@ class UserBadge(models.Model):
     @property
     def badge_info(self):
         """Get the badge definition for this user badge."""
+        # Check streak badges first
         for badge in STREAK_BADGES:
             if badge['id'] == self.badge_id:
                 return badge
+
+        # Check challenge badges
+        try:
+            from apps.challenges.models import Challenge
+            challenge = Challenge.objects.filter(badge_id=self.badge_id).first()
+            if challenge:
+                return {
+                    'id': challenge.badge_id,
+                    'name': challenge.badge_name,
+                    'tier': challenge.badge_tier,
+                    'description': f'Completed the {challenge.title} challenge',
+                    'icon': challenge.badge_icon,
+                    'days': challenge.duration_days,
+                    'is_challenge': True,
+                }
+        except Exception:
+            pass
+
         return None
 
     @classmethod

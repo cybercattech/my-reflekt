@@ -1,0 +1,168 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="bi bi-trophy me-2"></i>
+        {% if challenge %}Edit Challenge{% else %}Create Challenge{% endif %}
+    </h1>
+    <a href="{% url 'accounts:admin_challenge_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to List
+    </a>
+</div>
+
+<form method="post" class="row g-4">
+    {% csrf_token %}
+
+    <!-- Main Info -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Challenge Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title *</label>
+                    <input type="text" class="form-control" id="title" name="title"
+                           value="{{ challenge.title|default:'' }}" required
+                           placeholder="e.g., 7-Day Gratitude Challenge">
+                </div>
+
+                <div class="mb-3">
+                    <label for="short_description" class="form-label">Short Description</label>
+                    <input type="text" class="form-control" id="short_description" name="short_description"
+                           value="{{ challenge.short_description|default:'' }}" maxlength="300"
+                           placeholder="Brief description for cards (max 300 chars)">
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Full Description *</label>
+                    <textarea class="form-control" id="description" name="description" rows="5"
+                              required placeholder="Detailed description of the challenge...">{{ challenge.description|default:'' }}</textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="cadence" class="form-label">Cadence *</label>
+                        <select class="form-select" id="cadence" name="cadence" required>
+                            <option value="daily" {% if challenge.cadence == 'daily' %}selected{% endif %}>Daily</option>
+                            <option value="weekly" {% if challenge.cadence == 'weekly' %}selected{% endif %}>Weekly</option>
+                            <option value="monthly" {% if challenge.cadence == 'monthly' %}selected{% endif %}>Monthly</option>
+                        </select>
+                        <small class="text-muted">How often users should write</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="duration_days" class="form-label">Number of Prompts *</label>
+                        <input type="number" class="form-control" id="duration_days" name="duration_days"
+                               value="{{ challenge.duration_days|default:'7' }}" min="1" max="365" required>
+                        <small class="text-muted">Total prompts in this challenge</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Badge Settings -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-award me-2"></i>Badge Reward</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="badge_name" class="form-label">Badge Name</label>
+                        <input type="text" class="form-control" id="badge_name" name="badge_name"
+                               value="{{ challenge.badge_name|default:'' }}"
+                               placeholder="e.g., Gratitude Champion">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="badge_icon" class="form-label">Badge Icon</label>
+                        <input type="text" class="form-control" id="badge_icon" name="badge_icon"
+                               value="{{ challenge.badge_icon|default:'bi-award' }}"
+                               placeholder="bi-award">
+                        <small class="text-muted">Bootstrap icon class</small>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="badge_tier" class="form-label">Badge Tier</label>
+                    <select class="form-select" id="badge_tier" name="badge_tier">
+                        <option value="challenge" {% if challenge.badge_tier == 'challenge' %}selected{% endif %}>Challenge</option>
+                        <option value="challenge_bronze" {% if challenge.badge_tier == 'challenge_bronze' %}selected{% endif %}>Challenge Bronze</option>
+                        <option value="challenge_silver" {% if challenge.badge_tier == 'challenge_silver' %}selected{% endif %}>Challenge Silver</option>
+                        <option value="challenge_gold" {% if challenge.badge_tier == 'challenge_gold' %}selected{% endif %}>Challenge Gold</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Status -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status *</label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="draft" {% if challenge.status == 'draft' or not challenge %}selected{% endif %}>Draft</option>
+                        <option value="active" {% if challenge.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="archived" {% if challenge.status == 'archived' %}selected{% endif %}>Archived</option>
+                    </select>
+                </div>
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured"
+                           {% if challenge.is_featured %}checked{% endif %}>
+                    <label class="form-check-label" for="is_featured">Featured Challenge</label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="requires_premium" name="requires_premium"
+                           {% if challenge.requires_premium %}checked{% endif %}>
+                    <label class="form-check-label" for="requires_premium">Premium Only</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Appearance</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="icon" class="form-label">Icon</label>
+                    <input type="text" class="form-control" id="icon" name="icon"
+                           value="{{ challenge.icon|default:'bi-trophy' }}"
+                           placeholder="bi-trophy">
+                    <small class="text-muted">Bootstrap icon class</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="color" class="form-label">Theme Color</label>
+                    <input type="color" class="form-control form-control-color" id="color" name="color"
+                           value="{{ challenge.color|default:'#6366f1' }}" style="height: 40px;">
+                </div>
+
+                <div class="mb-3">
+                    <label for="cover_image" class="form-label">Cover Image URL</label>
+                    <input type="url" class="form-control" id="cover_image" name="cover_image"
+                           value="{{ challenge.cover_image|default:'' }}"
+                           placeholder="https://...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-check-lg me-2"></i>
+                {% if challenge %}Update Challenge{% else %}Create Challenge{% endif %}
+            </button>
+            <a href="{% url 'accounts:admin_challenge_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,374 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load subscription_tags %}
+
+{% block title %}{{ challenge.title }} - Progress{% endblock %}
+
+{% block dashboard_css %}
+<style>
+.progress-hero {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.progress-hero-bg {
+    width: 100%;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+}
+
+.progress-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.75) 100%);
+}
+
+.progress-hero-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    color: white;
+}
+
+.progress-hero-badges {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+}
+
+.progress-hero-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.progress-hero-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    line-height: 1.2;
+}
+
+.progress-hero-stats {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.progress-hero-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.progress-bar-hero {
+    background: rgba(255,255,255,0.25);
+    border-radius: 8px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.progress-bar-hero-fill {
+    background: white;
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.3s ease;
+}
+
+.progress-bar-hero-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-bottom: 0.35rem;
+}
+
+.today-prompt-card {
+    border-left: 4px solid;
+    border-radius: 12px;
+}
+
+.prompt-list-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.prompt-list-item:last-child {
+    border-bottom: none;
+}
+
+.prompt-list-item.is-current {
+    background: #f8f9fa;
+}
+
+.prompt-day-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.prompt-day-circle.completed {
+    background: #198754;
+    color: white;
+}
+
+.prompt-day-circle.pending {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+.status-card {
+    border-radius: 16px;
+}
+
+.badge-earned-display {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd700, #ffaa00);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 8px 20px rgba(255, 170, 0, 0.25);
+}
+
+.badge-preview-small {
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    color: #333;
+}
+
+.badge-preview-small-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.5rem;
+    font-size: 1.1rem;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+
+<!-- Back Link -->
+<a href="{% url 'challenges:detail' challenge.slug %}" class="text-decoration-none text-muted mb-3 d-inline-block">
+    <i class="bi bi-arrow-left me-1"></i>Back to Challenge
+</a>
+
+<!-- Progress Hero -->
+<div class="progress-hero">
+    <div class="progress-hero-bg" style="background-image: {% if challenge.cover_image %}url('{{ challenge.cover_image }}'){% else %}linear-gradient(135deg, {{ challenge.color }} 0%, {{ challenge.color }}dd 100%){% endif %};"></div>
+    <div class="progress-hero-overlay"></div>
+
+    <div class="progress-hero-badges">
+        <span class="badge" style="background: {{ challenge.color }};">{{ challenge.get_cadence_display }}</span>
+    </div>
+
+    <div class="progress-hero-status">
+        {% if user_challenge.status == 'completed' %}
+        <span class="badge bg-success py-2 px-3"><i class="bi bi-trophy-fill me-1"></i>Complete</span>
+        {% elif user_challenge.status == 'active' %}
+        <span class="badge bg-light text-dark py-2 px-3">Day {{ user_challenge.current_day }}/{{ challenge.duration_days }}</span>
+        {% endif %}
+    </div>
+
+    <div class="progress-hero-content">
+        <h1 class="progress-hero-title">{{ challenge.title }}</h1>
+        <div class="progress-hero-stats">
+            <span><i class="bi bi-check-circle"></i> {{ user_challenge.prompts_completed }}/{{ total_prompts }} prompts</span>
+            <span><i class="bi bi-calendar3"></i> Started {{ user_challenge.start_date|date:"M j" }}</span>
+        </div>
+        <div class="progress-bar-hero-label">
+            <span>Progress</span>
+            <span>{{ user_challenge.progress_percent }}%</span>
+        </div>
+        <div class="progress-bar-hero">
+            <div class="progress-bar-hero-fill" style="width: {{ user_challenge.progress_percent }}%;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Today's Prompt (if active) -->
+        {% if today_prompt and user_challenge.status == 'active' %}
+        <div class="card border-0 shadow-sm mb-4 today-prompt-card" style="border-color: {{ challenge.color }};">
+            <div class="card-body p-4">
+                <span class="badge mb-2" style="background: {{ challenge.color }};">
+                    <i class="bi bi-calendar-check me-1"></i>Today - Day {{ today_prompt.day_number }}
+                </span>
+                <h5 class="mb-2">{{ today_prompt.title }}</h5>
+                <p class="text-muted mb-3">{{ today_prompt.prompt_text }}</p>
+                {% if today_prompt.guidance %}
+                <div class="alert alert-light border mb-3 small">
+                    <i class="bi bi-lightbulb me-2 text-warning"></i>{{ today_prompt.guidance }}
+                </div>
+                {% endif %}
+                <a href="{% url 'journal:entry_create' %}?challenge={{ challenge.slug }}&day={{ today_prompt.day_number }}"
+                   class="btn" style="background: {{ challenge.color }}; color: white;">
+                    <i class="bi bi-pencil me-2"></i>Write Entry
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- All Prompts -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>All Prompts</h5>
+            </div>
+            <div class="card-body p-0">
+                {% for item in prompts_data %}
+                <div class="prompt-list-item {% if item.is_current %}is-current{% endif %}">
+                    <div class="d-flex align-items-start">
+                        <div class="prompt-day-circle me-3 {% if item.is_completed %}completed{% elif item.is_current %}{% else %}pending{% endif %}"
+                             {% if item.is_current %}style="background: {{ challenge.color }}; color: white;"{% endif %}>
+                            {% if item.is_completed %}
+                            <i class="bi bi-check-lg"></i>
+                            {% else %}
+                            {{ item.prompt.day_number }}
+                            {% endif %}
+                        </div>
+
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="min-width-0 flex-grow-1 me-2">
+                                    {% if item.is_current %}<span class="badge mb-1" style="background: {{ challenge.color }}; font-size: 0.7rem;">Current</span>{% endif %}
+                                    <h6 class="mb-1 text-truncate">{{ item.prompt.title }}</h6>
+                                    <p class="text-muted small mb-0">{{ item.prompt.prompt_text|truncatewords:15 }}</p>
+                                </div>
+
+                                <div class="flex-shrink-0">
+                                    {% if item.is_completed %}
+                                    <a href="{% url 'journal:entry_detail' item.entry.entry.pk %}"
+                                       class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% elif item.is_current and user_challenge.status == 'active' %}
+                                    <a href="{% url 'journal:entry_create' %}?challenge={{ challenge.slug }}&day={{ item.prompt.day_number }}"
+                                       class="btn btn-sm" style="background: {{ challenge.color }}; color: white;">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if item.is_completed %}
+                            <small class="text-success mt-1 d-block">
+                                <i class="bi bi-check-circle me-1"></i>{{ item.entry.submitted_at|date:"M j, Y" }}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Status Card -->
+        <div class="card border-0 shadow-sm mb-4 status-card">
+            <div class="card-body text-center py-4">
+                {% if user_challenge.status == 'completed' %}
+                <div class="badge-earned-display">
+                    <i class="{{ challenge.badge_icon }} text-white" style="font-size: 1.75rem;"></i>
+                </div>
+                <h5 class="text-success mb-1">Complete!</h5>
+                <p class="text-muted small mb-2">You earned <strong>{{ challenge.badge_name }}</strong></p>
+                <small class="text-muted d-block mb-3">{{ user_challenge.completed_at|date:"M j, Y" }}</small>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-collection me-1"></i>View Badges
+                </a>
+                {% elif user_challenge.status == 'active' %}
+                <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3"
+                     style="width: 56px; height: 56px; background: {{ challenge.color }}20;">
+                    <i class="{{ challenge.icon }}" style="font-size: 1.4rem; color: {{ challenge.color }};"></i>
+                </div>
+                <h5 class="mb-1">Keep Going!</h5>
+                <p class="text-muted small mb-3">{{ user_challenge.days_remaining }} day{{ user_challenge.days_remaining|pluralize }} left</p>
+                {% if today_prompt %}
+                <a href="{% url 'journal:entry_create' %}?challenge={{ challenge.slug }}&day={{ today_prompt.day_number }}"
+                   class="btn w-100" style="background: {{ challenge.color }}; color: white;">
+                    <i class="bi bi-pencil me-2"></i>Write Entry
+                </a>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Stats Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Stats</h6>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Started</span>
+                    <strong class="small">{{ user_challenge.start_date|date:"M j, Y" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted small">Done</span>
+                    <strong class="small">{{ user_challenge.prompts_completed }}/{{ total_prompts }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted small">Progress</span>
+                    <strong class="small">{{ user_challenge.progress_percent }}%</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Badge Preview (if not completed) -->
+        {% if user_challenge.status != 'completed' %}
+        <div class="badge-preview-small mb-4">
+            <div class="badge-preview-small-icon">
+                <i class="{{ challenge.badge_icon }}" style="color: {{ challenge.color }};"></i>
+            </div>
+            <h6 class="mb-0" style="font-size: 0.85rem;">{{ challenge.badge_name }}</h6>
+            <small style="color: #666;">Complete to earn!</small>
+        </div>
+        {% endif %}
+
+        <!-- Abandon Option (if active) -->
+        {% if user_challenge.status == 'active' %}
+        <div class="text-center">
+            <form method="post" action="{% url 'challenges:abandon' challenge.slug %}"
+                  onsubmit="return confirm('Leave this challenge? You can rejoin later.')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-link text-muted btn-sm">
+                    <i class="bi bi-x-circle me-1"></i>Leave Challenge
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+</div>
+{% endblock %}

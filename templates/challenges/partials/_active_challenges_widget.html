@@ -1,0 +1,95 @@
+{% if challenges %}
+<div class="section-label mt-4">
+    <i class="bi bi-trophy text-warning me-2"></i>Active Challenges
+</div>
+<div class="row g-3">
+    {% for item in challenges %}
+    <div class="{% if challenges|length == 1 %}col-12{% else %}col-md-6{% endif %}">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden" style="border-radius: 12px;">
+            <!-- Mini Hero Header -->
+            <div class="position-relative" style="height: {% if challenges|length == 1 %}100px{% else %}80px{% endif %}; background: {% if item.challenge.cover_image %}url('{{ item.challenge.cover_image }}'){% else %}linear-gradient(135deg, {{ item.challenge.color }} 0%, {{ item.challenge.color }}dd 100%){% endif %}; background-size: cover; background-position: center;">
+                <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%);"></div>
+                <div class="position-absolute bottom-0 start-0 p-3 text-white">
+                    <h6 class="mb-0 text-white {% if challenges|length == 1 %}fs-5{% endif %}" style="text-shadow: 0 1px 3px rgba(0,0,0,0.3);">{{ item.challenge.title }}</h6>
+                </div>
+                <div class="position-absolute top-0 end-0 p-2">
+                    <span class="badge bg-light text-dark">Day {{ item.user_challenge.current_day }}</span>
+                </div>
+            </div>
+
+            <div class="card-body {% if challenges|length == 1 %}d-md-flex align-items-center gap-4{% endif %}">
+                {% if challenges|length == 1 %}
+                <!-- Single challenge: horizontal layout -->
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between mb-2 small text-muted">
+                        <span>Progress</span>
+                        <span>{{ item.progress_percent }}%</span>
+                    </div>
+                    <div class="progress mb-3 mb-md-0" style="height: 8px;">
+                        <div class="progress-bar" role="progressbar"
+                             style="width: {{ item.progress_percent }}%; background: {{ item.challenge.color }};"></div>
+                    </div>
+                </div>
+
+                {% if item.current_prompt %}
+                <div class="flex-grow-1 my-3 my-md-0">
+                    <div class="rounded p-2" style="background: {{ item.challenge.color }}10; border-left: 3px solid {{ item.challenge.color }};">
+                        <small class="text-muted d-block mb-1">Today's Prompt:</small>
+                        <p class="mb-0 small fw-medium">{{ item.current_prompt.prompt_text|truncatewords:20 }}</p>
+                    </div>
+                </div>
+
+                <div class="flex-shrink-0">
+                    <a href="{% url 'journal:entry_create' %}?challenge={{ item.challenge.slug }}&day={{ item.current_prompt.day_number }}"
+                       class="btn" style="background: {{ item.challenge.color }}; color: white;">
+                        <i class="bi bi-pencil me-2"></i>Write Entry
+                    </a>
+                </div>
+                {% else %}
+                <div class="flex-shrink-0">
+                    <a href="{% url 'challenges:progress' item.challenge.slug %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-right me-1"></i>View Progress
+                    </a>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <!-- Multiple challenges: vertical layout -->
+                <div class="d-flex align-items-center justify-content-between mb-2 small text-muted">
+                    <span>Progress</span>
+                    <span>{{ item.progress_percent }}%</span>
+                </div>
+                <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress-bar" role="progressbar"
+                         style="width: {{ item.progress_percent }}%; background: {{ item.challenge.color }};"></div>
+                </div>
+
+                {% if item.current_prompt %}
+                <div class="rounded p-2 mb-3" style="background: {{ item.challenge.color }}10; border-left: 3px solid {{ item.challenge.color }};">
+                    <small class="text-muted d-block mb-1">Today's Prompt:</small>
+                    <p class="mb-0 small fw-medium">{{ item.current_prompt.prompt_text|truncatewords:15 }}</p>
+                </div>
+
+                <a href="{% url 'journal:entry_create' %}?challenge={{ item.challenge.slug }}&day={{ item.current_prompt.day_number }}"
+                   class="btn btn-sm w-100" style="background: {{ item.challenge.color }}; color: white;">
+                    <i class="bi bi-pencil me-1"></i>Write Entry
+                </a>
+                {% else %}
+                <a href="{% url 'challenges:progress' item.challenge.slug %}" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-right me-1"></i>View Progress
+                </a>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Browse More Link -->
+<div class="text-center mt-3">
+    <a href="{% url 'challenges:list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-grid me-1"></i>Browse All Challenges
+    </a>
+</div>
+{% endif %}

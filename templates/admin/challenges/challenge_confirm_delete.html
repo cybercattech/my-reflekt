@@ -1,0 +1,38 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-4"
+                     style="width: 80px; height: 80px; background: #dc354520;">
+                    <i class="bi bi-exclamation-triangle text-danger fs-1"></i>
+                </div>
+
+                <h3>Delete Challenge?</h3>
+                <p class="text-muted mb-4">
+                    Are you sure you want to delete <strong>{{ challenge.title }}</strong>?<br>
+                    This will also delete all prompts and participant data.
+                </p>
+
+                {% if challenge.participant_count > 0 %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-people me-2"></i>
+                    This challenge has <strong>{{ challenge.participant_count }}</strong> participant(s).
+                    Their progress will be lost.
+                </div>
+                {% endif %}
+
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <a href="{% url 'accounts:admin_challenge_list' %}" class="btn btn-outline-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Delete Challenge
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

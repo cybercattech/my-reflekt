@@ -1,0 +1,174 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'accounts:admin_challenge_list' %}" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left me-1"></i>Challenges
+        </a>
+        <h1 class="mt-2">
+            <i class="{{ challenge.icon }} me-2" style="color: {{ challenge.color }}"></i>
+            {{ challenge.title }} - Prompts
+        </h1>
+        <p class="text-muted mb-0">{{ challenge.duration_days }} prompts, {{ challenge.get_cadence_display }} cadence</p>
+    </div>
+    <div>
+        <a href="{% url 'accounts:admin_challenge_edit' challenge.pk %}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-pencil me-2"></i>Edit Challenge
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Existing Prompts -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Prompts ({{ prompts.count }}/{{ challenge.duration_days }})</h5>
+                {% if prompts.count < challenge.duration_days %}
+                <span class="badge bg-warning text-dark">{{ challenge.duration_days|add:prompts.count|add:"-"|add:prompts.count }} remaining</span>
+                {% else %}
+                <span class="badge bg-success">Complete</span>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                {% if prompts %}
+                <div class="list-group list-group-flush">
+                    {% for prompt in prompts %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-primary me-2">Day {{ prompt.day_number }}</span>
+                                    <strong>{{ prompt.title }}</strong>
+                                </div>
+                                <p class="mb-1 text-muted">{{ prompt.prompt_text|truncatewords:30 }}</p>
+                                {% if prompt.guidance %}
+                                <small class="text-info"><i class="bi bi-info-circle me-1"></i>Has guidance</small>
+                                {% endif %}
+                            </div>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPrompt{{ prompt.pk }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form method="post" action="{% url 'accounts:admin_prompt_delete' challenge.pk prompt.pk %}" class="d-inline"
+                                      onsubmit="return confirm('Delete Day {{ prompt.day_number }} prompt?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Modal -->
+                    <div class="modal fade" id="editPrompt{{ prompt.pk }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'accounts:admin_prompt_edit' challenge.pk prompt.pk %}">
+                                    {% csrf_token %}
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Day {{ prompt.day_number }} Prompt</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Title</label>
+                                            <input type="text" class="form-control" name="title" value="{{ prompt.title }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Prompt Text</label>
+                                            <textarea class="form-control" name="prompt_text" rows="4" required>{{ prompt.prompt_text }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Guidance (optional)</label>
+                                            <textarea class="form-control" name="guidance" rows="2">{{ prompt.guidance }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Icon</label>
+                                            <input type="text" class="form-control" name="icon" value="{{ prompt.icon }}">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-journal-text fs-1 d-block mb-3"></i>
+                    No prompts yet. Add your first prompt!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Prompt -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-plus-lg me-2"></i>Add Prompt</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'accounts:admin_prompt_add' challenge.pk %}">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="day_number" class="form-label">Day Number *</label>
+                        <input type="number" class="form-control" id="day_number" name="day_number"
+                               value="{{ prompts.count|add:1 }}" min="1" max="{{ challenge.duration_days }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" required
+                               placeholder="e.g., Finding Joy in Small Things">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="prompt_text" class="form-label">Prompt Text *</label>
+                        <textarea class="form-control" id="prompt_text" name="prompt_text" rows="4" required
+                                  placeholder="What are three small things that brought you joy today?"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="guidance" class="form-label">Guidance (optional)</label>
+                        <textarea class="form-control" id="guidance" name="guidance" rows="2"
+                                  placeholder="Tips or additional context..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="icon" class="form-label">Icon</label>
+                        <input type="text" class="form-control" id="icon" name="icon"
+                               value="bi-journal-text" placeholder="bi-journal-text">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-lg me-2"></i>Add Prompt
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Tips -->
+        <div class="card border-0 shadow-sm mt-4 bg-light">
+            <div class="card-body">
+                <h6><i class="bi bi-lightbulb me-2"></i>Tips for Great Prompts</h6>
+                <ul class="small mb-0 text-muted">
+                    <li>Start with action words: "Describe...", "Reflect on...", "List..."</li>
+                    <li>Be specific but leave room for interpretation</li>
+                    <li>Build on previous days for a cohesive journey</li>
+                    <li>End with an encouraging closing day</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

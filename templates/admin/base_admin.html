@@ -42,6 +42,11 @@
                             <i class="bi bi-chat-dots me-2"></i>Feedback
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if active_page == 'challenges' %}active bg-secondary rounded{% endif %}" href="{% url 'accounts:admin_challenge_list' %}">
+                            <i class="bi bi-trophy me-2"></i>Challenges
+                        </a>
+                    </li>
                 </ul>
 
                 <hr class="text-white-50 my-3">

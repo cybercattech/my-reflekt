@@ -187,6 +187,12 @@
                         </a>
                     {% endif %}
                 </li>
+                <li class="sidebar-nav-item">
+                    <a href="{% url 'challenges:list' %}" class="sidebar-nav-link {% if active_page == 'challenges' %}active{% endif %}">
+                        <i class="bi bi-trophy"></i>
+                        Challenges
+                    </a>
+                </li>
             </ul>
         </div>
 

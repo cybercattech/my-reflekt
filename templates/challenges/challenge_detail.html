@@ -1,0 +1,280 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load subscription_tags %}
+
+{% block title %}{{ challenge.title }}{% endblock %}
+
+{% block dashboard_css %}
+<style>
+.challenge-hero {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.challenge-hero-bg {
+    width: 100%;
+    height: 220px;
+    background-size: cover;
+    background-position: center;
+}
+
+.challenge-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+}
+
+.challenge-hero-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    color: white;
+}
+
+.challenge-hero-badges {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+}
+
+.challenge-hero-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    line-height: 1.2;
+}
+
+.challenge-hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    flex-wrap: wrap;
+}
+
+.challenge-hero-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.prompt-preview {
+    border-left: 4px solid;
+    padding: 0.75rem 0 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.prompt-preview:last-child {
+    margin-bottom: 0;
+}
+
+.prompt-day {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.badge-preview {
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    color: #333;
+}
+
+.badge-preview-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.join-card {
+    border-radius: 16px;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+
+<!-- Back Link -->
+<a href="{% url 'challenges:list' %}" class="text-decoration-none text-muted mb-3 d-inline-block">
+    <i class="bi bi-arrow-left me-1"></i>Back to Challenges
+</a>
+
+<!-- Hero Section -->
+<div class="challenge-hero">
+    <div class="challenge-hero-bg" style="background-image: {% if challenge.cover_image %}url('{{ challenge.cover_image }}'){% else %}linear-gradient(135deg, {{ challenge.color }} 0%, {{ challenge.color }}dd 100%){% endif %};"></div>
+    <div class="challenge-hero-overlay"></div>
+
+    <div class="challenge-hero-badges">
+        <span class="badge" style="background: {{ challenge.color }};">{{ challenge.get_cadence_display }}</span>
+        {% if challenge.requires_premium %}
+        <span class="badge bg-warning text-dark ms-1">PRO</span>
+        {% endif %}
+    </div>
+
+    <div class="challenge-hero-content">
+        <h1 class="challenge-hero-title">{{ challenge.title }}</h1>
+        <div class="challenge-hero-meta">
+            <span><i class="bi bi-calendar3"></i> {{ challenge.duration_days }} days</span>
+            <span><i class="bi bi-people"></i> {{ challenge.participant_count }} joined</span>
+            <span><i class="bi bi-trophy"></i> {{ challenge.completion_count }} completed</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Description -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>About This Challenge</h5>
+                <p class="mb-0 text-muted">{{ challenge.description }}</p>
+            </div>
+        </div>
+
+        <!-- Prompts Preview -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Challenge Prompts</h5>
+            </div>
+            <div class="card-body pt-0">
+                {% for prompt in prompts %}
+                <div class="prompt-preview" style="border-color: {{ challenge.color }};">
+                    <div class="d-flex align-items-start">
+                        <div class="prompt-day me-3" style="background: {{ challenge.color }}20; color: {{ challenge.color }};">
+                            {{ prompt.day_number }}
+                        </div>
+                        <div class="flex-grow-1 min-width-0">
+                            <h6 class="mb-1 text-truncate">{{ prompt.title }}</h6>
+                            <p class="text-muted mb-0 small">{{ prompt.prompt_text|truncatewords:15 }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-4 mb-0">
+                    <i class="bi bi-hourglass-split me-2"></i>Prompts coming soon!
+                </p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Join Card -->
+        <div class="card border-0 shadow-sm mb-4 join-card">
+            <div class="card-body p-4">
+                {% if user_challenge %}
+                    {% if user_challenge.status == 'active' %}
+                    <div class="text-center mb-3">
+                        <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3"
+                             style="width: 56px; height: 56px; background: #19875420;">
+                            <i class="bi bi-play-circle text-success" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <h5 class="text-success mb-1">You're In!</h5>
+                        <p class="text-muted small mb-0">Day {{ user_challenge.current_day }} of {{ challenge.duration_days }}</p>
+                    </div>
+                    <div class="progress mb-3" style="height: 6px;">
+                        <div class="progress-bar" style="width: {{ user_challenge.progress_percent }}%; background: {{ challenge.color }};"></div>
+                    </div>
+                    <a href="{% url 'challenges:progress' challenge.slug %}" class="btn btn-success w-100">
+                        <i class="bi bi-arrow-right me-2"></i>Continue Challenge
+                    </a>
+                    {% elif user_challenge.status == 'completed' %}
+                    <div class="text-center">
+                        <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3"
+                             style="width: 56px; height: 56px; background: linear-gradient(135deg, #ffd700, #ffaa00);">
+                            <i class="bi bi-trophy-fill text-white" style="font-size: 1.25rem;"></i>
+                        </div>
+                        <h5 class="text-success mb-1">Complete!</h5>
+                        <p class="text-muted small mb-3">You earned the {{ challenge.badge_name }} badge.</p>
+                        <a href="{% url 'challenges:progress' challenge.slug %}" class="btn btn-outline-success w-100">
+                            View Your Journey
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="text-center mb-3">
+                        <p class="text-muted small mb-0">You previously {{ user_challenge.status }} this challenge.</p>
+                    </div>
+                    <form method="post" action="{% url 'challenges:join' challenge.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-arrow-repeat me-2"></i>Start Again
+                        </button>
+                    </form>
+                    {% endif %}
+                {% elif can_join %}
+                <div class="text-center mb-3">
+                    <h5 class="mb-1">Ready to Start?</h5>
+                    <p class="text-muted small mb-0">{{ challenge.duration_days }} {{ challenge.cadence }} prompts</p>
+                </div>
+                <form method="post" action="{% url 'challenges:join' challenge.slug %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn w-100 py-2" style="background: {{ challenge.color }}; color: white;">
+                        <i class="bi bi-play-fill me-2"></i>Join Challenge
+                    </button>
+                </form>
+                <p class="text-muted text-center small mt-2 mb-0">Free to join!</p>
+                {% else %}
+                <div class="text-center">
+                    <i class="bi bi-lock-fill text-muted" style="font-size: 1.75rem;"></i>
+                    <h6 class="mt-2 mb-1">Premium Challenge</h6>
+                    <p class="text-muted small mb-3">Upgrade to join this challenge.</p>
+                    <a href="{% url 'accounts:pricing' %}" class="btn btn-warning w-100">
+                        <i class="bi bi-star-fill me-2"></i>Upgrade
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Badge Preview -->
+        <div class="badge-preview mb-4">
+            <div class="badge-preview-icon">
+                <i class="{{ challenge.badge_icon }}" style="color: {{ challenge.color }};"></i>
+            </div>
+            <h6 class="mb-1">{{ challenge.badge_name }}</h6>
+            <p class="small mb-0 opacity-75">Complete to earn this badge!</p>
+        </div>
+
+        <!-- How It Works -->
+        <div class="card border-0 shadow-sm bg-light">
+            <div class="card-body">
+                <h6 class="mb-3"><i class="bi bi-lightbulb me-2"></i>How It Works</h6>
+                <ol class="small mb-0 ps-3">
+                    <li class="mb-2">Join the challenge to get started</li>
+                    <li class="mb-2">Write an entry for each prompt</li>
+                    <li class="mb-2">Complete all {{ challenge.duration_days }} prompts</li>
+                    <li>Earn your badge!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}

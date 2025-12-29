@@ -1,0 +1,116 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-trophy me-2"></i>Challenge Management</h1>
+    <a href="{% url 'accounts:admin_challenge_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>New Challenge
+    </a>
+</div>
+
+<!-- Filter Tabs -->
+<ul class="nav nav-pills mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if not status_filter %}active{% endif %}" href="{% url 'accounts:admin_challenge_list' %}">All</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'active' %}active{% endif %}" href="?status=active">Active</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'draft' %}active{% endif %}" href="?status=draft">Draft</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'archived' %}active{% endif %}" href="?status=archived">Archived</a>
+    </li>
+</ul>
+
+<!-- Challenges Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Challenge</th>
+                        <th>Cadence</th>
+                        <th>Prompts</th>
+                        <th>Participants</th>
+                        <th>Completed</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for challenge in challenges %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                     style="width: 40px; height: 40px; background: {{ challenge.color }}20;">
+                                    <i class="{{ challenge.icon }}" style="color: {{ challenge.color }}"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ challenge.title }}</strong>
+                                    {% if challenge.is_featured %}
+                                    <span class="badge bg-warning text-dark ms-2">Featured</span>
+                                    {% endif %}
+                                    {% if challenge.requires_premium %}
+                                    <span class="badge bg-info text-dark ms-1">Premium</span>
+                                    {% endif %}
+                                    <br>
+                                    <small class="text-muted">{{ challenge.short_description|truncatewords:10 }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ challenge.get_cadence_display }}</span>
+                            <small class="text-muted d-block">{{ challenge.duration_days }} days</small>
+                        </td>
+                        <td>{{ challenge.prompts.count }}</td>
+                        <td>{{ challenge.participant_count }}</td>
+                        <td>
+                            {{ challenge.completion_count }}
+                            {% if challenge.participant_count > 0 %}
+                            <small class="text-muted">({{ challenge.completion_rate }}%)</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if challenge.status == 'active' %}
+                            <span class="badge bg-success">Active</span>
+                            {% elif challenge.status == 'draft' %}
+                            <span class="badge bg-secondary">Draft</span>
+                            {% else %}
+                            <span class="badge bg-dark">Archived</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'accounts:admin_challenge_prompts' challenge.pk %}" class="btn btn-outline-primary" title="Prompts">
+                                    <i class="bi bi-journal-text"></i>
+                                </a>
+                                <a href="{% url 'accounts:admin_challenge_edit' challenge.pk %}" class="btn btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'accounts:admin_challenge_stats' challenge.pk %}" class="btn btn-outline-info" title="Stats">
+                                    <i class="bi bi-graph-up"></i>
+                                </a>
+                                <a href="{% url 'accounts:admin_challenge_delete' challenge.pk %}" class="btn btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-trophy fs-1 d-block mb-3"></i>
+                            No challenges yet. <a href="{% url 'accounts:admin_challenge_create' %}">Create your first challenge!</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

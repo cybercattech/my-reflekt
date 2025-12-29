@@ -657,20 +657,58 @@ def get_sidebar_context(user):
 @login_required
 def entry_create(request):
     """Create a new journal entry."""
+    # Check for challenge context
+    challenge_slug = request.GET.get('challenge') or request.POST.get('challenge_slug')
+    challenge_day = request.GET.get('day') or request.POST.get('challenge_day')
+    challenge_prompt = None
+    user_challenge = None
+
+    if challenge_slug and challenge_day:
+        from apps.challenges.models import Challenge, ChallengePrompt, UserChallenge
+        try:
+            challenge = Challenge.objects.get(slug=challenge_slug)
+            challenge_prompt = ChallengePrompt.objects.filter(
+                challenge=challenge, day_number=int(challenge_day)
+            ).first()
+            user_challenge = UserChallenge.objects.filter(
+                user=request.user, challenge=challenge, status='active'
+            ).first()
+        except (Challenge.DoesNotExist, ValueError):
+            pass
+
     if request.method == 'POST':
         form = EntryForm(request.POST)
         if form.is_valid():
             entry = form.save(commit=False)
             entry.user = request.user
             entry.save()
+
+            # Link to challenge if applicable
+            if challenge_prompt and user_challenge and request.POST.get('link_challenge') == 'on':
+                from apps.challenges.models import ChallengeEntry
+                from apps.challenges.services import check_on_time
+                ChallengeEntry.objects.get_or_create(
+                    user_challenge=user_challenge,
+                    prompt=challenge_prompt,
+                    defaults={
+                        'entry': entry,
+                        'is_on_time': check_on_time(user_challenge, challenge_prompt),
+                    }
+                )
+
             messages.success(request, 'Entry saved successfully.')
             return redirect('journal:entry_detail', pk=entry.pk)
     else:
         # Check if there's a prompt to pre-fill
         prompt = request.GET.get('prompt', '')
         initial_data = {}
-        if prompt:
+
+        # Pre-fill with challenge prompt if available
+        if challenge_prompt:
+            initial_data['content'] = f"**Challenge Prompt:** {challenge_prompt.prompt_text}\n\n"
+        elif prompt:
             initial_data['content'] = f"**Prompt:** {prompt}\n\n"
+
         form = EntryForm(initial=initial_data)
 
     context = {
@@ -679,6 +717,10 @@ def entry_create(request):
         'editor_preference': request.user.profile.editor_preference,
         'profile': request.user.profile,
         'prompt': request.GET.get('prompt', ''),
+        'challenge_prompt': challenge_prompt,
+        'user_challenge': user_challenge,
+        'challenge_slug': challenge_slug,
+        'challenge_day': challenge_day,
     }
     context.update(get_sidebar_context(request.user))
 

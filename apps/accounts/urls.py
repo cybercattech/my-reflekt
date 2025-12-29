@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import admin_views
+from apps.challenges import admin_views as challenge_admin_views
 
 app_name = 'accounts'
 
@@ -20,6 +21,17 @@ urlpatterns = [
     path('manage/feedback/', admin_views.feedback_list, name='admin_feedback_list'),
     path('manage/feedback/<int:feedback_id>/', admin_views.feedback_detail, name='admin_feedback_detail'),
     path('manage/feedback/<int:feedback_id>/status/', admin_views.feedback_update_status, name='admin_feedback_status'),
+
+    # Challenge Management
+    path('manage/challenges/', challenge_admin_views.challenge_admin_list, name='admin_challenge_list'),
+    path('manage/challenges/create/', challenge_admin_views.challenge_create, name='admin_challenge_create'),
+    path('manage/challenges/<int:pk>/edit/', challenge_admin_views.challenge_edit, name='admin_challenge_edit'),
+    path('manage/challenges/<int:pk>/delete/', challenge_admin_views.challenge_delete, name='admin_challenge_delete'),
+    path('manage/challenges/<int:pk>/prompts/', challenge_admin_views.challenge_prompts, name='admin_challenge_prompts'),
+    path('manage/challenges/<int:pk>/prompts/add/', challenge_admin_views.prompt_add, name='admin_prompt_add'),
+    path('manage/challenges/<int:pk>/prompts/<int:prompt_pk>/edit/', challenge_admin_views.prompt_edit, name='admin_prompt_edit'),
+    path('manage/challenges/<int:pk>/prompts/<int:prompt_pk>/delete/', challenge_admin_views.prompt_delete, name='admin_prompt_delete'),
+    path('manage/challenges/<int:pk>/stats/', challenge_admin_views.challenge_stats, name='admin_challenge_stats'),
 
     # Subscription
     path('pricing/', views.pricing_view, name='pricing'),

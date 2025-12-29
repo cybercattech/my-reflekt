@@ -1,0 +1,145 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'accounts:admin_challenge_list' %}" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left me-1"></i>Challenges
+        </a>
+        <h1 class="mt-2">
+            <i class="{{ challenge.icon }} me-2" style="color: {{ challenge.color }}"></i>
+            {{ challenge.title }} - Stats
+        </h1>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-primary bg-opacity-10 rounded-3 p-3">
+                        <i class="bi bi-people text-primary fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="mb-0">{{ challenge.participant_count }}</h3>
+                        <small class="text-muted">Total Participants</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-warning bg-opacity-10 rounded-3 p-3">
+                        <i class="bi bi-hourglass-split text-warning fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="mb-0">{{ active_count }}</h3>
+                        <small class="text-muted">Active</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-success bg-opacity-10 rounded-3 p-3">
+                        <i class="bi bi-check-circle text-success fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="mb-0">{{ completed_count }}</h3>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-secondary bg-opacity-10 rounded-3 p-3">
+                        <i class="bi bi-percent text-secondary fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="mb-0">{{ challenge.completion_rate }}%</h3>
+                        <small class="text-muted">Completion Rate</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Participants Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Participants</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>User</th>
+                        <th>Started</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                        <th>Completed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for uc in participants %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'accounts:admin_user_detail' uc.user.id %}" class="text-decoration-none">
+                                {{ uc.user.email }}
+                            </a>
+                            <br>
+                            <small class="text-muted">{{ uc.user.profile.display_name|default:'' }}</small>
+                        </td>
+                        <td>{{ uc.started_at|date:"M j, Y" }}</td>
+                        <td>
+                            <div class="progress" style="height: 8px; width: 100px;">
+                                <div class="progress-bar" style="width: {{ uc.progress_percent }}%; background: {{ challenge.color }};"></div>
+                            </div>
+                            <small class="text-muted">{{ uc.prompts_completed }}/{{ challenge.duration_days }}</small>
+                        </td>
+                        <td>
+                            {% if uc.status == 'active' %}
+                            <span class="badge bg-warning text-dark">Active</span>
+                            {% elif uc.status == 'completed' %}
+                            <span class="badge bg-success">Completed</span>
+                            {% elif uc.status == 'failed' %}
+                            <span class="badge bg-danger">Failed</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Abandoned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if uc.completed_at %}
+                            {{ uc.completed_at|date:"M j, Y" }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No participants yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
