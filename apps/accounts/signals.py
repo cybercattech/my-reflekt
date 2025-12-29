@@ -13,6 +13,23 @@ logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=User)
+def send_welcome_email_on_signup(sender, instance, created, **kwargs):
+    """
+    Send welcome email when a new user signs up.
+    """
+    if not created:
+        return
+
+    # Delay import to avoid circular imports
+    from .subscription_emails import send_welcome_email
+
+    try:
+        send_welcome_email(instance)
+    except Exception as e:
+        logger.error(f"Failed to send welcome email to {instance.email}: {e}")
+
+
+@receiver(post_save, sender=User)
 def handle_new_user_invitations(sender, instance, created, **kwargs):
     """
     When a new user signs up, check for pending invitations.

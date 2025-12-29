@@ -13,6 +13,7 @@ urlpatterns = [
     path('goals/', include('apps.goals.urls')),
     path('habits/', include('apps.habits.urls')),
     path('dashboard/', include('apps.analytics.urls')),
+    path('blog/', include('apps.blog.urls')),
     path('', include('apps.journal.urls_home')),
 ]
 

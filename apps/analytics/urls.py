@@ -15,6 +15,8 @@ urlpatterns = [
     path('captures/media/', views.media_dashboard, name='media'),
     path('captures/people/', views.people_dashboard, name='people'),
     path('captures/fitness/', views.fitness_dashboard, name='fitness'),
+    path('captures/travel/', views.travel_dashboard, name='travel'),
+    path('captures/wellness/', views.wellness_dashboard, name='wellness'),
 
     # Person API endpoints
     path('api/person/<int:pk>/', views.person_detail, name='person_detail'),

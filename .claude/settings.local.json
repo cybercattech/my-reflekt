@@ -27,7 +27,10 @@
       "Bash(printf:*)",
       "Bash(test:*)",
       "Bash(git log:*)",
-      "Bash(git rev-parse:*)"
+      "Bash(git rev-parse:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.development .venv/bin/python:*)"
     ]
   }
 }

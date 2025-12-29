@@ -5,6 +5,15 @@
 {% block extra_css %}
 {% include 'journal/partials/sidebar_css.html' %}
 <style>
+    /* Spin animation for location button */
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+
     /* 3-Column Layout */
     .journal-layout {
         display: flex;
@@ -383,6 +392,74 @@
         border-radius: 2px;
     }
 
+    /* Captures Section */
+    .captures-section {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .captures-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+    }
+
+    .captures-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .capture-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        font-size: 0.8125rem;
+        color: #374151;
+        transition: all 0.2s;
+    }
+
+    .capture-pill:hover {
+        background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+    }
+
+    .capture-pill i {
+        font-size: 0.875rem;
+    }
+
+    .capture-pill .capture-delete {
+        margin-left: 0.25rem;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 0 0.125rem;
+    }
+
+    .capture-pill .capture-delete:hover {
+        color: #ef4444;
+    }
+
+    .capture-pill.travel { border-color: #3b82f6; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
+    .capture-pill.place { border-color: #10b981; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
+    .capture-pill.workout { border-color: #ef4444; background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%); }
+    .capture-pill.watched { border-color: #8b5cf6; background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); }
+    .capture-pill.meal { border-color: #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
+    .capture-pill.dream { border-color: #6366f1; background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); }
+    .capture-pill.gratitude { border-color: #ec4899; background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); }
+
+    .captures-empty {
+        color: #9ca3af;
+        font-size: 0.8125rem;
+        font-style: italic;
+    }
+
     /* Responsive */
     @media (max-width: 992px) {
         .EasyMDEContainer .CodeMirror,
@@ -673,13 +750,18 @@
                                     <label class="form-label">
                                         <i class="bi bi-geo-alt me-1"></i>Location <small class="text-muted">(for weather tracking)</small>
                                     </label>
-                                    <input type="text"
-                                           name="city"
-                                           id="id_city"
-                                           class="form-control"
-                                           placeholder="e.g., New York, Tokyo, London"
-                                           value="{{ form.city.value|default:profile.city|default:'' }}">
-                                    <div class="form-text">Where are you writing from? Defaults to your profile location.</div>
+                                    <div class="input-group">
+                                        <input type="text"
+                                               name="city"
+                                               id="id_city"
+                                               class="form-control"
+                                               placeholder="e.g., New York, Tokyo, London"
+                                               value="{{ form.city.value|default:profile.city|default:'' }}">
+                                        <button type="button" class="btn btn-outline-secondary" id="detectLocationBtn" title="Detect current location">
+                                            <i class="bi bi-crosshairs" id="locationIcon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Where are you writing from? <a href="#" id="detectLocationLink" class="text-decoration-none">Detect my location</a></div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Country Code</label>
@@ -802,6 +884,31 @@
                                 {% endfor %}
                                 {% endif %}
                             </div>
+
+                            <!-- Captures Section -->
+                            <div class="captures-section" id="capturesSection">
+                                <div class="captures-header">
+                                    <i class="bi bi-bookmark-star"></i>
+                                    <span>Tracked Items</span>
+                                    <span class="badge bg-secondary ms-1" id="captureCount">{% if entry %}{{ entry.captures.count }}{% else %}0{% endif %}</span>
+                                </div>
+                                <div class="captures-list" id="capturesList">
+                                    {% if entry %}
+                                    {% for capture in entry.captures.all %}
+                                    <div class="capture-pill {{ capture.capture_type }}" data-id="{{ capture.id }}">
+                                        <i class="bi {{ capture.icon }}"></i>
+                                        <span>{{ capture.display_text }}</span>
+                                        <span class="capture-delete" onclick="deleteCapture({{ capture.id }})" title="Remove">
+                                            <i class="bi bi-x"></i>
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="captures-empty {% if entry and entry.captures.count > 0 %}d-none{% endif %}" id="capturesEmpty">
+                                    Use slash commands like /place, /travel, /workout to track items
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -851,6 +958,30 @@
                 <input type="text" class="form-control form-control-sm mb-3"
                        id="goalHabitPickerSearch" placeholder="Search...">
                 <div id="goalHabitPickerList" class="goal-habit-picker-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Capture Form Modal (for /watched, /travel, /workout, etc.) -->
+<div class="modal fade" id="captureFormModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title d-flex align-items-center mb-0">
+                    <i class="bi bi-plus-circle me-2" id="captureFormIcon"></i>
+                    <span id="captureFormTitle">Log</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <form id="captureForm">
+                    <div id="captureFormFields"></div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -1140,7 +1271,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Slash command configuration
     const slashCommands = [
         { command: '/person', name: 'Person', icon: 'bi-person', description: 'Tag a person', special: 'quick_picker', pickerType: 'person' },
-        { command: '/book', name: 'Book', icon: 'bi-book', description: 'Tag a book', special: 'quick_picker', pickerType: 'book' },
+        { command: '/book', name: 'Book', icon: 'bi-book', description: 'Log a book you\'re reading', special: 'quick_picker', pickerType: 'book' },
+        { command: '/watched', name: 'Watched', icon: 'bi-film', description: 'Log a movie or show', special: 'capture_form', captureType: 'watched' },
+        { command: '/travel', name: 'Travel', icon: 'bi-geo-alt', description: 'Log a trip or journey', special: 'capture_form', captureType: 'travel' },
+        { command: '/workout', name: 'Workout', icon: 'bi-heart-pulse', description: 'Log exercise', special: 'capture_form', captureType: 'workout' },
+        { command: '/place', name: 'Place', icon: 'bi-pin-map', description: 'Log where you are', special: 'capture_form', captureType: 'place' },
+        { command: '/meal', name: 'Meal', icon: 'bi-cup-hot', description: 'Log what you ate', special: 'capture_form', captureType: 'meal' },
+        { command: '/dream', name: 'Dream', icon: 'bi-cloud-moon', description: 'Start a dream journal entry', special: 'block_insert', blockType: 'dream', hashtag: 'dream' },
+        { command: '/gratitude', name: 'Gratitude', icon: 'bi-heart', description: 'Write what you\'re grateful for', special: 'block_insert', blockType: 'gratitude', hashtag: 'gratitude' },
         { command: '/goal', name: 'Goal', icon: 'bi-bullseye', description: 'Link to a goal', special: 'goal_picker' },
         { command: '/habit', name: 'Habit', icon: 'bi-repeat', description: 'Link to a habit & create check-in', special: 'habit_picker' },
     ];
@@ -1313,7 +1451,41 @@ document.addEventListener('DOMContentLoaded', function() {
             showGoalPicker();
         } else if (cmd.special === 'habit_picker') {
             showHabitPicker();
+        } else if (cmd.special === 'capture_form') {
+            showCaptureForm(cmd);
+        } else if (cmd.special === 'block_insert') {
+            insertBlock(cmd);
         }
+    }
+
+    // =================================================================
+    // BLOCK INSERT (for dream, gratitude blocks)
+    // =================================================================
+
+    function insertBlock(cmd) {
+        const cm = easyMDE.codemirror;
+        const cursor = cm.getCursor();
+
+        // Create the block with hashtag
+        const blockType = cmd.blockType;
+        const hashtag = cmd.hashtag ? ` #${cmd.hashtag}` : '';
+
+        // Insert block syntax with cursor positioned inside
+        const blockStart = `{${blockType}}\n`;
+        const blockEnd = `\n{/${blockType}}${hashtag}`;
+
+        // Insert block start
+        cm.replaceRange(blockStart, cursor);
+
+        // Get new cursor position (inside the block)
+        const newCursor = {line: cursor.line + 1, ch: 0};
+
+        // Insert block end
+        cm.replaceRange(blockEnd, newCursor);
+
+        // Position cursor inside the block for typing
+        cm.setCursor(newCursor);
+        cm.focus();
     }
 
     // =================================================================
@@ -1490,6 +1662,265 @@ document.addEventListener('DOMContentLoaded', function() {
             createPickerItem(name);
         }
     });
+
+    // =================================================================
+    // CAPTURE FORM (for /watched, /travel, /workout, etc.)
+    // =================================================================
+
+    // Field definitions for each capture type (matches backend SLASH_COMMANDS)
+    const captureFormFields = {
+        watched: [
+            { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Movie or show name' },
+            { name: 'type', label: 'Type', type: 'select', required: false,
+              options: [['movie', 'Movie'], ['show', 'TV Show'], ['documentary', 'Documentary']] },
+            { name: 'rating', label: 'Rating', type: 'rating', required: false },
+        ],
+        travel: [
+            { name: 'mode', label: 'Mode', type: 'select', required: true,
+              options: [['car', 'Car'], ['plane', 'Plane'], ['train', 'Train'], ['bus', 'Bus'],
+                       ['walk', 'Walk'], ['bike', 'Bike'], ['boat', 'Boat']] },
+            { name: 'origin', label: 'From', type: 'text', required: true, placeholder: 'Starting point' },
+            { name: 'destination', label: 'To', type: 'text', required: true, placeholder: 'Destination' },
+        ],
+        workout: [
+            { name: 'type', label: 'Type', type: 'select', required: true,
+              options: [['run', 'Running'], ['walk', 'Walking'], ['gym', 'Gym'], ['yoga', 'Yoga'],
+                       ['swim', 'Swimming'], ['bike', 'Cycling'], ['hike', 'Hiking'],
+                       ['sports', 'Sports'], ['other', 'Other']] },
+            { name: 'duration', label: 'Duration (min)', type: 'number', required: false, placeholder: '30' },
+            { name: 'intensity', label: 'Intensity', type: 'select', required: false,
+              options: [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']] },
+        ],
+        place: [
+            { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Place name' },
+            { name: 'type', label: 'Type', type: 'select', required: false,
+              options: [['restaurant', 'Restaurant'], ['cafe', 'Cafe'], ['bar', 'Bar'],
+                       ['park', 'Park'], ['office', 'Office'], ['home', 'Home'],
+                       ['store', 'Store'], ['gym', 'Gym'], ['other', 'Other']] },
+        ],
+        meal: [
+            { name: 'meal', label: 'Meal', type: 'select', required: true,
+              options: [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snack', 'Snack']] },
+            { name: 'what', label: 'What', type: 'text', required: true, placeholder: 'What did you eat?' },
+        ],
+        dream: [],  // No fields, just a flag
+        gratitude: [
+            { name: 'item1', label: 'Grateful for...', type: 'text', required: true, placeholder: 'Something you\'re grateful for' },
+            { name: 'item2', label: 'Also grateful for...', type: 'text', required: false },
+            { name: 'item3', label: 'And grateful for...', type: 'text', required: false },
+        ],
+    };
+
+    const captureFormModal = new bootstrap.Modal(document.getElementById('captureFormModal'));
+    let currentCaptureType = null;
+
+    function showCaptureForm(cmd) {
+        currentCaptureType = cmd.captureType;
+        const fields = captureFormFields[cmd.captureType] || [];
+
+        document.getElementById('captureFormTitle').textContent = cmd.name;
+        document.getElementById('captureFormIcon').className = `bi ${cmd.icon} me-2`;
+
+        const fieldsContainer = document.getElementById('captureFormFields');
+
+        if (fields.length === 0) {
+            // No fields (like /dream), just confirm and save
+            fieldsContainer.innerHTML = `<p class="text-muted mb-0">This will mark this entry as a ${cmd.name.toLowerCase()} entry.</p>`;
+        } else {
+            fieldsContainer.innerHTML = fields.map(field => {
+                let inputHtml = '';
+
+                if (field.type === 'text') {
+                    inputHtml = `<input type="text" class="form-control form-control-sm" name="${field.name}"
+                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}">`;
+                } else if (field.type === 'number') {
+                    inputHtml = `<input type="number" class="form-control form-control-sm" name="${field.name}"
+                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" min="0">`;
+                } else if (field.type === 'select') {
+                    const optionsHtml = field.options.map(([val, label]) => `<option value="${val}">${label}</option>`).join('');
+                    inputHtml = `<select class="form-select form-select-sm" name="${field.name}" ${field.required ? 'required' : ''}>
+                                    <option value="">Select...</option>
+                                    ${optionsHtml}
+                                 </select>`;
+                } else if (field.type === 'rating') {
+                    inputHtml = `
+                        <div class="rating-input" data-name="${field.name}">
+                            ${[1,2,3,4,5].map(n => `
+                                <i class="bi bi-star rating-star" data-value="${n}" style="cursor: pointer; font-size: 1.25rem; color: #d1d5db;"></i>
+                            `).join('')}
+                            <input type="hidden" name="${field.name}" value="">
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">${field.label}${field.required ? ' <span class="text-danger">*</span>' : ''}</label>
+                        ${inputHtml}
+                    </div>
+                `;
+            }).join('');
+
+            // Add rating star click handlers
+            setTimeout(() => {
+                fieldsContainer.querySelectorAll('.rating-input').forEach(ratingDiv => {
+                    const stars = ratingDiv.querySelectorAll('.rating-star');
+                    const hiddenInput = ratingDiv.querySelector('input[type="hidden"]');
+
+                    stars.forEach(star => {
+                        star.addEventListener('click', () => {
+                            const value = parseInt(star.dataset.value);
+                            hiddenInput.value = value;
+                            stars.forEach((s, idx) => {
+                                s.classList.toggle('bi-star-fill', idx < value);
+                                s.classList.toggle('bi-star', idx >= value);
+                                s.style.color = idx < value ? '#fbbf24' : '#d1d5db';
+                            });
+                        });
+
+                        star.addEventListener('mouseenter', () => {
+                            const value = parseInt(star.dataset.value);
+                            stars.forEach((s, idx) => {
+                                s.style.color = idx < value ? '#fbbf24' : '#d1d5db';
+                            });
+                        });
+
+                        star.addEventListener('mouseleave', () => {
+                            const currentValue = parseInt(hiddenInput.value) || 0;
+                            stars.forEach((s, idx) => {
+                                s.style.color = idx < currentValue ? '#fbbf24' : '#d1d5db';
+                            });
+                        });
+                    });
+                });
+            }, 100);
+        }
+
+        captureFormModal.show();
+
+        // Focus first input after modal opens
+        setTimeout(() => {
+            const firstInput = fieldsContainer.querySelector('input, select');
+            if (firstInput) firstInput.focus();
+        }, 200);
+    }
+
+    // Handle capture form submission
+    document.getElementById('captureForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const captureData = {};
+        for (const [key, value] of formData.entries()) {
+            if (value) captureData[key] = value;
+        }
+
+        captureFormModal.hide();
+
+        // Ensure entry exists
+        let pk = entryPk;
+        if (!pk) {
+            pk = await quickSaveEntryForCapture();
+            if (pk) entryPk = pk;
+        }
+
+        if (!pk) {
+            alert('Failed to save entry. Please try again.');
+            return;
+        }
+
+        // Save the capture
+        try {
+            const response = await fetch('/journal/api/capture/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    entry_pk: pk,
+                    capture_type: currentCaptureType,
+                    data: captureData
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                // Add capture to the visual list (not raw text in editor)
+                addCaptureToList(data.capture);
+            } else {
+                alert(data.error || 'Failed to save capture');
+            }
+        } catch (err) {
+            console.error('Failed to save capture:', err);
+            alert('Failed to save capture. Please try again.');
+        }
+    });
+
+    // Add a capture to the visual list
+    function addCaptureToList(capture) {
+        const list = document.getElementById('capturesList');
+        const empty = document.getElementById('capturesEmpty');
+        const countBadge = document.getElementById('captureCount');
+
+        // Hide empty message
+        empty.classList.add('d-none');
+
+        // Create the pill element
+        const pill = document.createElement('div');
+        pill.className = `capture-pill ${capture.type}`;
+        pill.dataset.id = capture.id;
+        pill.innerHTML = `
+            <i class="bi ${capture.icon}"></i>
+            <span>${capture.display_text}</span>
+            <span class="capture-delete" onclick="deleteCapture(${capture.id})" title="Remove">
+                <i class="bi bi-x"></i>
+            </span>
+        `;
+
+        list.appendChild(pill);
+
+        // Update count
+        const currentCount = parseInt(countBadge.textContent) || 0;
+        countBadge.textContent = currentCount + 1;
+    }
+
+    // Delete a capture
+    window.deleteCapture = async function(captureId) {
+        if (!confirm('Remove this tracked item?')) return;
+
+        try {
+            const response = await fetch(`/journal/capture/${captureId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                // Remove from visual list
+                const pill = document.querySelector(`.capture-pill[data-id="${captureId}"]`);
+                if (pill) pill.remove();
+
+                // Update count
+                const countBadge = document.getElementById('captureCount');
+                const currentCount = parseInt(countBadge.textContent) || 0;
+                countBadge.textContent = Math.max(0, currentCount - 1);
+
+                // Show empty message if no captures left
+                const list = document.getElementById('capturesList');
+                if (list.children.length === 0) {
+                    document.getElementById('capturesEmpty').classList.remove('d-none');
+                }
+            } else {
+                alert('Failed to delete capture');
+            }
+        } catch (err) {
+            console.error('Failed to delete capture:', err);
+            alert('Failed to delete capture');
+        }
+    };
 
     // =================================================================
     // QUICK SAVE FOR CAPTURES
@@ -2298,6 +2729,96 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(() => alert('Failed to delete attachment'));
     };
+});
+
+// Geolocation detection
+document.addEventListener('DOMContentLoaded', function() {
+    const detectBtn = document.getElementById('detectLocationBtn');
+    const detectLink = document.getElementById('detectLocationLink');
+    const locationIcon = document.getElementById('locationIcon');
+    const cityInput = document.getElementById('id_city');
+    const countryInput = document.getElementById('id_country_code');
+
+    function detectLocation() {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser');
+            return;
+        }
+
+        // Show loading state
+        locationIcon.className = 'bi bi-arrow-clockwise spin';
+        detectBtn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                // Reverse geocode using OpenStreetMap Nominatim
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const address = data.address || {};
+                        const city = address.city || address.town || address.village || address.municipality || address.county || '';
+                        const countryCode = (address.country_code || '').toUpperCase();
+
+                        if (city) {
+                            cityInput.value = city;
+                        }
+                        if (countryCode) {
+                            countryInput.value = countryCode;
+                        }
+
+                        // Reset icon
+                        locationIcon.className = 'bi bi-crosshairs';
+                        detectBtn.disabled = false;
+
+                        if (!city && !countryCode) {
+                            alert('Could not determine your location. Please enter it manually.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Geocoding error:', error);
+                        locationIcon.className = 'bi bi-crosshairs';
+                        detectBtn.disabled = false;
+                        alert('Could not look up your location. Please enter it manually.');
+                    });
+            },
+            function(error) {
+                locationIcon.className = 'bi bi-crosshairs';
+                detectBtn.disabled = false;
+
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        alert('Location access denied. Please allow location access or enter your city manually.');
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        alert('Location information unavailable. Please enter your city manually.');
+                        break;
+                    case error.TIMEOUT:
+                        alert('Location request timed out. Please try again or enter your city manually.');
+                        break;
+                    default:
+                        alert('Could not get your location. Please enter it manually.');
+                }
+            },
+            {
+                enableHighAccuracy: false,
+                timeout: 10000,
+                maximumAge: 300000  // Cache for 5 minutes
+            }
+        );
+    }
+
+    if (detectBtn) {
+        detectBtn.addEventListener('click', detectLocation);
+    }
+    if (detectLink) {
+        detectLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            detectLocation();
+        });
+    }
 });
 </script>
 {% endblock %}

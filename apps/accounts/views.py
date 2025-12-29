@@ -28,10 +28,34 @@ from .services.friends import (
 @login_required
 def profile_view(request):
     """User profile and settings page."""
+    from datetime import timedelta
+    from django.utils import timezone
+    from apps.journal.models import Entry
+    from .models import UserBadge, STREAK_BADGES
+
     profile = request.user.profile
     friends = Friendship.get_friends(request.user)
     pending = get_pending_friend_requests(request.user)
     invitations = get_pending_invitations(request.user)
+
+    # Calculate actual current streak from entry dates
+    all_entry_dates = set(
+        Entry.objects.filter(user=request.user).values_list('entry_date', flat=True)
+    )
+    current_streak = 0
+    today = timezone.now().date()
+    check_date = today
+    # If no entry today, start from yesterday
+    if check_date not in all_entry_dates:
+        check_date = today - timedelta(days=1)
+    while check_date in all_entry_dates:
+        current_streak += 1
+        check_date -= timedelta(days=1)
+
+    # Get badge data
+    earned_badges = UserBadge.get_user_badges(request.user)
+    earned_badge_ids = [b['id'] for b in earned_badges]
+    next_badge = UserBadge.get_next_badge(request.user, current_streak)
 
     return render(request, 'accounts/profile.html', {
         'profile': profile,
@@ -41,6 +65,13 @@ def profile_view(request):
         'invitations_sent': invitations['sent'],
         'invitations_received': invitations['received'],
         'active_page': None,  # Profile is not in the sidebar
+        # Badge data
+        'earned_badges': earned_badges,
+        'earned_badge_ids': earned_badge_ids,
+        'next_badge': next_badge,
+        'all_badges': STREAK_BADGES,
+        'total_badges': len(STREAK_BADGES),
+        'current_streak': current_streak,
     })
 
 
@@ -57,6 +88,7 @@ def profile_update(request):
             # Handle insights form fields
             profile.city = request.POST.get('city', '').strip()
             profile.country_code = request.POST.get('country_code', 'US')
+            profile.temperature_unit = request.POST.get('temperature_unit', 'F')
 
             # Handle birthday
             birthday_str = request.POST.get('birthday', '')
@@ -443,7 +475,19 @@ def create_checkout(request):
             profile.stripe_customer_id = customer_id
             profile.save()
 
-        # Create checkout session with 14-day trial
+        # Check if user is eligible for free trial (first-time subscribers only)
+        from .models import SubscriptionHistory
+        has_previous_subscription = SubscriptionHistory.objects.filter(
+            user=request.user,
+            to_tier='premium'
+        ).exists() or profile.stripe_subscription_id
+
+        # Build subscription data - only include trial for first-time subscribers
+        subscription_data = {}
+        if not has_previous_subscription:
+            subscription_data['trial_period_days'] = 14  # 14-day free trial
+
+        # Create checkout session
         checkout_session = stripe.checkout.Session.create(
             customer=customer_id,
             payment_method_types=['card'],
@@ -452,9 +496,7 @@ def create_checkout(request):
                 'quantity': 1,
             }],
             mode='subscription',
-            subscription_data={
-                'trial_period_days': 14,  # 14-day free trial
-            },
+            subscription_data=subscription_data if subscription_data else None,
             success_url=request.build_absolute_uri('/accounts/checkout/success/') + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=request.build_absolute_uri('/accounts/checkout/cancel/'),
             metadata={
@@ -488,10 +530,13 @@ def checkout_success(request):
             # Retrieve the session
             session = stripe.checkout.Session.retrieve(session_id)
 
+            # Retrieve the subscription to check status (active vs trialing)
+            subscription = stripe.Subscription.retrieve(session.subscription)
+
             # Update user profile
             profile = request.user.profile
             profile.stripe_subscription_id = session.subscription
-            profile.subscription_status = 'active'
+            profile.subscription_status = subscription.status  # 'active' or 'trialing'
             profile.subscription_plan = session.metadata.get('plan')
             profile.subscription_tier = 'premium'
             profile.subscription_start_date = django_timezone.now()
@@ -504,10 +549,19 @@ def checkout_success(request):
                 from_tier='free',
                 to_tier='premium',
                 change_type='upgrade',
-                notes=f'Upgraded via Stripe to {session.metadata.get("plan")}'
+                notes=f'Upgraded via Stripe to {session.metadata.get("plan")}' + (' (trial)' if subscription.status == 'trialing' else '')
             )
 
-            messages.success(request, '🎉 Welcome to Premium! All features are now unlocked.')
+            # Send appropriate email and message
+            if subscription.status == 'trialing':
+                # Send trial started email
+                from .subscription_emails import send_trial_started_email
+                from datetime import datetime
+                trial_end = datetime.fromtimestamp(subscription.trial_end) if subscription.trial_end else None
+                send_trial_started_email(request.user, trial_end)
+                messages.success(request, '🎉 Your 14-day free trial has started! Enjoy all premium features.')
+            else:
+                messages.success(request, '🎉 Welcome to Premium! All features are now unlocked.')
             return redirect('analytics:dashboard')
 
         except Exception as e:
@@ -527,6 +581,8 @@ def checkout_cancel(request):
 @login_required
 def manage_subscription(request):
     """Manage subscription - view details and cancel."""
+    from datetime import datetime
+
     profile = request.user.profile
 
     subscription_details = None
@@ -537,7 +593,17 @@ def manage_subscription(request):
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
         try:
-            subscription_details = stripe.Subscription.retrieve(profile.stripe_subscription_id)
+            sub = stripe.Subscription.retrieve(profile.stripe_subscription_id)
+            # Convert Stripe subscription to a dict with proper datetime objects
+            subscription_details = {
+                'id': sub.id,
+                'status': sub.status,
+                'cancel_at_period_end': sub.cancel_at_period_end,
+                'current_period_end': datetime.fromtimestamp(sub.current_period_end) if sub.current_period_end else None,
+                'current_period_start': datetime.fromtimestamp(sub.current_period_start) if sub.current_period_start else None,
+                'trial_end': datetime.fromtimestamp(sub.trial_end) if sub.trial_end else None,
+                'trial_start': datetime.fromtimestamp(sub.trial_start) if sub.trial_start else None,
+            }
         except stripe.error.StripeError:
             pass  # Subscription not found or error
 
@@ -689,32 +755,42 @@ def _handle_subscription_deleted(subscription):
 def _handle_payment_succeeded(invoice):
     """Handle successful payment webhook."""
     from .models import Profile, Payment
+    from .subscription_emails import send_payment_success_email
     from datetime import datetime
 
     customer_id = invoice['customer']
     try:
         profile = Profile.objects.get(stripe_customer_id=customer_id)
 
+        amount = invoice['amount_paid'] / 100  # Convert cents to dollars
+        period_end = datetime.fromtimestamp(invoice['period_end'])
+
         # Create payment record
         Payment.objects.create(
             user=profile.user,
-            amount=invoice['amount_paid'] / 100,  # Convert cents to dollars
+            amount=amount,
             status='completed',
             payment_method='stripe',
             stripe_payment_intent_id=invoice.get('payment_intent', ''),
             stripe_customer_id=customer_id,
             period_start=datetime.fromtimestamp(invoice['period_start']),
-            period_end=datetime.fromtimestamp(invoice['period_end']),
+            period_end=period_end,
             completed_at=django_timezone.now(),
         )
+
+        # Send payment success email (only for actual charges, not $0 trial invoices)
+        if amount > 0:
+            plan_name = profile.get_subscription_plan_display() if hasattr(profile, 'get_subscription_plan_display') else profile.subscription_plan or 'Premium'
+            send_payment_success_email(profile.user, amount, plan_name, period_end)
 
     except Profile.DoesNotExist:
         pass
 
 
 def _handle_payment_failed(invoice):
-    """Handle failed payment webhook."""
+    """Handle failed payment webhook - immediately downgrade user."""
     from .models import Profile, Payment, SubscriptionHistory
+    from .subscription_emails import send_payment_failed_email
     from datetime import datetime
 
     customer_id = invoice['customer']
@@ -733,20 +809,23 @@ def _handle_payment_failed(invoice):
             period_end=datetime.fromtimestamp(invoice['period_end']),
         )
 
-        # Update subscription status
-        if profile.subscription_status != 'past_due':
-            old_tier = profile.subscription_tier
-            profile.subscription_status = 'past_due'
-            profile.save()
+        # Immediately downgrade user on payment failure
+        old_tier = profile.subscription_tier
+        profile.subscription_status = 'past_due'
+        profile.subscription_tier = 'free'  # Downgrade immediately
+        profile.save()
 
-            # Log the change
+        # Log the downgrade and send email
+        if old_tier != 'free':
             SubscriptionHistory.objects.create(
                 user=profile.user,
                 from_tier=old_tier,
-                to_tier=profile.subscription_tier,
+                to_tier='free',
                 change_type='payment_failed',
-                notes='Stripe webhook: payment failed'
+                notes='Stripe webhook: payment failed - user downgraded to free'
             )
+            # Send payment failed email
+            send_payment_failed_email(profile.user)
 
     except Profile.DoesNotExist:
         pass
@@ -912,27 +991,24 @@ def add_family_member(request):
             )
 
             admin_name = request.user.get_full_name() or request.user.email
+            member_name = member_user.get_full_name() or member_user.email.split('@')[0]
+
+            # Use HTML email template
+            from django.template.loader import render_to_string
+            email_context = {
+                'admin_name': admin_name,
+                'admin_email': request.user.email,
+                'member_name': member_name,
+                'member_email': member_user.email,
+                'accept_url': accept_url,
+            }
+            html_content = render_to_string('accounts/emails/family/invitation_existing_user.html', email_context)
+            txt_content = render_to_string('accounts/emails/family/invitation_existing_user.txt', email_context)
 
             send_mail(
                 subject=f'[Reflekt] {admin_name} invited you to their Family Plan',
-                message=f"""Hi {member_user.get_full_name() or member_user.email},
-
-{admin_name} ({request.user.email}) has invited you to join their Reflekt Family Plan!
-
-What happens when you accept:
-• You'll get FREE premium access to all Reflekt features
-• If you currently have a paid subscription, it will be cancelled and you won't be charged next month (no refund for the current period)
-• You and {admin_name} will automatically become friends on Reflekt
-
-Accept invitation: {accept_url}
-
-This invitation is only valid for your account ({member_user.email}).
-
-If you don't want to join, you can safely ignore this email.
-
-Happy journaling!
-The Reflekt Team
-""",
+                message=txt_content,
+                html_message=html_content,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],
                 fail_silently=False,
@@ -969,30 +1045,21 @@ The Reflekt Team
             signup_url = request.build_absolute_uri('/accounts/signup/')
             admin_name = request.user.get_full_name() or request.user.email
 
+            # Use HTML email template
+            from django.template.loader import render_to_string
+            email_context = {
+                'admin_name': admin_name,
+                'admin_email': request.user.email,
+                'invited_email': email,
+                'signup_url': signup_url,
+            }
+            html_content = render_to_string('accounts/emails/family/invitation_new_user.html', email_context)
+            txt_content = render_to_string('accounts/emails/family/invitation_new_user.txt', email_context)
+
             send_mail(
                 subject=f'[Reflekt] {admin_name} invited you to join Reflekt Family Plan',
-                message=f"""Hi there!
-
-{admin_name} ({request.user.email}) has invited you to join Reflekt with FREE premium access through their Family Plan!
-
-Reflekt is a journaling app that helps you:
-• Track your thoughts and feelings
-• Discover patterns in your mood
-• Set and achieve your goals
-• Build positive habits
-
-What you get with the Family Plan:
-• FREE premium access to all features
-• Automatic friend connection with {admin_name}
-• No payment required!
-
-Get started: {signup_url}
-
-After creating your account with this email ({email}), you'll automatically be added to the family plan.
-
-Happy journaling!
-The Reflekt Team
-""",
+                message=txt_content,
+                html_message=html_content,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],
                 fail_silently=False,
@@ -1070,6 +1137,37 @@ def accept_family_invitation(request, invitation_id):
                 )
 
         admin_name = admin.get_full_name() or admin.email
+        member_name = request.user.get_full_name() or request.user.email.split('@')[0]
+
+        # Send notification email to admin
+        from django.core.mail import send_mail
+        from django.template.loader import render_to_string
+        from django.conf import settings
+
+        member_count = FamilyMember.objects.filter(admin=admin, status='active').exclude(member=admin).count()
+
+        email_context = {
+            'admin_name': admin_name,
+            'member_name': member_name,
+            'member_email': request.user.email,
+            'member_count': member_count,
+            'site_url': request.build_absolute_uri('/')[:-1],
+        }
+        try:
+            html_content = render_to_string('accounts/emails/family/member_joined.html', email_context)
+            txt_content = render_to_string('accounts/emails/family/member_joined.txt', email_context)
+
+            send_mail(
+                subject=f'[Reflekt] {member_name} joined your Family Plan!',
+                message=txt_content,
+                html_message=html_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[admin.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass  # Don't fail the acceptance if email fails
+
         messages.success(request, f'🎉 Welcome to {admin_name}\'s family plan! You now have premium access and are friends with {admin_name}.')
 
         return redirect('analytics:dashboard')
@@ -1115,3 +1213,41 @@ def privacy_policy(request):
 def terms_of_service(request):
     """Terms of service page."""
     return render(request, 'legal/terms_of_service.html')
+
+
+@login_required
+@require_POST
+def submit_feedback(request):
+    """Handle feedback submission from the floating button."""
+    import json
+    from .models import Feedback
+
+    try:
+        data = json.loads(request.body)
+        feedback_type = data.get('type', 'bug')
+        subject = data.get('subject', '').strip()
+        message = data.get('message', '').strip()
+        page_url = data.get('page_url', '')
+
+        if not subject:
+            return JsonResponse({'success': False, 'error': 'Subject is required'}, status=400)
+        if not message:
+            return JsonResponse({'success': False, 'error': 'Message is required'}, status=400)
+
+        Feedback.objects.create(
+            user=request.user,
+            feedback_type=feedback_type,
+            subject=subject,
+            message=message,
+            page_url=page_url
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Thank you for your feedback!'
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
