@@ -25,7 +25,7 @@ EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='apikey')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')  # SendGrid API Key
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='sergio@myreflekt.net')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='info@myreflekt.net')
 SERVER_EMAIL = env('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 
 # AWS S3 Configuration for media files

@@ -562,6 +562,17 @@ def checkout_success(request):
                 messages.success(request, '🎉 Your 14-day free trial has started! Enjoy all premium features.')
             else:
                 messages.success(request, '🎉 Welcome to Premium! All features are now unlocked.')
+
+            # Notify admin of new subscriber
+            from .subscription_emails import send_admin_new_subscriber_notification
+            plan_name = session.metadata.get('plan', 'Unknown').replace('_', ' ').title()
+            send_admin_new_subscriber_notification(
+                user=request.user,
+                plan_name=plan_name,
+                subscription_status=subscription.status,
+                has_payment_method=True  # They completed checkout, so they have payment info
+            )
+
             return redirect('analytics:dashboard')
 
         except Exception as e:
@@ -635,6 +646,11 @@ def cancel_subscription(request):
             profile.stripe_subscription_id,
             cancel_at_period_end=True
         )
+
+        # Notify admin of cancellation
+        from .subscription_emails import send_admin_subscription_cancelled_notification
+        plan_name = profile.subscription_plan.replace('_', ' ').title() if profile.subscription_plan else 'Premium'
+        send_admin_subscription_cancelled_notification(request.user, plan_name)
 
         messages.success(request, 'Your subscription has been cancelled. You will retain access until the end of your current billing period.')
         return redirect('accounts:manage_subscription')

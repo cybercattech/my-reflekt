@@ -190,3 +190,86 @@ def send_payment_failed_email(user):
     except Exception as e:
         logger.error(f"Failed to send payment failed email to {user.email}: {e}")
         return False
+
+
+# =============================================================================
+# Admin Notification Emails
+# =============================================================================
+
+ADMIN_EMAIL = getattr(settings, 'ADMIN_NOTIFICATION_EMAIL', 'fetter@zoho.com')
+
+
+def send_admin_new_subscriber_notification(user, plan_name, subscription_status, has_payment_method=True):
+    """
+    Send notification to admin when someone subscribes.
+
+    Args:
+        user: The user who subscribed
+        plan_name: Name of the plan they selected (e.g., "Individual Monthly")
+        subscription_status: Status from Stripe ("trialing" or "active")
+        has_payment_method: Whether they entered payment info
+    """
+    is_trial = subscription_status == 'trialing'
+
+    subject = f"[Reflekt] New Subscriber: {user.email}"
+
+    message = f"""
+New Subscription on Reflekt!
+
+User: {user.email}
+Name: {user.profile.display_name or 'Not set'}
+Plan: {plan_name}
+Status: {'14-Day Trial' if is_trial else 'Active (Paid)'}
+Payment Method: {'Yes' if has_payment_method else 'No'}
+Signed Up: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+---
+View in Admin: {get_site_url()}/accounts/manage/users/{user.id}/
+"""
+
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[ADMIN_EMAIL],
+            fail_silently=False,
+        )
+        logger.info(f"Admin notification sent for new subscriber: {user.email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send admin notification for {user.email}: {e}")
+        return False
+
+
+def send_admin_subscription_cancelled_notification(user, plan_name):
+    """
+    Send notification to admin when someone cancels their subscription.
+    """
+    subject = f"[Reflekt] Subscription Cancelled: {user.email}"
+
+    message = f"""
+Subscription Cancelled on Reflekt
+
+User: {user.email}
+Name: {user.profile.display_name or 'Not set'}
+Previous Plan: {plan_name}
+Cancelled: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+---
+View in Admin: {get_site_url()}/accounts/manage/users/{user.id}/
+"""
+
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[ADMIN_EMAIL],
+            fail_silently=False,
+        )
+        logger.info(f"Admin notification sent for cancelled subscription: {user.email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send admin cancellation notification for {user.email}: {e}")
+        return False

@@ -1,12 +1,12 @@
 """
 URL configuration for Reflekt project.
 """
-from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Django admin disabled - use custom admin at /accounts/manage/
+    # path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('accounts/', include('apps.accounts.urls')),
     path('journal/', include('apps.journal.urls')),

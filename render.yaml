@@ -53,7 +53,7 @@ services:
       - key: EMAIL_HOST_PASSWORD
         sync: false  # Set this to your SendGrid API Key
       - key: DEFAULT_FROM_EMAIL
-        value: sergio@myreflekt.net
+        value: info@myreflekt.net
       # Weather API
       - key: OPENWEATHERMAP_API_KEY
         sync: false
