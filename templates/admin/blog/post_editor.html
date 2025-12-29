@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if post %}Edit: {{ post.title }}{% else %}New Post{% endif %} - Reflekt Blog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Top Bar */
+        .editor-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+
+        .editor-topbar .back-link {
+            color: #6c757d;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .editor-topbar .back-link:hover {
+            color: #333;
+        }
+
+        .save-status {
+            color: #6c757d;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .save-status.saving {
+            color: #f59e0b;
+        }
+
+        .save-status.saved {
+            color: #10b981;
+        }
+
+        .save-status.error {
+            color: #ef4444;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        /* Main Editor Area */
+        .editor-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Content Area */
+        .editor-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 4rem;
+            background: white;
+        }
+
+        .title-input {
+            border: none;
+            outline: none;
+            font-size: 2.5rem;
+            font-weight: 700;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            background: transparent;
+        }
+
+        .title-input::placeholder {
+            color: #ccc;
+        }
+
+        .content-textarea {
+            border: none;
+            outline: none;
+            width: 100%;
+            min-height: calc(100vh - 250px);
+            font-size: 1.25rem;
+            line-height: 1.8;
+            resize: none;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: transparent;
+        }
+
+        .content-textarea::placeholder {
+            color: #ccc;
+        }
+
+        /* Sidebar */
+        .editor-sidebar {
+            width: 320px;
+            background: #f8f9fa;
+            border-left: 1px solid #e0e0e0;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-section {
+            padding: 1.25rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-section h6 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-section .form-control,
+        .sidebar-section .form-select {
+            font-size: 0.875rem;
+        }
+
+        .sidebar-section textarea.form-control {
+            resize: none;
+        }
+
+        /* Word count */
+        .word-count {
+            font-size: 0.75rem;
+            color: #6c757d;
+            padding: 1rem 1.25rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 991px) {
+            .editor-content {
+                padding: 1.5rem 2rem;
+            }
+            .editor-sidebar {
+                width: 280px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .editor-main {
+                flex-direction: column;
+            }
+            .editor-sidebar {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #e0e0e0;
+            }
+            .editor-content {
+                padding: 1rem;
+            }
+            .title-input {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <!-- Top Bar -->
+        <div class="editor-topbar">
+            <a href="{% url 'blog:admin_list' %}" class="back-link">
+                <i class="bi bi-arrow-left"></i>
+                <span>All Posts</span>
+            </a>
+
+            <div class="save-status" id="saveStatus">
+                <i class="bi bi-cloud-check"></i>
+                <span>Ready</span>
+            </div>
+
+            <div class="topbar-actions">
+                {% if post %}
+                <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-outline-secondary btn-sm" target="_blank">
+                    <i class="bi bi-eye me-1"></i>Preview
+                </a>
+                {% endif %}
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="saveAndClose('draft')">
+                    Save Draft
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="saveAndClose('published')">
+                    <i class="bi bi-send me-1"></i>Publish
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Editor -->
+        <div class="editor-main">
+            <!-- Content Area -->
+            <div class="editor-content">
+                <input type="text"
+                       id="titleInput"
+                       class="title-input"
+                       placeholder="Post title..."
+                       value="{% if post %}{{ post.title }}{% endif %}"
+                       autofocus>
+
+                <textarea id="contentTextarea"
+                          class="content-textarea"
+                          placeholder="Start writing your post...">{% if post %}{{ post.content }}{% endif %}</textarea>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="editor-sidebar">
+                <div class="sidebar-section">
+                    <h6>Status</h6>
+                    <select id="statusSelect" class="form-select">
+                        <option value="draft" {% if not post or post.status == 'draft' %}selected{% endif %}>Draft</option>
+                        <option value="published" {% if post and post.status == 'published' %}selected{% endif %}>Published</option>
+                    </select>
+                </div>
+
+                <div class="sidebar-section">
+                    <h6>Category</h6>
+                    <select id="categorySelect" class="form-select">
+                        <option value="">No category</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if post and post.category_id == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <a href="{% url 'blog:admin_categories' %}" class="small text-muted d-block mt-2">
+                        <i class="bi bi-plus-circle me-1"></i>Manage categories
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <h6>Excerpt</h6>
+                    <textarea id="excerptTextarea"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Brief summary (auto-generated if empty)">{% if post %}{{ post.excerpt }}{% endif %}</textarea>
+                </div>
+
+                <div class="sidebar-section">
+                    <h6>Featured Image</h6>
+                    <input type="url"
+                           id="featuredImageInput"
+                           class="form-control"
+                           placeholder="https://example.com/image.jpg"
+                           value="{% if post %}{{ post.featured_image }}{% endif %}">
+                    <div id="imagePreview" class="mt-2">
+                        {% if post and post.featured_image %}
+                        <img src="{{ post.featured_image }}" class="img-fluid rounded" alt="Preview">
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if post %}
+                <div class="sidebar-section">
+                    <h6>Info</h6>
+                    <div class="small text-muted">
+                        <p class="mb-1">Created: {{ post.created_at|date:"M j, Y g:i A" }}</p>
+                        {% if post.published_at %}
+                        <p class="mb-1">Published: {{ post.published_at|date:"M j, Y g:i A" }}</p>
+                        {% endif %}
+                        <p class="mb-0">Slug: {{ post.slug }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="word-count" id="wordCount">
+                    0 words
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="postId" value="{% if post %}{{ post.id }}{% endif %}">
+    <input type="hidden" id="csrfToken" value="{{ csrf_token }}">
+
+    <script>
+        // State
+        let postId = document.getElementById('postId').value || null;
+        let saveTimeout = null;
+        let lastSavedContent = '';
+        let isSaving = false;
+
+        // Elements
+        const titleInput = document.getElementById('titleInput');
+        const contentTextarea = document.getElementById('contentTextarea');
+        const excerptTextarea = document.getElementById('excerptTextarea');
+        const featuredImageInput = document.getElementById('featuredImageInput');
+        const categorySelect = document.getElementById('categorySelect');
+        const statusSelect = document.getElementById('statusSelect');
+        const saveStatus = document.getElementById('saveStatus');
+        const wordCount = document.getElementById('wordCount');
+        const imagePreview = document.getElementById('imagePreview');
+        const csrfToken = document.getElementById('csrfToken').value;
+
+        // Update word count
+        function updateWordCount() {
+            const content = contentTextarea.value.trim();
+            const words = content ? content.split(/\s+/).length : 0;
+            wordCount.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+        }
+
+        // Update save status UI
+        function setSaveStatus(status, message) {
+            saveStatus.className = 'save-status ' + status;
+            let icon = 'bi-cloud-check';
+            if (status === 'saving') icon = 'bi-arrow-repeat';
+            else if (status === 'saved') icon = 'bi-cloud-check-fill';
+            else if (status === 'error') icon = 'bi-exclamation-circle';
+
+            saveStatus.innerHTML = `<i class="bi ${icon}"></i><span>${message}</span>`;
+        }
+
+        // Auto-save function
+        async function autoSave() {
+            if (isSaving) return;
+
+            const currentContent = JSON.stringify({
+                title: titleInput.value,
+                content: contentTextarea.value,
+                excerpt: excerptTextarea.value,
+                featured_image: featuredImageInput.value,
+                category: categorySelect.value
+            });
+
+            // Don't save if nothing changed
+            if (currentContent === lastSavedContent) return;
+
+            isSaving = true;
+            setSaveStatus('saving', 'Saving...');
+
+            try {
+                const response = await fetch('{% url "blog:admin_autosave" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        post_id: postId,
+                        title: titleInput.value,
+                        content: contentTextarea.value,
+                        excerpt: excerptTextarea.value,
+                        featured_image: featuredImageInput.value,
+                        category: categorySelect.value || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    postId = data.post_id;
+                    document.getElementById('postId').value = postId;
+                    lastSavedContent = currentContent;
+
+                    const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    setSaveStatus('saved', `Saved at ${time}`);
+                } else {
+                    setSaveStatus('error', data.error || 'Save failed');
+                }
+            } catch (error) {
+                console.error('Auto-save error:', error);
+                setSaveStatus('error', 'Connection error');
+            }
+
+            isSaving = false;
+        }
+
+        // Schedule auto-save
+        function scheduleAutoSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(autoSave, 2000); // Save 2 seconds after last change
+        }
+
+        // Save and close
+        async function saveAndClose(status) {
+            // Update status
+            statusSelect.value = status;
+
+            // Force immediate save
+            clearTimeout(saveTimeout);
+            await autoSave();
+
+            // If this is a publish action, we need to update the status
+            if (postId) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{% url 'blog:admin_edit' 0 %}`.replace('/0/', `/${postId}/`);
+
+                const fields = [
+                    ['csrfmiddlewaretoken', csrfToken],
+                    ['title', titleInput.value],
+                    ['content', contentTextarea.value],
+                    ['excerpt', excerptTextarea.value],
+                    ['featured_image', featuredImageInput.value],
+                    ['category', categorySelect.value],
+                    ['status', status]
+                ];
+
+                fields.forEach(([name, value]) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name;
+                    input.value = value;
+                    form.appendChild(input);
+                });
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Image preview
+        function updateImagePreview() {
+            const url = featuredImageInput.value.trim();
+            if (url) {
+                imagePreview.innerHTML = `<img src="${url}" class="img-fluid rounded" alt="Preview" onerror="this.style.display='none'">`;
+            } else {
+                imagePreview.innerHTML = '';
+            }
+        }
+
+        // Event listeners
+        titleInput.addEventListener('input', () => {
+            scheduleAutoSave();
+        });
+
+        contentTextarea.addEventListener('input', () => {
+            updateWordCount();
+            scheduleAutoSave();
+        });
+
+        excerptTextarea.addEventListener('input', scheduleAutoSave);
+        categorySelect.addEventListener('change', scheduleAutoSave);
+
+        featuredImageInput.addEventListener('input', () => {
+            updateImagePreview();
+            scheduleAutoSave();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Cmd/Ctrl + S to save
+            if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+                e.preventDefault();
+                autoSave();
+            }
+        });
+
+        // Initialize
+        updateWordCount();
+        lastSavedContent = JSON.stringify({
+            title: titleInput.value,
+            content: contentTextarea.value,
+            excerpt: excerptTextarea.value,
+            featured_image: featuredImageInput.value,
+            category: categorySelect.value
+        });
+
+        // Warn before leaving with unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            const currentContent = JSON.stringify({
+                title: titleInput.value,
+                content: contentTextarea.value,
+                excerpt: excerptTextarea.value,
+                featured_image: featuredImageInput.value,
+                category: categorySelect.value
+            });
+
+            if (currentContent !== lastSavedContent) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>

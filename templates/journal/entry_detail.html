@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load markdown_extras %}
+{% load analytics_tags %}
 
 {% block title %}{{ entry.title|default:entry.entry_date }}{% endblock %}
 
@@ -19,6 +20,7 @@
         padding: 1.5rem 2rem;
         overflow-y: auto;
         background: #f9fafb;
+        min-width: 0; /* Prevent flex item from overflowing */
     }
 
     @media (max-width: 768px) {
@@ -207,6 +209,36 @@
         color: #581c87;
     }
 
+    /* Dream admonition - light blue */
+    .entry-content .admonition-dream {
+        background-color: #C3EEFA;
+        border: 1px solid #7dd3fc;
+        border-left: 4px solid #0ea5e9;
+        border-radius: 8px;
+    }
+    .entry-content .admonition-dream .admonition-title {
+        color: #0369a1;
+        font-weight: 600;
+    }
+    .entry-content .admonition-dream .admonition-content {
+        color: #0c4a6e;
+    }
+
+    /* Gratitude admonition - soft warm pink */
+    .entry-content .admonition-gratitude {
+        background-color: #fce7f3;
+        border: 1px solid #f9a8d4;
+        border-left: 4px solid #ec4899;
+        border-radius: 8px;
+    }
+    .entry-content .admonition-gratitude .admonition-title {
+        color: #be185d;
+        font-weight: 600;
+    }
+    .entry-content .admonition-gratitude .admonition-content {
+        color: #9d174d;
+    }
+
     /* Hashtags Section */
     .entry-hashtags {
         display: flex;
@@ -233,6 +265,176 @@
     .entry-hashtags .hashtag:hover {
         background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
         transform: scale(1.05);
+    }
+
+    /* Capture Badges */
+    .capture-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.375rem 0.875rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        border: 1px solid #d1d5db;
+        color: #374151;
+    }
+
+    .capture-badge.capture-travel {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: #3b82f6;
+        color: #1e40af;
+    }
+
+    .capture-badge.capture-place {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border-color: #10b981;
+        color: #065f46;
+    }
+
+    .capture-badge.capture-workout {
+        background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+        border-color: #ef4444;
+        color: #991b1b;
+    }
+
+    .capture-badge.capture-watched {
+        background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+        border-color: #8b5cf6;
+        color: #5b21b6;
+    }
+
+    .capture-badge.capture-meal {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .capture-badge.capture-dream {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        border-color: #6366f1;
+        color: #3730a3;
+    }
+
+    .capture-badge.capture-gratitude {
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+        border-color: #ec4899;
+        color: #9d174d;
+    }
+
+    .capture-badge.capture-book {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-color: #22c55e;
+        color: #166534;
+    }
+
+    .capture-badge.capture-person {
+        background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+        border-color: #eab308;
+        color: #854d0e;
+    }
+
+    /* Inline Capture Badges (rendered from {place}...{/place} in content) */
+    .capture-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        border: 1px solid #d1d5db;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .capture-inline:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .capture-inline.capture-travel {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: #3b82f6;
+        color: #1e40af;
+    }
+
+    .capture-inline.capture-place {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border-color: #10b981;
+        color: #065f46;
+    }
+
+    .capture-inline.capture-workout {
+        background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+        border-color: #ef4444;
+        color: #991b1b;
+    }
+
+    .capture-inline.capture-watched {
+        background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+        border-color: #8b5cf6;
+        color: #5b21b6;
+    }
+
+    .capture-inline.capture-meal {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .capture-inline.capture-dream {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        border-color: #6366f1;
+        color: #3730a3;
+    }
+
+    .capture-inline.capture-gratitude {
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+        border-color: #ec4899;
+        color: #9d174d;
+    }
+
+    .capture-inline.capture-book {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-color: #22c55e;
+        color: #166534;
+    }
+
+    .capture-inline.capture-person {
+        background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+        border-color: #eab308;
+        color: #854d0e;
+    }
+
+    /* Capture Tooltip */
+    .capture-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1f2937;
+        color: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 1000;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .capture-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: #1f2937;
     }
 
     /* Attachments Gallery */
@@ -604,7 +806,7 @@
                 <div class="card mb-4 border-0 bg-light">
                     <div class="card-body">
                         <div class="row text-center">
-                            <div class="col-md-3">
+                            <div class="col">
                                 <small class="text-muted d-block">Detected Mood</small>
                                 <span class="fs-4">
                                     {% if entry.analysis.detected_mood == 'ecstatic' %}🤩
@@ -616,13 +818,13 @@
                                 </span>
                                 <span class="fw-bold">{{ entry.analysis.detected_mood|title }}</span>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col">
                                 <small class="text-muted d-block">Sentiment</small>
                                 <span class="fs-5 fw-bold {% if entry.analysis.sentiment_score > 0 %}sentiment-positive{% elif entry.analysis.sentiment_score < 0 %}sentiment-negative{% else %}sentiment-neutral{% endif %}">
                                     {% if entry.analysis.sentiment_score > 0 %}+{% endif %}{{ entry.analysis.sentiment_score|floatformat:2 }}
                                 </span>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col">
                                 <small class="text-muted d-block">Themes</small>
                                 {% for theme in entry.analysis.themes|slice:":3" %}
                                 <span class="badge bg-secondary me-1">{{ theme }}</span>
@@ -630,7 +832,7 @@
                                 <span class="text-muted">-</span>
                                 {% endfor %}
                             </div>
-                            <div class="col-md-3">
+                            <div class="col">
                                 <small class="text-muted d-block">Keywords</small>
                                 {% for kw in entry.analysis.keywords|slice:":3" %}
                                 <span class="badge bg-info text-dark me-1">{{ kw }}</span>
@@ -638,14 +840,8 @@
                                 <span class="text-muted">-</span>
                                 {% endfor %}
                             </div>
-                        </div>
-
-                        <!-- Environmental Context -->
-                        {% if entry.analysis.moon_phase or entry.analysis.weather_condition or entry.analysis.zodiac_sign %}
-                        <hr class="my-3">
-                        <div class="row text-center">
                             {% if entry.analysis.moon_phase %}
-                            <div class="col-md-4">
+                            <div class="col">
                                 <small class="text-muted d-block">Moon Phase</small>
                                 <span class="fs-4 me-1">
                                     {% if entry.analysis.moon_phase == 'full_moon' %}🌕
@@ -659,29 +855,21 @@
                                     {% else %}<i class="bi bi-moon-stars"></i>
                                     {% endif %}
                                 </span>
-                                <span class="fw-bold">{{ entry.analysis.moon_phase|replace:"_: "|title }}</span>
+                                <span class="fw-bold d-block">{{ entry.analysis.moon_phase|cut:"_"|title }}</span>
                                 {% if entry.analysis.moon_illumination %}
-                                <br><small class="text-muted">({{ entry.analysis.moon_illumination|mul:100|floatformat:0 }}% illuminated)</small>
+                                <small class="text-muted">({{ entry.analysis.moon_illumination|floatformat:0 }}%)</small>
                                 {% endif %}
                             </div>
                             {% endif %}
-                            {% if entry.analysis.weather_condition %}
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Weather{% if entry.analysis.weather_location %} in {{ entry.analysis.weather_location }}{% endif %}</small>
-                                <i class="bi bi-{% if entry.analysis.weather_condition == 'clear' %}sun{% elif entry.analysis.weather_condition == 'clouds' %}cloud{% elif entry.analysis.weather_condition == 'rain' %}cloud-rain{% elif entry.analysis.weather_condition == 'snow' %}cloud-snow{% else %}cloud{% endif %} me-1"></i>
-                                <span class="fw-bold">{{ entry.analysis.weather_condition|title }}</span>
-                                {% if entry.analysis.temperature %}
-                                <span class="ms-1">{{ entry.analysis.temperature|floatformat:0 }}°C</span>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                            {% if entry.analysis.zodiac_sign %}
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Zodiac</small>
-                                <i class="bi bi-stars me-1"></i>
-                                <span class="fw-bold">{{ entry.analysis.zodiac_sign|title }}</span>
-                            </div>
-                            {% endif %}
+                        </div>
+
+                        <!-- Zodiac (if available) -->
+                        {% if entry.analysis.zodiac_sign %}
+                        <hr class="my-3">
+                        <div class="text-center">
+                            <small class="text-muted">Zodiac: </small>
+                            <i class="bi bi-stars me-1"></i>
+                            <span class="fw-bold">{{ entry.analysis.zodiac_sign|title }}</span>
                         </div>
                         {% endif %}
                     </div>
@@ -699,6 +887,19 @@
                         <div class="entry-content">
                             {{ entry.content|render_markdown }}
                         </div>
+
+                        <!-- Captures Section (Tracked Items) -->
+                        {% if entry.captures.exists %}
+                        <div class="captures-display mt-4 pt-3 border-top">
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for capture in entry.captures.all %}
+                                <span class="capture-badge capture-{{ capture.capture_type }}">
+                                    <i class="bi {{ capture.icon }} me-1"></i>{{ capture.display_text }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
 
                         <!-- Attachments Section -->
                         {% if entry.attachments.exists %}
@@ -762,7 +963,7 @@
                         | Updated: {{ entry.updated_at|date:"F j, Y g:i a" }}
                         {% endif %}
                     </p>
-                    {% if entry.mood or entry.energy %}
+                    {% if entry.mood or entry.energy or entry.analysis.weather_condition %}
                     <p class="mb-0">
                         {% if entry.mood %}
                         <i class="bi bi-emoji-smile me-1"></i>Mood: {{ entry.get_mood_display }}
@@ -770,6 +971,11 @@
                         {% if entry.energy %}
                         <span class="mx-2">|</span>
                         <i class="bi bi-battery-charging me-1"></i>Energy: {{ entry.get_energy_display }}
+                        {% endif %}
+                        {% if entry.analysis.weather_condition %}
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-{% if entry.analysis.weather_condition == 'clear' %}sun{% elif entry.analysis.weather_condition == 'clouds' %}cloud{% elif entry.analysis.weather_condition == 'rain' %}cloud-rain{% elif entry.analysis.weather_condition == 'snow' %}cloud-snow{% elif entry.analysis.weather_condition == 'thunderstorm' %}cloud-lightning{% elif entry.analysis.weather_condition == 'drizzle' %}cloud-drizzle{% elif entry.analysis.weather_condition == 'mist' or entry.analysis.weather_condition == 'fog' %}cloud-haze{% else %}cloud{% endif %} me-1"></i>
+                        {{ entry.analysis.weather_condition|title }}{% if entry.analysis.temperature %}, {{ entry.analysis.temperature|temperature:user.profile.temperature_unit }}{% endif %}{% if entry.analysis.weather_location %} <small class="text-muted">({{ entry.analysis.weather_location }})</small>{% endif %}
                         {% endif %}
                     </p>
                     {% endif %}
@@ -1019,6 +1225,70 @@
             alert('An error occurred. Please try again.');
             confirmDeleteBtn.disabled = false;
             confirmDeleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Delete';
+        });
+    });
+
+    // Capture inline hover tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        const captureCache = {};
+
+        document.querySelectorAll('.capture-inline').forEach(capture => {
+            let tooltipEl = null;
+
+            capture.addEventListener('mouseenter', async function() {
+                const type = this.dataset.captureType;
+                const name = this.dataset.captureName;
+
+                if (!type || !name) return;
+
+                const cacheKey = `${type}:${name}`;
+
+                // Check cache first
+                if (captureCache[cacheKey] !== undefined) {
+                    showTooltip(this, captureCache[cacheKey], type);
+                    return;
+                }
+
+                // Fetch count from API
+                try {
+                    const resp = await fetch(`/journal/api/capture-count/?type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}`);
+                    const data = await resp.json();
+                    captureCache[cacheKey] = data.count;
+                    showTooltip(this, data.count, type);
+                } catch (err) {
+                    console.error('Failed to fetch capture count:', err);
+                }
+            });
+
+            capture.addEventListener('mouseleave', function() {
+                const tooltip = this.querySelector('.capture-tooltip');
+                if (tooltip) tooltip.remove();
+            });
+
+            function showTooltip(el, count, type) {
+                // Remove existing tooltip
+                const existing = el.querySelector('.capture-tooltip');
+                if (existing) existing.remove();
+
+                // Format message based on type
+                let message = '';
+                if (type === 'place') {
+                    message = count === 1 ? 'Visited 1 time' : `Visited ${count} times`;
+                } else if (type === 'travel') {
+                    message = count === 1 ? 'Traveled here 1 time' : `Traveled here ${count} times`;
+                } else if (type === 'watched') {
+                    message = count === 1 ? 'Logged 1 time' : `Logged ${count} times`;
+                } else if (type === 'person') {
+                    message = count === 1 ? 'Mentioned 1 time' : `Mentioned ${count} times`;
+                } else {
+                    message = count === 1 ? 'Logged 1 time' : `Logged ${count} times`;
+                }
+
+                const tooltip = document.createElement('div');
+                tooltip.className = 'capture-tooltip';
+                tooltip.textContent = message;
+                el.appendChild(tooltip);
+            }
         });
     });
 </script>

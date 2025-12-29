@@ -1,0 +1,607 @@
+/* ==========================================================================
+   Habits Page Styles - Habit list, detail, and form pages
+   ========================================================================== */
+
+/* ==========================================================================
+   Habits Layout
+   ========================================================================== */
+
+.habits-container {
+    display: flex;
+    min-height: calc(100vh - 56px);
+}
+
+.habits-main {
+    flex: 1;
+    padding: 1.5rem;
+    background: #f8fafc;
+}
+
+/* ==========================================================================
+   Stats Cards
+   ========================================================================== */
+
+.habits-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.habits-stat-card {
+    border-radius: 16px;
+    padding: 1.5rem;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.habits-stat-card .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.habits-stat-card .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Stat Card Gradients */
+.habits-stat-card:not(.due):not(.completed):not(.rate) {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.habits-stat-card.due {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    color: #1f2937;
+}
+
+.habits-stat-card.completed {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+
+.habits-stat-card.rate {
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+}
+
+/* ==========================================================================
+   Habit Cards
+   ========================================================================== */
+
+.habits-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.habit-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s ease;
+}
+
+.habit-card:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    border-color: #c7d2fe;
+}
+
+.habit-card.completed {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #bbf7d0;
+}
+
+/* Habit Icon */
+.habit-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+/* Habit Info */
+.habit-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.habit-name {
+    font-weight: 600;
+    color: #1f2937;
+    text-decoration: none;
+    display: block;
+}
+
+.habit-name:hover {
+    color: #4f46e5;
+}
+
+.habit-meta {
+    font-size: 0.85rem;
+    color: #6b7280;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.habit-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* ==========================================================================
+   Streak Badge
+   ========================================================================== */
+
+.streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #d97706;
+}
+
+.streak-badge.fire {
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    color: #dc2626;
+}
+
+/* ==========================================================================
+   Check-in Button
+   ========================================================================== */
+
+.checkin-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid #d1d5db;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.checkin-btn:hover {
+    border-color: #4f46e5;
+    background: #f5f3ff;
+}
+
+.checkin-btn.completed {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: white;
+}
+
+.checkin-btn.not-due {
+    border-style: dashed;
+    opacity: 0.5;
+}
+
+/* ==========================================================================
+   Completion Rate Circle
+   ========================================================================== */
+
+.completion-rate {
+    width: 50px;
+    height: 50px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.completion-rate-circle {
+    transform: rotate(-90deg);
+}
+
+.completion-rate-bg {
+    fill: none;
+    stroke: #e5e7eb;
+    stroke-width: 4;
+}
+
+.completion-rate-fill {
+    fill: none;
+    stroke: #4f46e5;
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s;
+}
+
+.completion-rate-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #4f46e5;
+}
+
+/* ==========================================================================
+   Habit Detail Page
+   ========================================================================== */
+
+.habit-detail-header {
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    color: white;
+}
+
+.habit-detail-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.habit-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    opacity: 0.9;
+}
+
+/* Stats Grid */
+.habit-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.habit-stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+}
+
+.habit-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.habit-stat-label {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+/* ==========================================================================
+   Calendar Heatmap
+   ========================================================================== */
+
+.habit-calendar {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6b7280;
+    padding: 0.5rem 0;
+}
+
+.habit-calendar .calendar-day {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.habit-calendar .calendar-day.empty {
+    background: transparent;
+    cursor: default;
+}
+
+.habit-calendar .calendar-day.not-due {
+    background: #f9fafb;
+    color: #d1d5db;
+}
+
+.habit-calendar .calendar-day.due {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.habit-calendar .calendar-day.completed {
+    background: #22c55e;
+    color: white;
+}
+
+.habit-calendar .calendar-day.today {
+    border: 2px solid #4f46e5;
+}
+
+.habit-calendar .calendar-day.future {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.habit-calendar .calendar-day:not(.empty):not(.future):hover {
+    transform: scale(1.1);
+}
+
+/* ==========================================================================
+   Section Card
+   ========================================================================== */
+
+.habit-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.habit-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+/* ==========================================================================
+   Linked Entries
+   ========================================================================== */
+
+.habits-page .linked-entry {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s;
+}
+
+.habits-page .linked-entry:hover {
+    background: #f3f4f6;
+}
+
+.habits-page .linked-entry-date {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+/* ==========================================================================
+   Habit Form
+   ========================================================================== */
+
+.habit-form {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.habit-form .form-control,
+.habit-form .form-select {
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 0.65rem 0.9rem;
+}
+
+.habit-form .form-control:focus,
+.habit-form .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.habit-form .form-label {
+    font-weight: 500;
+    color: #374151;
+}
+
+.frequency-options {
+    display: none;
+}
+
+.frequency-options.active {
+    display: block;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.weekday-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.weekday-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* ==========================================================================
+   Tips Card
+   ========================================================================== */
+
+.habits-page .tips-card {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 16px;
+    border: 1px solid #bbf7d0;
+    padding: 1.5rem;
+}
+
+.habits-page .tips-card h5 {
+    color: #166534;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.habits-page .tips-card p,
+.habits-page .tips-card li {
+    color: #15803d;
+}
+
+.habits-page .tips-card ul {
+    padding-left: 1.25rem;
+}
+
+.habits-page .tips-card li {
+    margin-bottom: 0.5rem;
+}
+
+.habits-page .tips-card li strong {
+    color: #166534;
+}
+
+/* ==========================================================================
+   Preview Card
+   ========================================================================== */
+
+.preview-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+}
+
+.preview-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+}
+
+/* ==========================================================================
+   Streak Card
+   ========================================================================== */
+
+.streak-card {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    color: white;
+}
+
+.streak-card h5 {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.streak-card p {
+    opacity: 0.9;
+}
+
+/* ==========================================================================
+   Icon Preview
+   ========================================================================== */
+
+.icon-preview {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.habits-page .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+}
+
+.habits-page .empty-state i {
+    font-size: 3rem;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+
+@media (max-width: 992px) {
+    .habits-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .habits-main {
+        padding: 1rem;
+    }
+
+    .habit-card {
+        flex-wrap: wrap;
+    }
+
+    .habit-info {
+        order: 1;
+        flex-basis: calc(100% - 60px);
+    }
+
+    .habit-icon {
+        order: 0;
+    }
+
+    .completion-rate,
+    .streak-badge,
+    .checkin-btn {
+        order: 2;
+    }
+}
+
+@media (max-width: 576px) {
+    .habits-stats-row {
+        grid-template-columns: 1fr;
+    }
+}

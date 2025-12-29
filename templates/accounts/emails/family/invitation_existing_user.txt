@@ -1,0 +1,24 @@
+Hi {{ member_name }},
+
+{{ admin_name }} ({{ admin_email }}) has invited you to join their Reflekt Family Plan!
+
+WHAT YOU GET:
+- FREE premium access to all Reflekt features
+- Goals & Habits tracking
+- Advanced analytics & insights
+- Unlimited captures (books, media, fitness, etc.)
+- Automatic friend connection with {{ admin_name }}
+
+YOUR PRIVACY IS PROTECTED:
+Being on a Family Plan does NOT give anyone access to your journal entries. Your entries remain 100% private and encrypted. The Family Plan simply means {{ admin_name }} covers the subscription cost for you. You're connected as friends, but your journal is yours alone.
+
+Accept the invitation here:
+{{ accept_url }}
+
+NOTE: If you currently have a paid subscription, it will be cancelled at the end of your billing period. You won't be charged again, but no refund will be issued for the current period.
+
+This invitation is only valid for your account ({{ member_email }}).
+If you don't want to join, you can safely ignore this email.
+
+Happy journaling!
+The Reflekt Team

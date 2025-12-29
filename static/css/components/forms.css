@@ -1,0 +1,252 @@
+/* ==========================================================================
+   Form Components - Form styling across the application
+   ========================================================================== */
+
+/* ==========================================================================
+   Base Form Styling
+   ========================================================================== */
+
+.modern-form {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.modern-form .form-control,
+.modern-form .form-select {
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 0.65rem 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modern-form .form-control:focus,
+.modern-form .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.modern-form .form-label {
+    font-weight: 500;
+    color: #374151;
+}
+
+.modern-form .form-text {
+    color: #6b7280;
+    font-size: 0.8rem;
+}
+
+/* ==========================================================================
+   Form Sections
+   ========================================================================== */
+
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.form-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section-title .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 50px;
+}
+
+/* ==========================================================================
+   Filter Bar
+   ========================================================================== */
+
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.filter-bar .form-select,
+.filter-bar .form-control {
+    max-width: 180px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.filter-bar .form-select:focus,
+.filter-bar .form-control:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.filter-bar .input-group-text {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px 0 0 8px;
+}
+
+/* ==========================================================================
+   Frequency Options (Habit Form)
+   ========================================================================== */
+
+.frequency-options {
+    display: none;
+}
+
+.frequency-options.active {
+    display: block;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.weekday-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.weekday-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* ==========================================================================
+   Preview Card (Habit/Goal Form)
+   ========================================================================== */
+
+.preview-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+}
+
+.preview-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+}
+
+/* Icon Preview */
+.icon-preview {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+}
+
+/* ==========================================================================
+   Date Picker Styling
+   ========================================================================== */
+
+.date-input-group {
+    position: relative;
+}
+
+.date-input-group .form-control {
+    padding-right: 2.5rem;
+}
+
+.date-input-group .date-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   Toggle Switches
+   ========================================================================== */
+
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    display: none;
+}
+
+.toggle-switch .toggle-slider {
+    width: 44px;
+    height: 24px;
+    background: #e5e7eb;
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.toggle-switch .toggle-slider::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: #6366f1;
+}
+
+.toggle-switch input:checked + .toggle-slider::after {
+    transform: translateX(20px);
+}
+
+.toggle-switch .toggle-label {
+    font-weight: 500;
+    color: #374151;
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .filter-bar {
+        flex-direction: column;
+    }
+
+    .filter-bar .form-select,
+    .filter-bar .form-control {
+        max-width: 100%;
+    }
+}

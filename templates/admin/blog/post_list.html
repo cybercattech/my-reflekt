@@ -1,0 +1,112 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-newspaper me-2"></i>Blog Posts</h1>
+    <a href="{% url 'blog:admin_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Post
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Posts</option>
+                    <option value="published" {% if status_filter == 'published' %}selected{% endif %}>Published</option>
+                    <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Drafts</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-1"></i>Filter
+                </button>
+            </div>
+            {% if status_filter %}
+            <div class="col-md-2">
+                <a href="{% url 'blog:admin_list' %}" class="btn btn-outline-secondary w-100">Clear</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Posts Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Author</th>
+                        <th>Created</th>
+                        <th>Published</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in posts %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'blog:admin_edit' post.pk %}" class="text-decoration-none fw-medium">
+                                {{ post.title }}
+                            </a>
+                            <br>
+                            <small class="text-muted">/blog/post/{{ post.slug }}/</small>
+                        </td>
+                        <td>
+                            {% if post.status == 'published' %}
+                            <span class="badge bg-success">Published</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Draft</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">{{ post.author.email }}</td>
+                        <td class="text-muted small">{{ post.created_at|date:"M j, Y" }}</td>
+                        <td class="text-muted small">
+                            {% if post.published_at %}
+                            {{ post.published_at|date:"M j, Y" }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-sm btn-outline-secondary" target="_blank" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'blog:admin_toggle' post.pk %}" class="btn btn-sm btn-outline-{% if post.status == 'published' %}warning{% else %}success{% endif %}" title="{% if post.status == 'published' %}Unpublish{% else %}Publish{% endif %}">
+                                {% if post.status == 'published' %}
+                                <i class="bi bi-eye-slash"></i>
+                                {% else %}
+                                <i class="bi bi-send"></i>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'blog:admin_edit' post.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'blog:admin_delete' post.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <i class="bi bi-newspaper fs-1 d-block mb-2"></i>
+                            No blog posts yet
+                            <br>
+                            <a href="{% url 'blog:admin_create' %}" class="btn btn-primary mt-3">Create Your First Post</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

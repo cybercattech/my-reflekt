@@ -1,60 +1,88 @@
-<!-- Left Calendar Sidebar - Continuous Scroll (White Style) -->
-<div class="calendar-sidebar-left">
+<!-- Left Navigation Sidebar -->
+<div class="nav-sidebar-left">
     <!-- Header -->
-    <div class="calendar-header-bar d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-calendar3 me-2"></i>Calendar</span>
-        <button type="button" class="btn btn-sm btn-light py-0 px-2" id="todayBtn" title="Go to today">
-            Today
-        </button>
+    <div class="nav-header-bar">
+        <span><i class="bi bi-journal-text me-2"></i>Journal</span>
     </div>
 
-    <!-- Weekday Headers (Fixed at top) -->
-    <div class="calendar-weekday-header">
-        <span>Sun</span>
-        <span>Mon</span>
-        <span>Tue</span>
-        <span>Wed</span>
-        <span>Thu</span>
-        <span>Fri</span>
-        <span>Sat</span>
-    </div>
-
-    <!-- Scrollable Months Container -->
-    <div class="calendar-scroll-container" id="calendarScroll">
-        {% for month in calendar_months %}
-        <div class="calendar-month-section" data-year="{{ month.year }}" data-month="{{ month.month }}">
-            <div class="month-header">
-                <strong>{{ month.month_name }}</strong> {{ month.year }}
-            </div>
-            <div class="calendar-days-grid">
-                {% for week in month.weeks %}
-                    {% for day in week %}
-                        {% if day.in_month %}
-                            {% if day.has_entry %}
-                                <a href="{% url 'journal:entry_list' %}?date={{ day.date|date:'Y-m-d' }}"
-                                   class="cal-day has-entry {% if day.is_today %}today{% endif %} {% if selected_date == day.date|date:'Y-m-d' %}selected{% endif %}"
-                                   title="View entry for {{ day.date|date:'M j, Y' }}">
-                                    {{ day.day }}
-                                </a>
-                            {% else %}
-                                <a href="{% url 'journal:entry_create' %}?date={{ day.date|date:'Y-m-d' }}"
-                                   class="cal-day {% if day.is_today %}today{% endif %}"
-                                   title="Create entry for {{ day.date|date:'M j, Y' }}">
-                                    {{ day.day }}
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            <span class="cal-day empty"></span>
-                        {% endif %}
-                    {% endfor %}
-                {% endfor %}
+    <!-- Scrollable Content Area -->
+    <div class="nav-scrollable-content">
+        <!-- Daily Prompt -->
+        {% if daily_prompt %}
+        <div class="nav-daily-prompt">
+            <div class="prompt-tile">
+                <div class="prompt-label"><i class="bi {{ daily_prompt.icon }} me-1"></i>{{ daily_prompt.category }}</div>
+                <div class="prompt-text">{{ daily_prompt.prompt }}</div>
+                <a href="{% url 'journal:entry_create' %}?prompt={{ daily_prompt.prompt|urlencode }}" class="prompt-btn">
+                    <i class="bi bi-pencil me-1"></i>Write
+                </a>
             </div>
         </div>
-        {% endfor %}
+        {% endif %}
+
+        <!-- Navigation Links -->
+        <div class="nav-links-container">
+        <a href="{% url 'journal:entry_list' %}" class="nav-link-item {% if not filter_type and not show_all %}active{% endif %}">
+            <i class="bi bi-lightbulb"></i>
+            <span>Insights</span>
+        </a>
+
+        <a href="{% url 'journal:entry_list' %}?show_all=1" class="nav-link-item {% if show_all %}active{% endif %}">
+            <i class="bi bi-journals"></i>
+            <span>All Entries</span>
+        </a>
+
+        <div class="nav-section-label">Captures</div>
+
+        <a href="{% url 'journal:entry_list' %}?type=travel" class="nav-link-item {% if filter_type == 'travel' %}active{% endif %}">
+            <i class="bi bi-airplane"></i>
+            <span>Travel</span>
+        </a>
+
+        <a href="{% url 'journal:entry_list' %}?type=book" class="nav-link-item {% if filter_type == 'book' %}active{% endif %}">
+            <i class="bi bi-book"></i>
+            <span>Readings</span>
+        </a>
+
+        <a href="{% url 'journal:entry_list' %}?type=workout" class="nav-link-item {% if filter_type == 'workout' %}active{% endif %}">
+            <i class="bi bi-heart-pulse"></i>
+            <span>Fitness</span>
+        </a>
+
+        <a href="{% url 'journal:entry_list' %}?type=watched" class="nav-link-item {% if filter_type == 'watched' %}active{% endif %}">
+            <i class="bi bi-film"></i>
+            <span>Watched</span>
+        </a>
+
+        <a href="{% url 'journal:entry_list' %}?type=meal" class="nav-link-item {% if filter_type == 'meal' %}active{% endif %}">
+            <i class="bi bi-cup-hot"></i>
+            <span>Meals</span>
+        </a>
+
+        <a href="{% url 'journal:entry_list' %}?type=gratitude" class="nav-link-item {% if filter_type == 'gratitude' %}active{% endif %}">
+            <i class="bi bi-heart"></i>
+            <span>Gratitude</span>
+        </a>
+
+        <a href="{% url 'journal:entry_list' %}?type=dream" class="nav-link-item {% if filter_type == 'dream' %}active{% endif %}">
+            <i class="bi bi-cloud-moon"></i>
+            <span>Dreams</span>
+        </a>
+
+        <a href="{% url 'journal:entry_list' %}?type=person" class="nav-link-item {% if filter_type == 'person' %}active{% endif %}">
+            <i class="bi bi-people"></i>
+            <span>People</span>
+        </a>
+
+        <a href="{% url 'journal:entry_list' %}?type=place" class="nav-link-item {% if filter_type == 'place' %}active{% endif %}">
+            <i class="bi bi-geo-alt"></i>
+            <span>Places</span>
+        </a>
+        </div>
     </div>
 
     <!-- Quick Actions at bottom -->
-    <div class="calendar-quick-actions">
+    <div class="nav-quick-actions">
         <a href="{% url 'journal:entry_create' %}" class="btn btn-primary btn-sm w-100">
             <i class="bi bi-plus me-1"></i>New Entry
         </a>

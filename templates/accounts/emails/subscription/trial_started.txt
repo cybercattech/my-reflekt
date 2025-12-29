@@ -1,0 +1,23 @@
+Your Premium Trial is Active!
+
+Hi {{ user_name }},
+
+Great news! Your 14-day free trial of Reflekt Premium has started. You now have access to all our premium features!
+
+Your trial ends on: {{ trial_end_date|date:"F j, Y" }}
+
+Here's what you can now enjoy:
+
+- Goals & Habits Tracking - Set and track your personal goals
+- Captures - Log books, movies, places, and more
+- Moon Phase Insights - See how lunar cycles affect your mood
+- Year & Month in Review - Beautiful summaries of your journey
+- Advanced Analytics - Deep insights into your patterns
+
+Explore Premium Features: {{ site_url }}/dashboard/
+
+No charge during trial: You won't be charged until {{ trial_end_date|date:"F j, Y" }}. You can cancel anytime before then if Premium isn't right for you.
+
+---
+
+Questions about your trial? Reply to this email - we're happy to help!

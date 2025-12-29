@@ -1,0 +1,107 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'accounts:admin_user_list' %}" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left me-1"></i>Back to Users
+        </a>
+        <h1 class="mt-2 mb-0">{{ user_obj.email }}</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'accounts:admin_edit_user' user_obj.id %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+        <form method="post" action="{% url 'accounts:admin_toggle_premium' user_obj.id %}">
+            {% csrf_token %}
+            {% if user_obj.profile.subscription_tier == 'premium' %}
+            <button type="submit" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-down me-1"></i>Downgrade
+            </button>
+            {% else %}
+            <button type="submit" class="btn btn-warning">
+                <i class="bi bi-star me-1"></i>Upgrade
+            </button>
+            {% endif %}
+        </form>
+        {% if user_obj != request.user %}
+        <a href="{% url 'accounts:admin_delete_user' user_obj.id %}" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-1"></i>Delete
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- User Info -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>User Info</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block">Status</small>
+                    {% if user_obj.profile.subscription_tier == 'premium' %}
+                    <span class="badge bg-warning text-dark fs-6"><i class="bi bi-star-fill me-1"></i>Premium</span>
+                    {% else %}
+                    <span class="badge bg-secondary fs-6">Free</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Username</small>
+                    <strong>{{ user_obj.profile.username|default:"Not set" }}</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Location</small>
+                    <strong>{{ user_obj.profile.city|default:"Not set" }}{% if user_obj.profile.country_code %}, {{ user_obj.profile.country_code }}{% endif %}</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Timezone</small>
+                    <strong>{{ user_obj.profile.timezone|default:"Not set" }}</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Joined</small>
+                    <strong>{{ user_obj.date_joined|date:"F j, Y" }}</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Last Login</small>
+                    <strong>{% if user_obj.last_login %}{{ user_obj.last_login|date:"F j, Y g:i A" }}{% else %}Never{% endif %}</strong>
+                </div>
+                {% if user_obj.is_staff %}
+                <div class="alert alert-dark mb-0">
+                    <i class="bi bi-shield-check me-1"></i>Staff Member
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Preferences -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Preferences</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block">Editor</small>
+                    <strong>{{ user_obj.profile.editor_preference|default:"Default"|title }}</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Horoscope</small>
+                    {% if user_obj.profile.horoscope_enabled %}
+                    <span class="badge bg-success">Enabled</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Disabled</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Birthday</small>
+                    <strong>{{ user_obj.profile.birthday|date:"F j"|default:"Not set" }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

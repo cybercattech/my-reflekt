@@ -1,0 +1,114 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-people me-2"></i>User Management</h1>
+    <a href="{% url 'accounts:admin_create_user' %}" class="btn btn-success">
+        <i class="bi bi-plus-lg me-1"></i>Create User
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Email or username..." value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Subscription</label>
+                <select name="tier" class="form-select">
+                    <option value="">All Users</option>
+                    <option value="premium" {% if tier_filter == 'premium' %}selected{% endif %}>Premium Only</option>
+                    <option value="free" {% if tier_filter == 'free' %}selected{% endif %}>Free Only</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filter
+                </button>
+            </div>
+            {% if search or tier_filter %}
+            <div class="col-md-2">
+                <a href="{% url 'accounts:admin_user_list' %}" class="btn btn-outline-secondary w-100">Clear</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Email</th>
+                        <th>Username</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Last Login</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'accounts:admin_user_detail' user.id %}" class="text-decoration-none fw-medium">
+                                {{ user.email }}
+                            </a>
+                            {% if user.is_staff %}
+                            <span class="badge bg-dark ms-1">Staff</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">{{ user.profile.username|default:"-" }}</td>
+                        <td>
+                            {% if user.profile.subscription_tier == 'premium' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-star-fill me-1"></i>Premium</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Free</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ user.date_joined|date:"M j, Y" }}</td>
+                        <td class="text-muted small">
+                            {% if user.last_login %}
+                            {{ user.last_login|date:"M j, Y" }}
+                            {% else %}
+                            Never
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <form method="post" action="{% url 'accounts:admin_toggle_premium' user.id %}" class="d-inline">
+                                {% csrf_token %}
+                                {% if user.profile.subscription_tier == 'premium' %}
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Downgrade to Free">
+                                    <i class="bi bi-arrow-down"></i>
+                                </button>
+                                {% else %}
+                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Upgrade to Premium">
+                                    <i class="bi bi-star"></i>
+                                </button>
+                                {% endif %}
+                            </form>
+                            <a href="{% url 'accounts:admin_user_detail' user.id %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            No users found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

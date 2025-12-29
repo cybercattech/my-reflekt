@@ -1,0 +1,442 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Wellness Dashboard{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    /* Modern Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: #1f2937;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card.dreams {
+        background: linear-gradient(135deg, #C3EEFA 0%, #7dd3fc 100%);
+    }
+
+    .stat-card.gratitude {
+        background: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%);
+    }
+
+    .stat-card.meals {
+        background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        opacity: 0.75;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-card .stat-sub {
+        font-size: 0.8rem;
+        opacity: 0.65;
+        margin-top: 0.25rem;
+    }
+
+    .stat-card .stat-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+
+    /* Modern Chart Card */
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .chart-card .card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .chart-card .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Modern List Card */
+    .list-card {
+        background: white;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .list-card .card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .list-card.dreams .card-header {
+        background: linear-gradient(135deg, #C3EEFA 0%, #7dd3fc 100%);
+        color: #0c4a6e;
+    }
+
+    .list-card.gratitude .card-header {
+        background: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%);
+        color: #831843;
+    }
+
+    .list-card.meals .card-header {
+        background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+        color: #78350f;
+    }
+
+    .list-card .list-group-item {
+        border-left: none;
+        border-right: none;
+    }
+
+    .list-card .list-group-item:first-child {
+        border-top: none;
+    }
+
+    .entry-preview {
+        max-height: 80px;
+        overflow: hidden;
+        position: relative;
+    }
+    .entry-preview::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 30px;
+        background: linear-gradient(transparent, white);
+    }
+    .dream-badge {
+        background: linear-gradient(135deg, #C3EEFA 0%, #7dd3fc 100%);
+        color: #0c4a6e;
+    }
+    .gratitude-badge {
+        background: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%);
+        color: #831843;
+    }
+    .meal-badge {
+        background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+        color: #78350f;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <!-- Header with Year Selector -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'analytics:captures' %}">Captures</a></li>
+                    <li class="breadcrumb-item active">Wellness</li>
+                </ol>
+            </nav>
+            <h1><i class="bi bi-heart-pulse me-2"></i>Wellness</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label for="yearSelect" class="form-label mb-0 text-muted">Year:</label>
+            <select id="yearSelect" class="form-select form-select-sm" style="width: auto;" onchange="window.location.href='?year=' + this.value">
+                {% for y in available_years %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid">
+        <div class="stat-card dreams">
+            <div class="stat-label">Dream Entries</div>
+            <div class="stat-value">{{ total_dreams }}</div>
+            <div class="stat-sub">in {{ year }}</div>
+            <i class="bi bi-cloud-moon stat-icon"></i>
+        </div>
+        <div class="stat-card gratitude">
+            <div class="stat-label">Gratitude Entries</div>
+            <div class="stat-value">{{ total_gratitude }}</div>
+            <div class="stat-sub">in {{ year }}</div>
+            <i class="bi bi-heart stat-icon"></i>
+        </div>
+        <div class="stat-card meals">
+            <div class="stat-label">Meals Tracked</div>
+            <div class="stat-value">{{ total_meals }}</div>
+            <div class="stat-sub">in {{ year }}</div>
+            <i class="bi bi-cup-hot stat-icon"></i>
+        </div>
+    </div>
+
+    <!-- Monthly Chart -->
+    <div class="chart-card mb-4">
+        <div class="card-header">
+            <i class="bi bi-bar-chart me-2"></i>Wellness Activity by Month
+        </div>
+        <div class="card-body">
+            <canvas id="monthlyChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Dreams Section -->
+        <div class="col-lg-4">
+            <div class="list-card dreams h-100">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-cloud-moon me-2"></i>
+                    <span>Recent Dreams</span>
+                    <span class="badge bg-white ms-auto" style="color: #0c4a6e;">{{ total_dreams }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        {% for entry in dream_entries %}
+                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="list-group-item list-group-item-action py-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">{{ entry.entry_date|date:"M j, Y" }}</small>
+                            </div>
+                            <div class="entry-preview small text-muted">
+                                {{ entry.content|truncatewords:30 }}
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-cloud-moon display-4 opacity-50"></i>
+                            <p class="mt-2 mb-0">No dreams logged yet</p>
+                            <small>Use <code>/dream</code> to start a dream journal</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gratitude Section -->
+        <div class="col-lg-4">
+            <div class="list-card gratitude h-100">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-heart me-2"></i>
+                    <span>Recent Gratitude</span>
+                    <span class="badge bg-white ms-auto" style="color: #831843;">{{ total_gratitude }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        {% for entry in gratitude_entries %}
+                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="list-group-item list-group-item-action py-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">{{ entry.entry_date|date:"M j, Y" }}</small>
+                            </div>
+                            <div class="entry-preview small text-muted">
+                                {{ entry.content|truncatewords:30 }}
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-heart display-4 opacity-50"></i>
+                            <p class="mt-2 mb-0">No gratitude logged yet</p>
+                            <small>Use <code>/gratitude</code> to practice gratitude</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meals Section -->
+        <div class="col-lg-4">
+            <div class="list-card meals h-100">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-cup-hot me-2"></i>
+                    <span>Recent Meals</span>
+                    <span class="badge bg-white ms-auto" style="color: #78350f;">{{ total_meals }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        {% for meal in meals %}
+                        <a href="{% url 'journal:entry_detail' meal.entry.pk %}" class="list-group-item list-group-item-action py-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">{{ meal.entry.entry_date|date:"M j, Y" }}</small>
+                                {% if meal.data.type %}
+                                <span class="badge bg-warning text-dark">{{ meal.data.type|title }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="fw-medium">{{ meal.data.name|default:"Meal" }}</div>
+                            {% if meal.data.notes %}
+                            <small class="text-muted">{{ meal.data.notes|truncatewords:10 }}</small>
+                            {% endif %}
+                        </a>
+                        {% empty %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-cup-hot display-4 opacity-50"></i>
+                            <p class="mt-2 mb-0">No meals logged yet</p>
+                            <small>Use <code>/meal</code> to track what you eat</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if meal_types %}
+    <!-- Meal Types Breakdown -->
+    <div class="chart-card mt-4">
+        <div class="card-header">
+            <i class="bi bi-pie-chart me-2"></i>Meals by Type
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="mealTypeChart" height="200"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Meal Type</th>
+                                    <th class="text-end">Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for type, count in meal_types.items %}
+                                <tr>
+                                    <td>{{ type|title }}</td>
+                                    <td class="text-end">{{ count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Wellness Chart
+    const monthlyCtx = document.getElementById('monthlyChart');
+    if (monthlyCtx) {
+        const monthlyDreams = {{ monthly_dreams|safe }};
+        const monthlyGratitude = {{ monthly_gratitude|safe }};
+        const monthlyMeals = {{ monthly_meals|safe }};
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Dreams',
+                        data: monthlyDreams,
+                        backgroundColor: '#7dd3fc',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Gratitude',
+                        data: monthlyGratitude,
+                        backgroundColor: '#f9a8d4',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Meals',
+                        data: monthlyMeals,
+                        backgroundColor: '#fcd34d',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    // Meal Type Chart
+    {% if meal_types %}
+    const mealTypeCtx = document.getElementById('mealTypeChart');
+    if (mealTypeCtx) {
+        const mealTypes = {{ meal_types|safe }};
+        const typeLabels = Object.keys(mealTypes).map(t => t.charAt(0).toUpperCase() + t.slice(1));
+        const typeValues = Object.values(mealTypes);
+        const typeColors = ['#fcd34d', '#f59e0b', '#d97706', '#b45309', '#92400e', '#78350f'];
+
+        new Chart(mealTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: typeLabels,
+                datasets: [{
+                    data: typeValues,
+                    backgroundColor: typeColors.slice(0, typeLabels.length)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12
+                        }
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+});
+</script>
+{% endblock dashboard_js %}

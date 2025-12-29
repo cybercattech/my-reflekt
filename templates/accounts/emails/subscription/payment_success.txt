@@ -1,0 +1,20 @@
+Thank You for Your Payment!
+
+Hi {{ user_name }},
+
+Thank you for your continued support! Your Reflekt Premium subscription has been renewed successfully.
+
+PAYMENT SUCCESSFUL
+
+Plan: {{ plan_name }}
+Amount Charged: ${{ amount }}
+Next Billing Date: {{ next_billing_date|date:"F j, Y" }}
+
+Your Premium access continues uninterrupted. Keep journaling and exploring all the features Reflekt has to offer!
+
+Continue journaling: {{ site_url }}/dashboard/
+
+---
+
+This is your payment confirmation. Keep this email for your records.
+Questions? Reply to this email - we're here to help!

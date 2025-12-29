@@ -1,0 +1,65 @@
+{% comment %}
+Badge display partial - Include this wherever you want to show badges.
+Required context:
+  - earned_badges: List of earned badge dicts (from UserBadge.get_user_badges)
+  - next_badge: Next badge to earn (from UserBadge.get_next_badge) - optional
+  - show_locked: Boolean to show locked badges (optional, default false)
+  - compact: Boolean for compact/showcase mode (optional, default false)
+{% endcomment %}
+
+<div class="{% if compact %}badge-showcase{% else %}badge-container{% endif %}">
+    {% for badge in earned_badges %}
+    <div class="streak-badge badge-{{ badge.tier }}"
+         data-bs-toggle="tooltip"
+         data-bs-placement="top"
+         title="{{ badge.description }}">
+        <div class="badge-icon">
+            <i class="bi bi-{{ badge.icon }}"></i>
+        </div>
+        <div class="badge-name">{{ badge.name }}</div>
+        <div class="badge-days">{{ badge.days }} days</div>
+    </div>
+    {% empty %}
+    {% if not compact %}
+    <p class="text-muted mb-0">No badges earned yet. Start your streak!</p>
+    {% endif %}
+    {% endfor %}
+
+    {% if show_locked and all_badges %}
+        {% for badge in all_badges %}
+            {% if badge.id not in earned_badge_ids %}
+            <div class="streak-badge badge-locked"
+                 data-bs-toggle="tooltip"
+                 data-bs-placement="top"
+                 title="Earn this by reaching a {{ badge.days }}-day streak">
+                <div class="badge-icon">
+                    <i class="bi bi-lock"></i>
+                </div>
+                <div class="badge-name">{{ badge.name }}</div>
+                <div class="badge-days">{{ badge.days }} days</div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</div>
+
+{% if next_badge and not compact %}
+<div class="badge-progress-container next-{{ next_badge.tier }} mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <strong>Next Badge:</strong> {{ next_badge.name }}
+            <span class="text-muted">({{ next_badge.days }} days)</span>
+        </div>
+        <span class="badge bg-{% if next_badge.tier == 'gold' %}warning{% elif next_badge.tier == 'silver' %}secondary{% else %}dark{% endif %}">
+            {{ next_badge.days_remaining }} days to go
+        </span>
+    </div>
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: {{ next_badge.progress }}%;"
+             aria-valuenow="{{ next_badge.progress }}" aria-valuemin="0" aria-valuemax="100">
+            {{ next_badge.progress }}%
+        </div>
+    </div>
+    <p class="text-muted small mt-2 mb-0">{{ next_badge.description }}</p>
+</div>
+{% endif %}

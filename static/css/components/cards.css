@@ -1,0 +1,269 @@
+/* ==========================================================================
+   Card Components - Shared card styles across the application
+   ========================================================================== */
+
+/* ==========================================================================
+   Base Card Styles
+   ========================================================================== */
+
+.modern-card {
+    background: white;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.modern-card .card-header {
+    background: transparent;
+    border-bottom: 1px solid #f3f4f6;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.modern-card .card-body {
+    padding: 1.25rem;
+}
+
+/* ==========================================================================
+   Gradient Card Base
+   ========================================================================== */
+
+.gradient-card {
+    border-radius: 16px;
+    border: none;
+    color: white;
+    overflow: hidden;
+}
+
+.gradient-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: white;
+}
+
+.gradient-card .card-header a {
+    color: white;
+    border-color: rgba(255,255,255,0.5);
+}
+
+.gradient-card .card-header a:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: white;
+    color: white;
+}
+
+.gradient-card .card-body {
+    padding: 1.25rem;
+}
+
+/* ==========================================================================
+   Gradient Variants
+   ========================================================================== */
+
+.gradient-card.primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.gradient-card.success {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+
+.gradient-card.danger {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+}
+
+.gradient-card.warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+.gradient-card.info {
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+}
+
+.gradient-card.dark {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+.gradient-card.purple {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+}
+
+.gradient-card.pink {
+    background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+}
+
+.gradient-card.teal {
+    background: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%);
+}
+
+.gradient-card.navy {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+}
+
+.gradient-card.rose {
+    background: linear-gradient(135deg, #be185d 0%, #9f1239 100%);
+}
+
+/* ==========================================================================
+   Insight Card
+   ========================================================================== */
+
+.insight-card {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.insight-card.prompt-card {
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    border: 1px solid #ddd6fe;
+}
+
+.insight-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin-bottom: 0.75rem;
+}
+
+.insight-header i {
+    color: #6366f1;
+}
+
+.insight-card .prompt-text {
+    font-size: 0.9rem;
+    color: #374151;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+/* ==========================================================================
+   Stats Card
+   ========================================================================== */
+
+.stat-card-modern {
+    border-radius: 16px;
+    padding: 1.5rem;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.stat-card-modern .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card-modern .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Streak Card
+   ========================================================================== */
+
+.streak-card-large {
+    background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #a855f7 100%);
+    color: white;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 16px;
+    padding: 1.5rem;
+}
+
+.streak-card-large .card-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.streak-card-large .streak-value {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+    margin: 0.5rem 0;
+}
+
+.streak-card-large .streak-unit {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+/* ==========================================================================
+   Empty State Card
+   ========================================================================== */
+
+.empty-card {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+    background: white;
+    border-radius: 16px;
+}
+
+.empty-card i {
+    font-size: 3rem;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+}
+
+.empty-card .empty-title {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.empty-card .empty-text {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   Tips Card
+   ========================================================================== */
+
+.tips-card {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 16px;
+    border: 1px solid #bbf7d0;
+    padding: 1.5rem;
+}
+
+.tips-card h5 {
+    color: #166534;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.tips-card p,
+.tips-card li {
+    color: #15803d;
+}
+
+.tips-card ul {
+    padding-left: 1.25rem;
+}
+
+.tips-card li {
+    margin-bottom: 0.5rem;
+}
+
+.tips-card li strong {
+    color: #166534;
+}

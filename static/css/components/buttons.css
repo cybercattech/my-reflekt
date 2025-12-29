@@ -1,0 +1,299 @@
+/* ==========================================================================
+   Button Components - Button styles across the application
+   ========================================================================== */
+
+/* ==========================================================================
+   Gradient Buttons
+   ========================================================================== */
+
+.btn-gradient-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-gradient-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    color: white;
+}
+
+.btn-gradient-success {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    border: none;
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-gradient-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    color: white;
+}
+
+.btn-gradient-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    border: none;
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-gradient-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    color: white;
+}
+
+/* ==========================================================================
+   Check-in Button (Habits)
+   ========================================================================== */
+
+.checkin-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid #d1d5db;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.checkin-btn:hover {
+    border-color: #4f46e5;
+    background: #f5f3ff;
+}
+
+.checkin-btn.completed {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: white;
+}
+
+.checkin-btn.not-due {
+    border-style: dashed;
+    opacity: 0.5;
+}
+
+/* ==========================================================================
+   Milestone Checkbox (Goals)
+   ========================================================================== */
+
+.milestone-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.milestone-checkbox:hover {
+    border-color: #4f46e5;
+}
+
+.milestone-checkbox.completed {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: white;
+}
+
+/* ==========================================================================
+   Floating Action Button (FAB)
+   ========================================================================== */
+
+.fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 1040;
+    font-size: 1.25rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.fab.fab-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+}
+
+.fab.fab-success {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    color: white;
+}
+
+.fab.fab-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    color: white;
+}
+
+/* ==========================================================================
+   Icon Buttons
+   ========================================================================== */
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.btn-icon-sm {
+    width: 28px;
+    height: 28px;
+    font-size: 0.875rem;
+}
+
+.btn-icon-lg {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+}
+
+/* ==========================================================================
+   Calendar Navigation Buttons
+   ========================================================================== */
+
+.calendar-nav-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 1.25rem;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.calendar-nav-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+/* ==========================================================================
+   Year Tab Buttons
+   ========================================================================== */
+
+.year-tab {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.year-tab:hover {
+    color: white;
+    background: rgba(255,255,255,0.1);
+}
+
+.year-tab.active {
+    background: rgba(67, 56, 202, 0.8);
+    color: white;
+    border-color: transparent;
+}
+
+/* ==========================================================================
+   Delete Button (on cards)
+   ========================================================================== */
+
+.delete-entry-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.entry-row:hover .delete-entry-btn,
+.entry-card:hover .delete-entry-btn {
+    opacity: 1;
+}
+
+/* ==========================================================================
+   Prompt Button
+   ========================================================================== */
+
+.prompt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    color: #6366f1;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.prompt-btn:hover {
+    background: #f0f0ff;
+    color: #4f46e5;
+    transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Sidebar Toggle Button
+   ========================================================================== */
+
+.sidebar-toggle {
+    display: none;
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    z-index: 1040;
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sidebar-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+}
+
+@media (max-width: 991.98px) {
+    .sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

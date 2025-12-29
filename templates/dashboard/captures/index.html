@@ -5,6 +5,126 @@
 
 {% block dashboard_css %}
 <style>
+/* Modern Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    border-radius: 16px;
+    padding: 1.5rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none !important;
+    display: block;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    color: white;
+}
+
+.stat-card.books {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.stat-card.media {
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+}
+
+.stat-card.people {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+
+.stat-card.fitness {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    color: #1f2937;
+}
+
+.stat-card .stat-label {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-card .stat-sub {
+    font-size: 0.8rem;
+    opacity: 0.75;
+    margin-top: 0.25rem;
+}
+
+.stat-card .stat-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    opacity: 0.3;
+}
+
+.stat-card .stat-extra {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    font-size: 0.8rem;
+    opacity: 0.85;
+}
+
+/* Modern List Card */
+.list-card {
+    background: white;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.list-card .card-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.list-card.books .card-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+}
+
+.list-card.people .card-header {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    color: white;
+}
+
+/* Tips Card */
+.tips-card {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 16px;
+    border: 1px solid #bbf7d0;
+    padding: 1.25rem;
+}
+
+.tips-card h6 {
+    color: #166534;
+}
+
+.tips-card p {
+    color: #15803d;
+}
+
+/* Premium Locked */
 .premium-content-locked {
     position: relative;
     min-height: 500px;
@@ -33,6 +153,19 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     max-width: 500px;
     width: 90%;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 {% endblock %}
@@ -109,114 +242,65 @@
     </div>
     {% else %}
     <!-- Premium user: Show actual content -->
-    </div>
 
     <!-- Summary Cards -->
-    <div class="row g-4 mb-4">
+    <div class="stats-grid">
         <!-- Books -->
-        <div class="col-md-6 col-lg-3">
-            <a href="{% url 'analytics:books' %}?year={{ year }}" class="text-decoration-none">
-                <div class="card border-0 bg-primary text-white h-100 entry-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h6 class="text-white-50">Books</h6>
-                                <h2 class="mb-0">{{ books_finished_count }}</h2>
-                                <small class="text-white-50">finished in {{ year }}</small>
-                            </div>
-                            <div class="display-5 opacity-50">
-                                <i class="bi bi-book"></i>
-                            </div>
-                        </div>
-                        {% if books_reading_count > 0 %}
-                        <div class="mt-2 pt-2 border-top border-light border-opacity-25">
-                            <small><i class="bi bi-bookmark me-1"></i>{{ books_reading_count }} currently reading</small>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </a>
-        </div>
+        <a href="{% url 'analytics:books' %}?year={{ year }}" class="stat-card books">
+            <div class="stat-label">Books</div>
+            <div class="stat-value">{{ books_finished_count }}</div>
+            <div class="stat-sub">finished in {{ year }}</div>
+            <i class="bi bi-book stat-icon"></i>
+            {% if books_reading_count > 0 %}
+            <div class="stat-extra">
+                <i class="bi bi-bookmark me-1"></i>{{ books_reading_count }} currently reading
+            </div>
+            {% endif %}
+        </a>
 
         <!-- Media -->
-        <div class="col-md-6 col-lg-3">
-            <a href="{% url 'analytics:media' %}?year={{ year }}" class="text-decoration-none">
-                <div class="card border-0 bg-info text-white h-100 entry-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h6 class="text-white-50">Media Watched</h6>
-                                <h2 class="mb-0">{{ watched_count }}</h2>
-                                <small class="text-white-50">movies & shows in {{ year }}</small>
-                            </div>
-                            <div class="display-5 opacity-50">
-                                <i class="bi bi-film"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
+        <a href="{% url 'analytics:media' %}?year={{ year }}" class="stat-card media">
+            <div class="stat-label">Media Watched</div>
+            <div class="stat-value">{{ watched_count }}</div>
+            <div class="stat-sub">movies & shows in {{ year }}</div>
+            <i class="bi bi-film stat-icon"></i>
+        </a>
 
         <!-- People -->
-        <div class="col-md-6 col-lg-3">
-            <a href="{% url 'analytics:people' %}" class="text-decoration-none">
-                <div class="card border-0 bg-success text-white h-100 entry-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h6 class="text-white-50">People</h6>
-                                <h2 class="mb-0">{{ people_count }}</h2>
-                                <small class="text-white-50">tracked connections</small>
-                            </div>
-                            <div class="display-5 opacity-50">
-                                <i class="bi bi-people"></i>
-                            </div>
-                        </div>
-                        {% if top_people %}
-                        <div class="mt-2 pt-2 border-top border-light border-opacity-25">
-                            <small>Top: {% for p in top_people|slice:":3" %}{{ p.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </a>
-        </div>
+        <a href="{% url 'analytics:people' %}" class="stat-card people">
+            <div class="stat-label">People</div>
+            <div class="stat-value">{{ people_count }}</div>
+            <div class="stat-sub">tracked connections</div>
+            <i class="bi bi-people stat-icon"></i>
+            {% if top_people %}
+            <div class="stat-extra">
+                Top: {% for p in top_people|slice:":3" %}{{ p.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </div>
+            {% endif %}
+        </a>
 
         <!-- Fitness -->
-        <div class="col-md-6 col-lg-3">
-            <a href="{% url 'analytics:fitness' %}?year={{ year }}" class="text-decoration-none">
-                <div class="card border-0 bg-warning text-dark h-100 entry-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h6 class="opacity-75">Workouts</h6>
-                                <h2 class="mb-0">{{ workout_count }}</h2>
-                                <small class="opacity-75">sessions in {{ year }}</small>
-                            </div>
-                            <div class="display-5 opacity-50">
-                                <i class="bi bi-activity"></i>
-                            </div>
-                        </div>
-                        {% if total_workout_duration > 0 %}
-                        <div class="mt-2 pt-2 border-top border-dark border-opacity-25">
-                            <small><i class="bi bi-clock me-1"></i>{{ total_workout_duration }} min total</small>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </a>
-        </div>
+        <a href="{% url 'analytics:fitness' %}?year={{ year }}" class="stat-card fitness">
+            <div class="stat-label">Workouts</div>
+            <div class="stat-value">{{ workout_count }}</div>
+            <div class="stat-sub">sessions in {{ year }}</div>
+            <i class="bi bi-activity stat-icon"></i>
+            {% if total_workout_duration > 0 %}
+            <div class="stat-extra">
+                <i class="bi bi-clock me-1"></i>{{ total_workout_duration }} min total
+            </div>
+            {% endif %}
+        </a>
     </div>
 
     <!-- Quick Links Row -->
     <div class="row g-4">
         <!-- Currently Reading -->
         <div class="col-lg-6">
-            <div class="card h-100">
+            <div class="list-card books h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-bookmark me-2"></i>Currently Reading</span>
-                    <a href="{% url 'analytics:books' %}" class="btn btn-sm btn-outline-primary">View All Books</a>
+                    <a href="{% url 'analytics:books' %}" class="btn btn-sm btn-outline-light">View All Books</a>
                 </div>
                 <ul class="list-group list-group-flush">
                     {% for book in books_reading %}
@@ -247,10 +331,10 @@
 
         <!-- Top People -->
         <div class="col-lg-6">
-            <div class="card h-100">
+            <div class="list-card people h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-people me-2"></i>Top People</span>
-                    <a href="{% url 'analytics:people' %}" class="btn btn-sm btn-outline-success">View All People</a>
+                    <a href="{% url 'analytics:people' %}" class="btn btn-sm btn-outline-light">View All People</a>
                 </div>
                 <ul class="list-group list-group-flush">
                     {% for person in top_people %}
@@ -276,23 +360,21 @@
     </div>
 
     <!-- Instructions Card -->
-    <div class="card mt-4 bg-light">
-        <div class="card-body">
-            <h6 class="card-title"><i class="bi bi-lightbulb me-2"></i>Track More with Slash Commands</h6>
-            <p class="card-text mb-2">Use these commands in your journal entries to automatically track activities:</p>
-            <div class="row">
-                <div class="col-md-4">
-                    <code>/book "Title" by Author</code><br>
-                    <small class="text-muted">Track books you're reading</small>
-                </div>
-                <div class="col-md-4">
-                    <code>/watched "Movie" 4/5</code><br>
-                    <small class="text-muted">Log movies and shows</small>
-                </div>
-                <div class="col-md-4">
-                    <code>/workout running 30min</code><br>
-                    <small class="text-muted">Record your workouts</small>
-                </div>
+    <div class="tips-card mt-4">
+        <h6><i class="bi bi-lightbulb me-2"></i>Track More with Slash Commands</h6>
+        <p class="mb-2">Use these commands in your journal entries to automatically track activities:</p>
+        <div class="row">
+            <div class="col-md-4">
+                <code>/book "Title" by Author</code><br>
+                <small>Track books you're reading</small>
+            </div>
+            <div class="col-md-4">
+                <code>/watched "Movie" 4/5</code><br>
+                <small>Log movies and shows</small>
+            </div>
+            <div class="col-md-4">
+                <code>/workout running 30min</code><br>
+                <small>Record your workouts</small>
             </div>
         </div>
     </div>

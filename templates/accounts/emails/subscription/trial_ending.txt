@@ -1,0 +1,24 @@
+Your Trial Ends in {{ days_remaining }} Day{{ days_remaining|pluralize }}
+
+Hi {{ user_name }},
+
+Just a friendly reminder that your Reflekt Premium trial ends on {{ trial_end_date|date:"F j, Y" }}.
+
+Time remaining: {{ days_remaining }} day{{ days_remaining|pluralize }}
+
+After your trial ends, your subscription will automatically continue and your card will be charged. You'll keep enjoying all Premium features without interruption.
+
+If you'd prefer not to continue, you can cancel anytime before your trial ends - no questions asked.
+
+Manage your subscription: {{ site_url }}/accounts/subscription/manage/
+
+What you'll keep with Premium:
+- Goals & Habits Tracking
+- Captures (books, movies, places)
+- Moon & Zodiac insights
+- Year & Month in Review
+- Advanced Analytics
+
+---
+
+Questions? Reply to this email - we're here to help!

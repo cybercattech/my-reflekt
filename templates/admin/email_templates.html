@@ -1,0 +1,242 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-envelope me-2"></i>Email Templates</h1>
+</div>
+
+<p class="text-muted mb-4">Preview and test all email templates. Click "Preview" to see the email or "Send Test" to receive it in your inbox.</p>
+
+<!-- Subscription Emails -->
+<h5 class="mb-3"><i class="bi bi-credit-card me-2 text-primary"></i>Subscription Emails</h5>
+<div class="row g-4 mb-5">
+    {% for template in templates %}
+    {% if template.category == 'subscription' %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-1">{{ template.name }}</h5>
+                <p class="text-muted small mb-3">{{ template.description }}</p>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">Subject:</small>
+                    <code class="small">{{ template.subject }}</code>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0 pt-0">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:admin_email_preview' template.id %}"
+                       class="btn btn-outline-primary btn-sm flex-fill"
+                       target="_blank">
+                        <i class="bi bi-eye me-1"></i>Preview
+                    </a>
+                    <a href="{% url 'accounts:admin_send_test_email' template.id %}"
+                       class="btn btn-primary btn-sm flex-fill">
+                        <i class="bi bi-send me-1"></i>Send Test
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<!-- Family Plan Emails -->
+<h5 class="mb-3"><i class="bi bi-people me-2 text-success"></i>Family Plan Emails</h5>
+<div class="alert alert-info mb-3">
+    <i class="bi bi-info-circle me-2"></i>
+    <strong>Privacy Note:</strong> All family plan emails emphasize that journal entries remain 100% private.
+    The Family Plan is simply a shared subscription - members cannot see each other's entries.
+</div>
+<div class="row g-4 mb-5">
+    {% for template in templates %}
+    {% if template.category == 'family' %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100 border-start border-success border-3">
+            <div class="card-body">
+                <h5 class="card-title mb-1">{{ template.name }}</h5>
+                <p class="text-muted small mb-3">{{ template.description }}</p>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">Subject:</small>
+                    <code class="small">{{ template.subject }}</code>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0 pt-0">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:admin_email_preview' template.id %}"
+                       class="btn btn-outline-primary btn-sm flex-fill"
+                       target="_blank">
+                        <i class="bi bi-eye me-1"></i>Preview
+                    </a>
+                    <a href="{% url 'accounts:admin_send_test_email' template.id %}"
+                       class="btn btn-primary btn-sm flex-fill">
+                        <i class="bi bi-send me-1"></i>Send Test
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<!-- Friends & Invitation Emails -->
+<h5 class="mb-3"><i class="bi bi-person-plus me-2 text-info"></i>Friends & Invitations</h5>
+<div class="row g-4 mb-5">
+    {% for template in templates %}
+    {% if template.category == 'friends' %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-1">{{ template.name }}</h5>
+                <p class="text-muted small mb-3">{{ template.description }}</p>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">Subject:</small>
+                    <code class="small">{{ template.subject }}</code>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0 pt-0">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:admin_email_preview' template.id %}"
+                       class="btn btn-outline-primary btn-sm flex-fill"
+                       target="_blank">
+                        <i class="bi bi-eye me-1"></i>Preview
+                    </a>
+                    <a href="{% url 'accounts:admin_send_test_email' template.id %}"
+                       class="btn btn-primary btn-sm flex-fill">
+                        <i class="bi bi-send me-1"></i>Send Test
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<!-- POV Emails -->
+<h5 class="mb-3"><i class="bi bi-chat-square-quote me-2 text-warning"></i>POV Sharing</h5>
+<div class="row g-4 mb-5">
+    {% for template in templates %}
+    {% if template.category == 'pov' %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-1">{{ template.name }}</h5>
+                <p class="text-muted small mb-3">{{ template.description }}</p>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">Subject:</small>
+                    <code class="small">{{ template.subject }}</code>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0 pt-0">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:admin_email_preview' template.id %}"
+                       class="btn btn-outline-primary btn-sm flex-fill"
+                       target="_blank">
+                        <i class="bi bi-eye me-1"></i>Preview
+                    </a>
+                    <a href="{% url 'accounts:admin_send_test_email' template.id %}"
+                       class="btn btn-primary btn-sm flex-fill">
+                        <i class="bi bi-send me-1"></i>Send Test
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Email Trigger Reference</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>When It's Sent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="table-light"><td colspan="2"><strong>Subscription</strong></td></tr>
+                    <tr>
+                        <td>Welcome</td>
+                        <td>Immediately when a new user creates an account</td>
+                    </tr>
+                    <tr>
+                        <td>Trial Started</td>
+                        <td>When user subscribes and starts their 14-day free trial</td>
+                    </tr>
+                    <tr>
+                        <td>Trial Ending</td>
+                        <td>2 days before the trial ends (via daily cron job)</td>
+                    </tr>
+                    <tr>
+                        <td>Payment Reminder</td>
+                        <td>1 day before the subscription renews (via daily cron job)</td>
+                    </tr>
+                    <tr>
+                        <td>Payment Success</td>
+                        <td>When Stripe confirms a successful payment</td>
+                    </tr>
+                    <tr>
+                        <td>Payment Failed</td>
+                        <td>When Stripe reports a failed payment (user is downgraded)</td>
+                    </tr>
+                    <tr class="table-light"><td colspan="2"><strong>Family Plan</strong></td></tr>
+                    <tr>
+                        <td>Family Invitation (Existing User)</td>
+                        <td>When inviting an existing Reflekt user to your family plan</td>
+                    </tr>
+                    <tr>
+                        <td>Family Invitation (New User)</td>
+                        <td>When inviting someone who doesn't have an account yet</td>
+                    </tr>
+                    <tr>
+                        <td>Family Member Joined</td>
+                        <td>When someone accepts your family plan invitation</td>
+                    </tr>
+                    <tr class="table-light"><td colspan="2"><strong>Friends</strong></td></tr>
+                    <tr>
+                        <td>Friend Request</td>
+                        <td>When someone sends a friend request</td>
+                    </tr>
+                    <tr>
+                        <td>Friend Request Accepted</td>
+                        <td>When your friend request is accepted</td>
+                    </tr>
+                    <tr>
+                        <td>Invitation to Join</td>
+                        <td>When inviting a non-user to join Reflekt</td>
+                    </tr>
+                    <tr class="table-light"><td colspan="2"><strong>POV</strong></td></tr>
+                    <tr>
+                        <td>POV Shared</td>
+                        <td>When a friend shares a POV (thought) with you</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-terminal me-2"></i>Scheduled Reminders</h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-2">Trial ending and payment reminder emails are sent via a management command that should run daily:</p>
+        <pre class="bg-dark text-light p-3 rounded mb-3"><code>python manage.py send_subscription_reminders</code></pre>
+        <p class="mb-2">To test without sending emails:</p>
+        <pre class="bg-dark text-light p-3 rounded mb-0"><code>python manage.py send_subscription_reminders --dry-run</code></pre>
+    </div>
+</div>
+{% endblock %}

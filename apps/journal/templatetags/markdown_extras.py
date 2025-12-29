@@ -28,7 +28,7 @@ ALLOWED_ATTRIBUTES = {
     'code': ['class'],
     'pre': ['class'],
     'div': ['class'],
-    'span': ['class', 'data-tag'],
+    'span': ['class', 'data-tag', 'data-capture-type', 'data-capture-name'],
     'th': ['align'],
     'td': ['align'],
 }
@@ -168,6 +168,86 @@ def process_pov_blocks(text):
     return text
 
 
+def process_capture_blocks(text):
+    """
+    Convert capture blocks like {place}, {travel}, {workout}, etc. to styled HTML badges.
+
+    Format: {place} Central Park (Park) {/place}
+    Format: {travel} Car: NYC → Boston {/travel}
+
+    Note: {dream} and {gratitude} are handled separately as admonitions.
+    """
+    # Capture type configurations: (icon, color_class)
+    CAPTURE_STYLES = {
+        'place': ('bi-pin-map', 'capture-place'),
+        'travel': ('bi-geo-alt', 'capture-travel'),
+        'workout': ('bi-heart-pulse', 'capture-workout'),
+        'watched': ('bi-film', 'capture-watched'),
+        'meal': ('bi-cup-hot', 'capture-meal'),
+        'book': ('bi-book', 'capture-book'),
+        'person': ('bi-person', 'capture-person'),
+    }
+
+    def replace_capture(match):
+        capture_type = match.group(1).lower()
+        content = match.group(2).strip()
+
+        if capture_type in CAPTURE_STYLES:
+            icon, css_class = CAPTURE_STYLES[capture_type]
+            # Extract the main name for data attribute (for hover lookups)
+            # For place: "Central Park (Park)" -> "Central Park"
+            # For travel: "Car: NYC → Boston" -> "Boston" (destination)
+            name = content.split('(')[0].strip() if '(' in content else content
+            if '→' in name:
+                name = name.split('→')[-1].strip()
+
+            return f'<span class="capture-inline {css_class}" data-capture-type="{capture_type}" data-capture-name="{name}"><i class="bi {icon}"></i> {content}</span>'
+        else:
+            return f'<span class="capture-inline">{content}</span>'
+
+    # Pattern for inline capture blocks (excluding dream and gratitude which are admonitions)
+    pattern = r'\{(place|travel|workout|watched|meal|book|person)\}\s*(.*?)\s*\{/\1\}'
+    text = re.sub(pattern, replace_capture, text, flags=re.DOTALL | re.IGNORECASE)
+
+    return text
+
+
+def process_wellness_blocks(text):
+    """
+    Convert {dream} and {gratitude} blocks to styled admonitions.
+
+    Format: {dream} My dream content... {/dream}
+    Format: {gratitude} Things I'm grateful for... {/gratitude}
+
+    These render as full-width admonition boxes, not inline badges.
+    """
+    # Dream blocks - light blue background (#C3EEFA)
+    dream_pattern = r'\{dream\}\s*(.*?)\s*\{/dream\}'
+
+    def replace_dream(match):
+        content = match.group(1).strip()
+        return f'''<div class="admonition admonition-dream">
+<div class="admonition-title"><i class="bi bi-cloud-moon me-2"></i>Dream Journal</div>
+<div class="admonition-content">{content}</div>
+</div>'''
+
+    text = re.sub(dream_pattern, replace_dream, text, flags=re.DOTALL | re.IGNORECASE)
+
+    # Gratitude blocks - soft pink/warm background
+    gratitude_pattern = r'\{gratitude\}\s*(.*?)\s*\{/gratitude\}'
+
+    def replace_gratitude(match):
+        content = match.group(1).strip()
+        return f'''<div class="admonition admonition-gratitude">
+<div class="admonition-title"><i class="bi bi-heart me-2"></i>Gratitude</div>
+<div class="admonition-content">{content}</div>
+</div>'''
+
+    text = re.sub(gratitude_pattern, replace_gratitude, text, flags=re.DOTALL | re.IGNORECASE)
+
+    return text
+
+
 def process_goal_habit_blocks(text):
     """
     Convert {goal} and {habit} blocks to styled HTML.
@@ -248,6 +328,12 @@ def render_markdown(value):
     # Process goal and habit blocks
     value = process_goal_habit_blocks(value)
 
+    # Process capture blocks ({place}, {travel}, {workout}, etc.)
+    value = process_capture_blocks(value)
+
+    # Process wellness blocks ({dream}, {gratitude}) as admonitions
+    value = process_wellness_blocks(value)
+
     # Then, process MyST directives before markdown conversion
     value = process_myst_directives(value)
 
@@ -309,6 +395,82 @@ def render_markdown_safe(value):
     html = md.convert(value)
 
     return mark_safe(html)
+
+
+@register.filter(name='render_blog_markdown')
+def render_blog_markdown(value):
+    """
+    Render Markdown for blog posts with MyST directive support.
+
+    Optimized for blog content (no hashtag processing, POV blocks, etc.)
+    Supports:
+    - All standard Markdown (headers, bold, italic, lists, etc.)
+    - Code blocks with syntax highlighting
+    - Tables
+    - MyST directives: ```{note}, ```{warning}, ```{tip}, ```{danger}, etc.
+    - Images and links
+    """
+    if not value:
+        return ''
+
+    # Process MyST directives
+    value = process_myst_directives(value)
+
+    # Configure markdown extensions
+    extensions = [
+        'markdown.extensions.fenced_code',
+        'markdown.extensions.codehilite',
+        'markdown.extensions.tables',
+        'markdown.extensions.nl2br',
+        'markdown.extensions.sane_lists',
+        'markdown.extensions.smarty',
+        'markdown.extensions.toc',
+        'markdown.extensions.attr_list',  # For adding classes to elements
+        'markdown.extensions.def_list',   # Definition lists
+        'markdown.extensions.footnotes',  # Footnotes
+        'markdown.extensions.abbr',       # Abbreviations
+        'markdown.extensions.md_in_html', # Markdown inside HTML blocks
+    ]
+
+    extension_configs = {
+        'markdown.extensions.codehilite': {
+            'css_class': 'highlight',
+            'guess_lang': True,
+            'linenums': False,
+        },
+        'markdown.extensions.toc': {
+            'permalink': False,
+        },
+    }
+
+    # Convert markdown to HTML
+    md = markdown.Markdown(extensions=extensions, extension_configs=extension_configs)
+    html = md.convert(value)
+
+    # For blog posts (staff-written trusted content), we use minimal sanitization
+    # Just ensure no script tags or dangerous attributes
+    blog_allowed_tags = ALLOWED_TAGS + [
+        'i', 'figure', 'figcaption', 'details', 'summary',
+        'dl', 'dt', 'dd', 'abbr', 'mark', 'ins', 'del',
+        'section', 'article', 'aside', 'header', 'footer', 'nav',
+        'iframe',  # For embedded videos
+    ]
+
+    blog_allowed_attrs = dict(ALLOWED_ATTRIBUTES)
+    blog_allowed_attrs['i'] = ['class']
+    blog_allowed_attrs['div'] = ['class', 'id', 'style']
+    blog_allowed_attrs['span'] = ['class', 'id', 'style']
+    blog_allowed_attrs['iframe'] = ['src', 'width', 'height', 'frameborder', 'allowfullscreen', 'allow']
+    blog_allowed_attrs['*'] = ['class', 'id']
+
+    clean_html = bleach.clean(
+        html,
+        tags=blog_allowed_tags,
+        attributes=blog_allowed_attrs,
+        strip=True
+    )
+
+    return mark_safe(clean_html)
 
 
 @register.filter(name='get_hashtags')

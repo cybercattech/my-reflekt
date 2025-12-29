@@ -1,0 +1,479 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Travel & Places Dashboard{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    /* Modern Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card.trips {
+        background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    }
+
+    .stat-card.places {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .stat-card.destinations {
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+    }
+
+    .stat-card.unique {
+        background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-card .stat-sub {
+        font-size: 0.8rem;
+        opacity: 0.75;
+        margin-top: 0.25rem;
+    }
+
+    .stat-card .stat-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+
+    /* Modern Chart Card */
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .chart-card .card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .chart-card .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Modern List Card */
+    .list-card {
+        background: white;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .list-card .card-header {
+        background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        border: none;
+    }
+
+    .list-card.places .card-header {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .list-card .table {
+        margin-bottom: 0;
+    }
+
+    .list-card .table thead {
+        background: #f8fafc;
+    }
+
+    .list-card .table th {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom-width: 1px;
+    }
+
+    .list-card .table td {
+        vertical-align: middle;
+    }
+
+    .destination-item, .place-item {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        transition: background 0.2s;
+    }
+    .destination-item:hover, .place-item:hover {
+        background-color: #f3f4f6;
+    }
+    .visit-count {
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock dashboard_css %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <!-- Header with Year Selector -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'analytics:captures' %}">Captures</a></li>
+                    <li class="breadcrumb-item active">Travel & Places</li>
+                </ol>
+            </nav>
+            <h1><i class="bi bi-geo-alt me-2"></i>Travel & Places</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label for="yearSelect" class="form-label mb-0 text-muted">Year:</label>
+            <select id="yearSelect" class="form-select form-select-sm" style="width: auto;" onchange="window.location.href='?year=' + this.value">
+                {% for y in available_years %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid">
+        <div class="stat-card trips">
+            <div class="stat-label">Total Trips</div>
+            <div class="stat-value">{{ total_travels }}</div>
+            <div class="stat-sub">in {{ year }}</div>
+            <i class="bi bi-airplane stat-icon"></i>
+        </div>
+        <div class="stat-card places">
+            <div class="stat-label">Places Visited</div>
+            <div class="stat-value">{{ total_places }}</div>
+            <div class="stat-sub">check-ins</div>
+            <i class="bi bi-pin-map stat-icon"></i>
+        </div>
+        <div class="stat-card destinations">
+            <div class="stat-label">Unique Destinations</div>
+            <div class="stat-value">{{ top_destinations|length }}</div>
+            <i class="bi bi-globe stat-icon"></i>
+        </div>
+        <div class="stat-card unique">
+            <div class="stat-label">Unique Places</div>
+            <div class="stat-value">{{ top_places|length }}</div>
+            <i class="bi bi-geo stat-icon"></i>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Monthly Activity Chart -->
+        <div class="col-lg-8">
+            <div class="chart-card h-100">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart me-2"></i>Activity by Month
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Travel Mode Breakdown -->
+        <div class="col-lg-4">
+            <div class="chart-card h-100">
+                <div class="card-header">
+                    <i class="bi bi-pie-chart me-2"></i>Travel Modes
+                </div>
+                <div class="card-body">
+                    {% if by_mode %}
+                    <canvas id="modeChart" height="250"></canvas>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-airplane display-4"></i>
+                        <p class="mt-2">No travel data yet</p>
+                        <small>Use <code>/travel</code> to log trips!</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <!-- Top Destinations -->
+        <div class="col-lg-6">
+            <div class="list-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-globe me-2"></i>Top Destinations</span>
+                    <span class="badge bg-white text-primary">{{ top_destinations|length }}</span>
+                </div>
+                <div class="card-body" style="max-height: 350px; overflow-y: auto;">
+                    {% if top_destinations %}
+                    <div class="list-group list-group-flush">
+                        {% for dest, count in top_destinations %}
+                        <div class="destination-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-geo-alt text-primary me-2"></i>
+                                <strong>{{ dest }}</strong>
+                            </div>
+                            <span class="visit-count">{{ count }} trip{{ count|pluralize }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-signpost-split display-4"></i>
+                        <p class="mt-2 mb-0">No destinations yet</p>
+                        <small>Use <code>/travel</code> to log your trips!</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Places -->
+        <div class="col-lg-6">
+            <div class="list-card places h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-pin-map me-2"></i>Favorite Places</span>
+                    <span class="badge bg-white text-success">{{ top_places|length }}</span>
+                </div>
+                <div class="card-body" style="max-height: 350px; overflow-y: auto;">
+                    {% if top_places %}
+                    <div class="list-group list-group-flush">
+                        {% for place, count in top_places %}
+                        <div class="place-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-pin text-success me-2"></i>
+                                <strong>{{ place }}</strong>
+                            </div>
+                            <span class="visit-count">{{ count }} visit{{ count|pluralize }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-shop display-4"></i>
+                        <p class="mt-2 mb-0">No places logged yet</p>
+                        <small>Use <code>/place</code> to check in!</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row g-4 mt-2">
+        <!-- Recent Travels -->
+        <div class="col-lg-6">
+            <div class="list-card">
+                <div class="card-header">
+                    <i class="bi bi-clock-history me-2"></i>Recent Trips
+                </div>
+                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                    <table class="table table-hover mb-0">
+                        <thead class="sticky-top bg-white">
+                            <tr>
+                                <th>Date</th>
+                                <th>Route</th>
+                                <th>Mode</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for travel in travels %}
+                            <tr>
+                                <td>{{ travel.entry.entry_date|date:"M j" }}</td>
+                                <td>
+                                    <span class="text-muted">{{ travel.data.origin|default:"?" }}</span>
+                                    <i class="bi bi-arrow-right mx-1"></i>
+                                    <strong>{{ travel.data.destination|default:"?" }}</strong>
+                                </td>
+                                <td>
+                                    {% with mode=travel.data.mode|default:"other" %}
+                                    <span class="badge bg-{% if mode == 'plane' %}primary{% elif mode == 'car' %}secondary{% elif mode == 'train' %}info{% else %}light text-dark{% endif %}">
+                                        <i class="bi bi-{% if mode == 'plane' %}airplane{% elif mode == 'car' %}car-front{% elif mode == 'train' %}train-front{% elif mode == 'bus' %}bus-front{% elif mode == 'walk' %}person-walking{% elif mode == 'bike' %}bicycle{% elif mode == 'boat' %}water{% else %}geo{% endif %} me-1"></i>
+                                        {{ mode|title }}
+                                    </span>
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    No trips in {{ year }}. Use <code>/travel</code> to log!
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Places -->
+        <div class="col-lg-6">
+            <div class="list-card places">
+                <div class="card-header">
+                    <i class="bi bi-clock-history me-2"></i>Recent Check-ins
+                </div>
+                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                    <table class="table table-hover mb-0">
+                        <thead class="sticky-top bg-white">
+                            <tr>
+                                <th>Date</th>
+                                <th>Place</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for place in places %}
+                            <tr>
+                                <td>{{ place.entry.entry_date|date:"M j" }}</td>
+                                <td><strong>{{ place.data.name|default:"Unknown" }}</strong></td>
+                                <td>
+                                    {% with ptype=place.data.type|default:"other" %}
+                                    <span class="badge bg-{% if ptype == 'restaurant' %}danger{% elif ptype == 'cafe' %}warning text-dark{% elif ptype == 'park' %}success{% elif ptype == 'gym' %}primary{% else %}secondary{% endif %}">
+                                        {{ ptype|title }}
+                                    </span>
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    No check-ins in {{ year }}. Use <code>/place</code> to log!
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Chart (combined travels + places)
+    const monthlyCtx = document.getElementById('monthlyChart');
+    if (monthlyCtx) {
+        const monthlyTravels = {{ monthly_travels|safe }};
+        const monthlyPlaces = {{ monthly_places|safe }};
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Trips',
+                        data: monthlyTravels,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Check-ins',
+                        data: monthlyPlaces,
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    // Travel Mode Chart
+    const modeCtx = document.getElementById('modeChart');
+    if (modeCtx) {
+        {% if by_mode %}
+        const modeData = {{ by_mode|safe }};
+        const modeLabels = Object.keys(modeData).map(m => m.charAt(0).toUpperCase() + m.slice(1));
+        const modeValues = Object.values(modeData);
+        const modeColors = ['#3b82f6', '#6366f1', '#8b5cf6', '#06b6d4', '#14b8a6', '#22c55e', '#f59e0b'];
+
+        new Chart(modeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: modeLabels,
+                datasets: [{
+                    data: modeValues,
+                    backgroundColor: modeColors.slice(0, modeLabels.length)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+    }
+});
+</script>
+{% endblock dashboard_js %}

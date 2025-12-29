@@ -5,12 +5,19 @@
 
 {% block extra_css %}
 {% include 'journal/partials/sidebar_css.html' %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    /* 3-Column Layout */
+    /* Hide footer on journal page - full height layout */
+    footer {
+        display: none !important;
+    }
+
+    /* 2-Column Layout (no right sidebar) */
     .journal-layout {
         display: flex;
-        min-height: calc(100vh - 56px - 80px); /* Navbar + footer */
-        position: relative;
+        height: calc(100vh - 56px);
+        overflow: hidden;
     }
 
     /* Main Content Area */
@@ -21,7 +28,701 @@
         background: #f9fafb;
     }
 
-    /* Entry Cards */
+    /* Insights Header */
+    .insights-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .insights-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    /* Section Labels */
+    .section-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Insight Cards Grid */
+    .insights-grid {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .streaks-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 1rem;
+        min-height: 280px;
+        margin-bottom: 0.5rem;
+    }
+
+    .stats-grid .entries-card {
+        grid-column: 1;
+        grid-row: 1 / 3;
+    }
+
+    .stats-grid .places-stats-card {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .stats-grid .words-stats-card {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .stats-grid .journaled-stats-card {
+        grid-column: 3;
+        grid-row: 1 / 3;
+    }
+
+    /* Places Card - Dark Navy */
+    .places-stats-card {
+        background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        padding: 1rem;
+    }
+
+    .places-stats-card .places-label-top {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .places-stats-card .places-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin: 0.25rem 0;
+    }
+
+    .places-stats-card .places-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .places-stats-card .places-empty {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+
+    /* Entries Card */
+    .entries-card {
+        background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        padding: 1.25rem;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .entries-card .entries-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .entries-card .entries-count {
+        font-size: 4rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .entries-card .entries-label {
+        font-size: 1.25rem;
+        opacity: 0.9;
+    }
+
+    .entries-card .chart-area {
+        flex: 1;
+        min-height: 80px;
+        margin: 0.5rem 0;
+    }
+
+    .entries-card .year-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: auto;
+    }
+
+    .entries-card .year-tab {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        background: transparent;
+        color: rgba(255,255,255,0.7);
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .entries-card .year-tab:hover {
+        color: white;
+        background: rgba(255,255,255,0.1);
+    }
+
+    .entries-card .year-tab.active {
+        background: rgba(67, 56, 202, 0.8);
+        color: white;
+    }
+
+    /* Words Card */
+    .words-stats-card {
+        background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        padding: 1rem;
+    }
+
+    .words-stats-card .words-label-top {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .words-stats-card .words-value {
+        font-size: 3rem;
+        font-weight: 700;
+        line-height: 1;
+        margin: 0.25rem 0;
+    }
+
+    .words-stats-card .words-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    /* Journaled Card */
+    .journaled-stats-card {
+        background: linear-gradient(135deg, #be185d 0%, #9f1239 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        text-align: center;
+        padding: 1.5rem 1.25rem;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .journaled-stats-card .journaled-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .journaled-stats-card .journaled-label-top {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+
+    .journaled-stats-card .journaled-value {
+        font-size: 4rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .journaled-stats-card .journaled-unit {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+    }
+
+    .journaled-stats-card .journaled-breakdown {
+        display: flex;
+        gap: 3rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid rgba(255,255,255,0.2);
+        width: 100%;
+        justify-content: center;
+    }
+
+    .journaled-stats-card .breakdown-item {
+        text-align: center;
+    }
+
+    .journaled-stats-card .breakdown-value {
+        font-size: 1.75rem;
+        font-weight: 600;
+        line-height: 1;
+    }
+
+    .journaled-stats-card .breakdown-label {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    /* Insight Card Base */
+    .insight-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        transition: all 0.2s;
+    }
+
+    .insight-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+    }
+
+    /* Current Streak Card - Gradient */
+    .streak-card-current {
+        background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #a855f7 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .streak-card-current .card-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        margin-bottom: 0.25rem;
+    }
+
+    .streak-card-current .streak-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .streak-card-current .streak-unit {
+        font-size: 0.875rem;
+        opacity: 0.9;
+        margin-top: 0.25rem;
+    }
+
+    /* Streak Info Cards - White */
+    .streak-card-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .streak-card-info .card-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .streak-card-info .streak-title {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .streak-card-info .streak-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #dc2626;
+        line-height: 1;
+    }
+
+    .streak-card-info .streak-unit {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    /* Badge Card */
+    .badge-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .badge-card .card-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .badge-card .badge-display {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .badge-card .badge-display.badge-bronze {
+        background: linear-gradient(145deg, #f4d4a4 0%, #cd853f 50%, #8b4513 100%);
+        box-shadow: 0 4px 12px rgba(205, 133, 63, 0.4);
+        color: #5c3317;
+    }
+
+    .badge-card .badge-display.badge-silver {
+        background: linear-gradient(145deg, #ffffff 0%, #d4d4d4 50%, #a0a0a0 100%);
+        box-shadow: 0 4px 12px rgba(192, 192, 192, 0.5);
+        color: #404040;
+    }
+
+    .badge-card .badge-display.badge-gold {
+        background: linear-gradient(145deg, #fff8dc 0%, #ffd700 50%, #b8860b 100%);
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
+        color: #8b6914;
+    }
+
+    .badge-card .badge-name {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 0.9rem;
+    }
+
+    .badge-card .badge-days {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    .badge-card-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #9ca3af;
+    }
+
+    .badge-card-empty i {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.5;
+    }
+
+    .badge-card-empty .empty-text {
+        font-size: 0.8rem;
+    }
+
+    /* Devotion Card in Streaks Grid */
+    .devotion-card-grid {
+        background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .devotion-card-grid .card-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+
+    .devotion-card-grid .devotion-reference {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #fef3c7;
+        margin-bottom: 0.35rem;
+    }
+
+    .devotion-card-grid .devotion-verse {
+        font-size: 0.75rem;
+        font-style: italic;
+        line-height: 1.3;
+        opacity: 0.95;
+        margin-bottom: 0.5rem;
+    }
+
+    .devotion-card-grid .devotion-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        color: #0f766e;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 0.25rem;
+    }
+
+    .devotion-card-grid .devotion-btn:hover {
+        background: #f0fdfa;
+        transform: translateY(-1px);
+    }
+
+    .devotion-card-grid .devotion-empty {
+        opacity: 0.8;
+        font-size: 0.85rem;
+    }
+
+    /* Calendar Section - Clean White Style */
+    .calendar-section {
+        margin-top: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-insights-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        background: transparent;
+    }
+
+    .calendar-panel {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+    }
+
+    .calendar-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .calendar-title h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .calendar-title .expand-icon {
+        color: #9ca3af;
+        cursor: pointer;
+    }
+
+    .calendar-nav {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .calendar-nav button {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 1.25rem;
+        cursor: pointer;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .calendar-nav button:hover {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.375rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .calendar-weekdays span {
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        padding: 0.5rem 0;
+    }
+
+    .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.375rem;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        color: #374151;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        background: #f9fafb;
+    }
+
+    .calendar-day:hover {
+        background: #e5e7eb;
+    }
+
+    .calendar-day.other-month {
+        color: #d1d5db;
+        background: transparent;
+    }
+
+    .calendar-day.today {
+        background: #6366f1;
+        color: white;
+        font-weight: 600;
+    }
+
+    .calendar-day.has-entry::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        width: 6px;
+        height: 6px;
+        background: #6366f1;
+        border-radius: 50%;
+    }
+
+    .calendar-day.today.has-entry::after {
+        background: white;
+    }
+
+    .map-panel {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .map-panel #placesMap {
+        flex: 1;
+        min-height: 280px;
+    }
+
+    .no-places {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .no-places i {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.6;
+    }
+
+    .no-places code {
+        background: #f3f4f6;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    @media (max-width: 768px) {
+        .calendar-insights-card {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Custom Map Markers */
+    .custom-marker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50%;
+        color: white;
+        font-size: 14px;
+    }
+
+    .travel-marker {
+        background: #3b82f6;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+    }
+
+    .place-marker {
+        background: #10b981;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+    }
+
+    .both-marker {
+        background: #f59e0b;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.5);
+    }
+
+    /* Date filter display */
+    .date-filter-view {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .date-filter-badge {
+        display: inline-flex;
+        align-items: center;
+        background: #ede9fe;
+        color: #5b21b6;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        margin-bottom: 1rem;
+    }
+
+    .date-filter-badge .clear-filter {
+        margin-left: 0.5rem;
+        color: #7c3aed;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    /* Entry List for date filter view */
     .entry-card {
         border: none;
         border-radius: 12px;
@@ -51,7 +752,10 @@
         background: #f9fafb;
     }
 
-    /* Entry row with delete button */
+    .mood-emoji {
+        font-size: 1.5rem;
+    }
+
     .entry-row .delete-entry-btn {
         opacity: 0;
         transition: opacity 0.2s;
@@ -61,19 +765,68 @@
         opacity: 1;
     }
 
-    .entry-link {
-        display: block;
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .streaks-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .devotion-card-grid {
+            grid-column: span 2;
+        }
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto auto;
+        }
+        .entries-card {
+            grid-column: span 2;
+            grid-row: span 1;
+            min-height: 200px;
+        }
+        .journaled-stats-card {
+            grid-row: span 1;
+        }
+        .places-stats-card,
+        .words-stats-card {
+            min-height: 100px;
+        }
     }
 
-    .entry-link:hover {
-        text-decoration: none;
+    @media (max-width: 992px) {
+        .streaks-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .devotion-card-grid {
+            grid-column: span 1;
+        }
     }
 
-    .mood-emoji {
-        font-size: 1.5rem;
+    @media (max-width: 768px) {
+        .journal-layout {
+            flex-direction: column;
+        }
+        .main-content-area {
+            padding: 1rem;
+        }
+        .streaks-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        .stats-grid {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto;
+        }
+        .entries-card,
+        .places-stats-card,
+        .words-stats-card,
+        .journaled-stats-card {
+            grid-column: span 1;
+            grid-row: span 1;
+        }
+        .entries-card {
+            min-height: 220px;
+        }
     }
 
-    /* Delete Confirmation Modal */
+    /* Delete Modal */
     .delete-modal-overlay {
         display: none;
         position: fixed;
@@ -98,18 +851,6 @@
         max-width: 400px;
         width: 90%;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: modalSlideIn 0.2s ease-out;
-    }
-
-    @keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: scale(0.95) translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
     }
 
     .delete-modal-icon {
@@ -127,208 +868,6 @@
         font-size: 1.5rem;
         color: #dc2626;
     }
-
-    .delete-modal h5 {
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .delete-modal p {
-        text-align: center;
-        color: #6b7280;
-        margin-bottom: 1.5rem;
-    }
-
-    .delete-modal-actions {
-        display: flex;
-        gap: 0.75rem;
-    }
-
-    .delete-modal-actions button {
-        flex: 1;
-        padding: 0.75rem;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-
-    /* On This Day Section */
-    .on-this-day-section .card {
-        overflow: hidden;
-    }
-
-    .bg-gradient-purple {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    }
-
-    .year-badge {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
-        font-weight: 700;
-        font-size: 0.85rem;
-        padding: 0.4rem 0.75rem;
-        border-radius: 8px;
-        min-width: 60px;
-        text-align: center;
-    }
-
-    .on-this-day-section .list-group-item {
-        border-left: none;
-        border-right: none;
-        transition: background 0.2s;
-    }
-
-    .on-this-day-section .list-group-item:first-child {
-        border-top: none;
-    }
-
-    .on-this-day-section .list-group-item:last-child {
-        border-bottom: none;
-    }
-
-    .on-this-day-section .list-group-item:hover {
-        background: #f9fafb;
-    }
-
-    .on-this-day-section .list-group-item:hover .year-badge {
-        transform: scale(1.05);
-        transition: transform 0.2s;
-    }
-
-    /* Date filter badge */
-    .date-filter-badge {
-        display: inline-flex;
-        align-items: center;
-        background: #ede9fe;
-        color: #5b21b6;
-        padding: 0.5rem 1rem;
-        border-radius: 50px;
-        margin-bottom: 1rem;
-    }
-
-    .date-filter-badge .clear-filter {
-        margin-left: 0.5rem;
-        color: #7c3aed;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    /* Collapse icon */
-    .collapse-icon {
-        transition: transform 0.2s ease;
-    }
-
-    [aria-expanded="false"] .collapse-icon {
-        transform: rotate(-90deg);
-    }
-
-    /* Page-specific responsive additions */
-    @media (max-width: 1200px) {
-        .insights-sidebar-right.show-mobile .insights-content {
-            display: block;
-            position: absolute;
-            right: 48px;
-            top: 0;
-            width: 280px;
-            height: 100%;
-            background: white;
-            box-shadow: -4px 0 12px rgba(0,0,0,0.1);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .journal-layout {
-            flex-direction: column;
-        }
-        .main-content-area {
-            padding: 1rem;
-        }
-    }
-
-    /* Year-over-Year Overview */
-    .year-overview-section .year-stat-card {
-        background: #fafafa;
-        transition: all 0.2s;
-    }
-
-    .year-overview-section .year-stat-card:hover {
-        background: #f3f4f6;
-    }
-
-    .year-overview-section .year-stat-card.border-primary {
-        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-    }
-
-    .year-badge-large {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
-        font-weight: 700;
-        font-size: 1.1rem;
-        padding: 0.6rem 1rem;
-        border-radius: 10px;
-        min-width: 70px;
-        text-align: center;
-    }
-
-    .year-overview-section .mood-bar div {
-        transition: width 0.3s ease;
-    }
-
-    .year-overview-section .badge {
-        font-weight: 500;
-    }
-
-    /* Streak Badges */
-    .streak-badge {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.35rem 0.75rem;
-        border-radius: 20px;
-        background: #fef3c7;
-        font-size: 0.9rem;
-    }
-
-    .streak-badge.current-streak {
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    }
-
-    .streak-badge.best-streak {
-        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    }
-
-    .streak-badge i {
-        font-size: 1.1rem;
-    }
-
-    .streak-badge .streak-count {
-        font-weight: 700;
-        font-size: 1rem;
-    }
-
-    .streak-badge .streak-label {
-        font-size: 0.75rem;
-        color: #6b7280;
-    }
-
-    .streak-mini {
-        display: flex;
-        align-items: center;
-        gap: 0.2rem;
-        padding: 0.2rem 0.5rem;
-        border-radius: 12px;
-        background: #fef3c7;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #d97706;
-    }
-
-    .streak-mini i {
-        font-size: 0.9rem;
-    }
-
-    .text-orange {
-        color: #f97316 !important;
-    }
 </style>
 {% endblock %}
 
@@ -339,136 +878,33 @@
 
     <!-- Main Content Area -->
     <div class="main-content-area">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0"><i class="bi bi-book me-2"></i>My Journal</h1>
-            <a href="{% url 'journal:entry_create' %}" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;" title="New Entry">
-                <i class="bi bi-plus-lg" style="font-size: 1.5rem;"></i>
-            </a>
-        </div>
-
-        <!-- Daily Devotion -->
-        {% if daily_devotion %}
-        <div class="card mb-4 border-primary shadow-sm">
-            <div class="card-header bg-primary bg-opacity-10 border-primary d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-book me-2"></i>Today's Devotion</span>
-                <span class="badge bg-primary">{{ daily_devotion.theme }}</span>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h6 class="text-primary mb-2">{{ daily_devotion.reference }}</h6>
-                        <p class="fst-italic mb-2 small">"{{ daily_devotion.verse }}"</p>
-                        <p class="small mb-0 text-muted">{{ daily_devotion.reflection|truncatewords:30 }}</p>
-                    </div>
-                    <div class="col-md-4 d-flex align-items-center justify-content-end">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#devotionModal">
-                            <i class="bi bi-plus-circle me-1"></i>Add to Today's Entry
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Search and Filter -->
-        <div class="card mb-4 border-0 shadow-sm">
-            <div class="card-body py-2">
-                <form method="get" class="row g-2 align-items-center">
-                    <input type="hidden" name="year" value="{{ cal_year }}">
-                    <input type="hidden" name="month" value="{{ cal_month }}">
-
-                    <div class="col-md-6">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                            <input type="text" name="q" class="form-control" placeholder="Search entries..."
-                                   value="{{ query }}">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <select name="mood" class="form-select form-select-sm">
-                            <option value="">All moods</option>
-                            <option value="ecstatic" {% if mood == 'ecstatic' %}selected{% endif %}>🤩 Ecstatic</option>
-                            <option value="happy" {% if mood == 'happy' %}selected{% endif %}>😊 Happy</option>
-                            <option value="neutral" {% if mood == 'neutral' %}selected{% endif %}>😐 Neutral</option>
-                            <option value="sad" {% if mood == 'sad' %}selected{% endif %}>😢 Sad</option>
-                            <option value="angry" {% if mood == 'angry' %}selected{% endif %}>😠 Angry</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-secondary btn-sm w-100">Filter</button>
-                    </div>
-                </form>
+        <!-- Header -->
+        <div class="insights-header">
+            <h1>Insights</h1>
+            <div class="d-flex gap-2">
+                <a href="{% url 'journal:entry_create' %}" class="btn btn-primary rounded-pill px-4" title="New Entry">
+                    <i class="bi bi-plus-lg me-1"></i>New Entry
+                </a>
+                <a href="?show_all=1" class="btn btn-outline-secondary rounded-pill px-3" title="View All Entries">
+                    <i class="bi bi-list me-1"></i>All Entries
+                </a>
             </div>
         </div>
 
-        <!-- Unanalyzed Entries Banner -->
-        {% if unanalyzed_count > 0 %}
-        <div class="alert alert-info alert-dismissible fade show d-flex align-items-center justify-content-between" role="alert" id="unanalyzedBanner">
-            <div>
-                <i class="bi bi-cpu me-2"></i>
-                <strong>{{ unanalyzed_count }}</strong> entr{{ unanalyzed_count|pluralize:"y,ies" }} waiting for analysis.
-                <span class="text-muted">Analysis extracts mood, themes, and keywords.</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-info btn-sm" id="analyzeEntriesBtn" onclick="analyzeAllEntries()">
-                    <i class="bi bi-play-fill me-1"></i>Analyze Now
-                </button>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        </div>
-        <div id="analysisProgress" class="mb-3" style="display: none;">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <small class="text-muted" id="analysisText">Analyzing entries...</small>
-                <small class="text-muted" id="analysisCount">0 / {{ unanalyzed_count }}</small>
-            </div>
-            <div class="progress" style="height: 6px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" id="analysisProgressBar" style="width: 0%"></div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Date Filter Badge -->
         {% if selected_date %}
-        <div class="date-filter-badge">
-            <i class="bi bi-calendar-event me-2"></i>
-            Showing entries for {{ selected_date }}
-            <a href="?year={{ cal_year }}&month={{ cal_month }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}"
-               class="clear-filter">&times; Clear</a>
-        </div>
-        {% endif %}
-
-        <!-- Entry List -->
-        {% if entries %}
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <button class="btn btn-link text-decoration-none p-0 text-dark fw-semibold"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#entriesCollapse"
-                            aria-expanded="true"
-                            aria-controls="entriesCollapse">
-                        <i class="bi bi-chevron-down me-2 collapse-icon"></i>
-                        Recent Entries
-                        <span class="badge bg-secondary ms-2">{{ entries.paginator.count }}</span>
-                    </button>
-                    {% if show_all or entries.paginator.count > 5 %}
-                    <a href="{% if show_all %}?year={{ cal_year }}&month={{ cal_month }}{% else %}?show_all=1&year={{ cal_year }}&month={{ cal_month }}{% endif %}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}"
-                       class="btn btn-sm {% if show_all %}btn-outline-secondary{% else %}btn-outline-primary{% endif %}">
-                        {% if show_all %}
-                        <i class="bi bi-chevron-up me-1"></i>Show Less
-                        {% else %}
-                        <i class="bi bi-grid me-1"></i>View All
-                        {% endif %}
-                    </a>
-                    {% endif %}
-                </div>
+        <!-- Date Filter View - Show entries for selected date -->
+        <div class="date-filter-view">
+            <div class="date-filter-badge">
+                <i class="bi bi-calendar-event me-2"></i>
+                Showing entries for {{ selected_date }}
+                <a href="?year={{ cal_year }}&month={{ cal_month }}" class="clear-filter">&times; Back to Insights</a>
             </div>
-            <div class="collapse show" id="entriesCollapse">
+
+            {% if entries %}
+            <div class="card border-0 shadow-sm">
                 <div class="card-body p-0">
-                    <div class="list-group list-group-flush" id="entry-list">
+                    <div class="list-group list-group-flush">
                         {% for entry in entries %}
-                        {% if show_all or forloop.counter <= 5 %}
                         <div class="list-group-item entry-card-inner entry-row" data-entry-id="{{ entry.pk }}">
                             <div class="d-flex w-100 justify-content-between align-items-start">
                                 <a href="{% url 'journal:entry_detail' entry.pk %}" class="entry-link flex-grow-1 text-decoration-none">
@@ -483,286 +919,385 @@
                                     <p class="text-muted mb-1 small">{{ entry.entry_date|date:"l, F j, Y" }}</p>
                                     <p class="mb-1 small text-dark">{{ entry.preview }}</p>
                                     <small class="text-muted">{{ entry.word_count }} words</small>
-                                    {% if entry.analysis %}
-                                    <span class="badge bg-{% if entry.analysis.sentiment_label == 'positive' %}success{% elif entry.analysis.sentiment_label == 'negative' %}danger{% else %}secondary{% endif %} ms-2">
-                                        {{ entry.analysis.detected_mood }}
-                                    </span>
-                                    {% endif %}
                                 </a>
-                                <div class="entry-actions d-flex align-items-center gap-2">
-                                    {% if entry.is_analyzed %}
-                                    <i class="bi bi-check-circle text-success" title="Analyzed"></i>
-                                    {% else %}
-                                    <i class="bi bi-hourglass text-warning" title="Processing..."></i>
-                                    {% endif %}
-                                    <button type="button"
-                                            class="btn btn-sm btn-outline-danger delete-entry-btn"
-                                            data-entry-id="{{ entry.pk }}"
-                                            data-entry-title="{{ entry.title|default:entry.entry_date }}"
-                                            title="Delete entry">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-entry-btn"
+                                        data-entry-id="{{ entry.pk }}"
+                                        data-entry-title="{{ entry.title|default:entry.entry_date }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </div>
-                        {% endif %}
                         {% endfor %}
                     </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-journal-plus display-4 text-muted"></i>
+                <p class="text-muted mt-2">No entries for this date</p>
+                <a href="{% url 'journal:entry_create' %}?date={{ selected_date }}" class="btn btn-primary">
+                    Write an Entry
+                </a>
+            </div>
+            {% endif %}
 
-                    {% if not show_all and entries.paginator.count > 5 %}
-                    <div class="text-center py-3 border-top" id="showMoreSection">
-                        <a href="?show_all=1&year={{ cal_year }}&month={{ cal_month }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}"
-                           class="text-primary text-decoration-none">
-                            <i class="bi bi-plus-circle me-1"></i>
-                            <span id="showMoreText">Show {{ entries.paginator.count|add:"-5" }} more entries</span>
-                        </a>
+            <!-- On This Day - Other entries from the same day in different years -->
+            {% if same_day_other_years %}
+            <div class="mt-4">
+                <h6 class="text-muted mb-3"><i class="bi bi-calendar-heart me-2"></i>On This Day ({{ filter_date|date:"F j" }})</h6>
+                {% for other_entry in same_day_other_years %}
+                <a href="{% url 'journal:entry_detail' other_entry.pk %}" class="d-flex align-items-center p-2 rounded text-decoration-none mb-2" style="background: #f3f4f6;">
+                    <span class="badge bg-primary me-3">{{ other_entry.entry_date|date:"Y" }}</span>
+                    <div class="flex-grow-1">
+                        <strong class="text-dark">{{ other_entry.title|default:"Untitled" }}</strong>
+                        <p class="text-muted mb-0 small">{{ other_entry.preview|truncatewords:10 }}</p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        {% elif show_all %}
+        <!-- Show All Entries View -->
+        <div class="date-filter-view">
+            <div class="date-filter-badge">
+                <i class="bi bi-list me-2"></i>
+                All Entries ({{ entries.paginator.count }})
+                <a href="?" class="clear-filter">&times; Back to Insights</a>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="card mb-3 border-0 shadow-sm">
+                <div class="card-body py-2">
+                    <form method="get" class="row g-2 align-items-center">
+                        <input type="hidden" name="show_all" value="1">
+                        <div class="col-md-6">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                                <input type="text" name="q" class="form-control" placeholder="Search entries..." value="{{ query }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="mood" class="form-select form-select-sm">
+                                <option value="">All moods</option>
+                                <option value="ecstatic" {% if mood == 'ecstatic' %}selected{% endif %}>Ecstatic</option>
+                                <option value="happy" {% if mood == 'happy' %}selected{% endif %}>Happy</option>
+                                <option value="neutral" {% if mood == 'neutral' %}selected{% endif %}>Neutral</option>
+                                <option value="sad" {% if mood == 'sad' %}selected{% endif %}>Sad</option>
+                                <option value="angry" {% if mood == 'angry' %}selected{% endif %}>Angry</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-secondary btn-sm w-100">Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if entries %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for entry in entries %}
+                        <div class="list-group-item entry-card-inner entry-row" data-entry-id="{{ entry.pk }}">
+                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                <a href="{% url 'journal:entry_detail' entry.pk %}" class="entry-link flex-grow-1 text-decoration-none">
+                                    <div class="d-flex align-items-center mb-1">
+                                        {% if entry.mood %}
+                                        <span class="mood-emoji me-2">{{ entry.mood_emoji }}</span>
+                                        {% endif %}
+                                        <h5 class="mb-0 h6 text-dark">
+                                            {% if entry.title %}{{ entry.title }}{% else %}{{ entry.entry_date }}{% endif %}
+                                        </h5>
+                                    </div>
+                                    <p class="text-muted mb-1 small">{{ entry.entry_date|date:"l, F j, Y" }}</p>
+                                    <p class="mb-1 small text-dark">{{ entry.preview }}</p>
+                                    <small class="text-muted">{{ entry.word_count }} words</small>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-entry-btn"
+                                        data-entry-id="{{ entry.pk }}"
+                                        data-entry-title="{{ entry.title|default:entry.entry_date }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% if entries.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if entries.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?show_all=1&page={{ entries.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}">&laquo;</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Page {{ entries.number }} of {{ entries.paginator.num_pages }}</span>
+                    </li>
+                    {% if entries.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?show_all=1&page={{ entries.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}">&raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-journal-plus display-4 text-muted"></i>
+                <p class="text-muted mt-2">No entries found</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% elif filter_type %}
+        <!-- Filtered by Capture Type View -->
+        <div class="date-filter-view">
+            <div class="date-filter-badge">
+                {% if filter_type == 'travel' %}<i class="bi bi-airplane me-2"></i>Travel
+                {% elif filter_type == 'book' %}<i class="bi bi-book me-2"></i>Readings
+                {% elif filter_type == 'workout' %}<i class="bi bi-heart-pulse me-2"></i>Fitness
+                {% elif filter_type == 'watched' %}<i class="bi bi-film me-2"></i>Watched
+                {% elif filter_type == 'meal' %}<i class="bi bi-cup-hot me-2"></i>Meals
+                {% elif filter_type == 'gratitude' %}<i class="bi bi-heart me-2"></i>Gratitude
+                {% elif filter_type == 'dream' %}<i class="bi bi-cloud-moon me-2"></i>Dreams
+                {% elif filter_type == 'person' %}<i class="bi bi-people me-2"></i>People
+                {% elif filter_type == 'place' %}<i class="bi bi-geo-alt me-2"></i>Places
+                {% else %}<i class="bi bi-tag me-2"></i>{{ filter_type|title }}
+                {% endif %}
+                ({{ entries|length }})
+                <a href="?" class="clear-filter">&times; Back to Insights</a>
+            </div>
+
+            {% if entries %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for entry in entries %}
+                        <div class="list-group-item entry-card-inner entry-row" data-entry-id="{{ entry.pk }}">
+                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                <a href="{% url 'journal:entry_detail' entry.pk %}" class="entry-link flex-grow-1 text-decoration-none">
+                                    <div class="d-flex align-items-center mb-1">
+                                        {% if entry.mood %}
+                                        <span class="mood-emoji me-2">{{ entry.mood_emoji }}</span>
+                                        {% endif %}
+                                        <h5 class="mb-0 h6 text-dark">
+                                            {% if entry.title %}{{ entry.title }}{% else %}{{ entry.entry_date }}{% endif %}
+                                        </h5>
+                                    </div>
+                                    <p class="text-muted mb-1 small">{{ entry.entry_date|date:"l, F j, Y" }}</p>
+                                    <p class="mb-1 small text-dark">{{ entry.preview }}</p>
+                                    <small class="text-muted">{{ entry.word_count }} words</small>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-entry-btn"
+                                        data-entry-id="{{ entry.pk }}"
+                                        data-entry-title="{{ entry.title|default:entry.entry_date }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-journal-plus display-4 text-muted"></i>
+                <p class="text-muted mt-2">No entries with this capture type</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% else %}
+        <!-- Default Insights View -->
+
+        <!-- Streaks Section -->
+        <div class="section-label">Streaks</div>
+        <div class="insights-grid streaks-grid">
+            <!-- Current Streak - Large gradient card -->
+            <div class="insight-card streak-card-current">
+                <div class="card-label">Current Streak</div>
+                <div>
+                    <div class="streak-value">{{ current_streak }}</div>
+                    <div class="streak-unit">Days</div>
+                </div>
+            </div>
+
+            <!-- Longest Daily Streak -->
+            <div class="insight-card streak-card-info">
+                <div class="card-label">Longest</div>
+                <div class="streak-title">Daily Streak</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <span class="streak-value">{{ best_streak }}</span>
+                    <span class="streak-unit">Days</span>
+                </div>
+            </div>
+
+            <!-- Longest Weekly Streak -->
+            <div class="insight-card streak-card-info">
+                <div class="card-label">Longest</div>
+                <div class="streak-title">Weekly Streak</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <span class="streak-value">{{ longest_weekly_streak }}</span>
+                    <span class="streak-unit">Weeks</span>
+                </div>
+            </div>
+
+            <!-- Highest Badge -->
+            <div class="insight-card badge-card">
+                {% if highest_badge %}
+                <div class="card-label">Highest Badge</div>
+                <div class="badge-display badge-{{ highest_badge.tier }}" title="{{ highest_badge.description }}">
+                    <i class="bi bi-{{ highest_badge.icon }}"></i>
+                </div>
+                <div class="badge-name">{{ highest_badge.name }}</div>
+                <div class="badge-days">{{ highest_badge.days }} day streak</div>
+                {% else %}
+                <div class="badge-card-empty">
+                    <i class="bi bi-award"></i>
+                    <div class="empty-text">No badges yet</div>
+                    <div class="empty-text">Keep your streak!</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Daily Devotion -->
+            <div class="insight-card devotion-card-grid">
+                {% if daily_devotion %}
+                <div class="card-label">Daily Devotion</div>
+                <div class="devotion-reference">{{ daily_devotion.reference }}</div>
+                <div class="devotion-verse">"{{ daily_devotion.verse|truncatewords:12 }}"</div>
+                {% if has_entry_today %}
+                <button class="devotion-btn" data-action="insert">
+                    <i class="bi bi-plus-circle me-1"></i>Add to Entry
+                </button>
+                {% else %}
+                <button class="devotion-btn" data-action="create">
+                    <i class="bi bi-pencil me-1"></i>Write
+                </button>
+                {% endif %}
+                {% else %}
+                <div class="devotion-empty">
+                    <i class="bi bi-book" style="font-size: 1.5rem; opacity: 0.6; margin-bottom: 0.5rem;"></i>
+                    <div>Devotion disabled</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="section-label">Stats</div>
+        <div class="stats-grid">
+            <!-- Entries Card -->
+            <div class="entries-card">
+                <div class="entries-header">
+                    <div>
+                        <div class="entries-count">{{ entries_this_year }}</div>
+                        <div class="entries-label">Entr{{ entries_this_year|pluralize:"y,ies" }}</div>
+                    </div>
+                </div>
+                <div class="chart-area">
+                    <canvas id="monthlyEntriesChart"></canvas>
+                </div>
+                <div class="year-tabs">
+                    <button class="year-tab" data-year="all">All-time</button>
+                    <button class="year-tab active" data-year="{{ today.year }}">{{ today.year }}</button>
+                    {% if today.year > 2024 %}
+                    <button class="year-tab" data-year="{{ today.year|add:'-1' }}">{{ today.year|add:'-1' }}</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Visited Places Card -->
+            <div class="places-stats-card">
+                {% if total_places > 0 %}
+                <div class="places-label-top">Visited</div>
+                <div class="places-value">{{ total_places }}</div>
+                <div class="places-label">Places</div>
+                {% else %}
+                <div class="places-empty">No Visited Places</div>
+                {% endif %}
+            </div>
+
+            <!-- Written Words Card -->
+            <div class="words-stats-card">
+                <div class="words-label-top">Written</div>
+                <div class="words-value">{{ words_this_year|intcomma }}</div>
+                <div class="words-label">Words</div>
+            </div>
+
+            <!-- Journaled Card -->
+            <div class="journaled-stats-card">
+                <div class="journaled-main">
+                    <div class="journaled-label-top">Journaled</div>
+                    <div class="journaled-value">{{ journaled_days_year }}</div>
+                    <div class="journaled-unit">Days</div>
+                </div>
+                <div class="journaled-breakdown">
+                    <div class="breakdown-item">
+                        <div class="breakdown-value">{{ journaled_days_month }}</div>
+                        <div class="breakdown-label">This Month</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="breakdown-value">{{ journaled_days_year }}</div>
+                        <div class="breakdown-label">This Year</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div class="section-label">Calendar</div>
+        <div class="calendar-section">
+            <div class="calendar-insights-card">
+                <!-- Calendar Panel -->
+                <div class="calendar-panel">
+                    <div class="calendar-header">
+                        <div class="calendar-title">
+                            <h3 id="calendarMonthTitle">{{ today|date:"F Y" }}</h3>
+                            <i class="bi bi-chevron-right expand-icon"></i>
+                        </div>
+                        <div class="calendar-nav">
+                            <button id="calPrevMonth"><i class="bi bi-chevron-left"></i></button>
+                            <button id="calNextMonth"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <span>SUN</span>
+                        <span>MON</span>
+                        <span>TUE</span>
+                        <span>WED</span>
+                        <span>THU</span>
+                        <span>FRI</span>
+                        <span>SAT</span>
+                    </div>
+                    <div class="calendar-days" id="calendarDays">
+                        <!-- Days will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Map Panel -->
+                <div class="map-panel">
+                    {% if map_locations %}
+                    <div id="placesMap"></div>
+                    {% else %}
+                    <div class="no-places">
+                        <i class="bi bi-airplane"></i>
+                        <p>No travel yet</p>
+                        <small>Use <code>/travel</code> to log destinations</small>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Pagination -->
-        {% if show_all and entries.has_other_pages %}
-        <nav class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% if entries.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?show_all=1&page={{ entries.previous_page_number }}&year={{ cal_year }}&month={{ cal_month }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}">&laquo; Previous</a>
-                </li>
-                {% endif %}
-                <li class="page-item disabled">
-                    <span class="page-link">Page {{ entries.number }} of {{ entries.paginator.num_pages }}</span>
-                </li>
-                {% if entries.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?show_all=1&page={{ entries.next_page_number }}&year={{ cal_year }}&month={{ cal_month }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}">Next &raquo;</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
-
-        <!-- On This Day - Other entries from the same day in different years -->
-        {% if same_day_other_years %}
-        <div class="on-this-day-section mt-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-purple text-white py-2">
-                    <i class="bi bi-calendar-heart me-2"></i>
-                    On This Day ({{ filter_date|date:"F j" }})
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        {% for other_entry in same_day_other_years %}
-                        <a href="{% url 'journal:entry_detail' other_entry.pk %}"
-                           class="list-group-item list-group-item-action d-flex align-items-center py-3">
-                            <div class="year-badge me-3">
-                                {{ other_entry.entry_date|date:"Y" }}
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center">
-                                    {% if other_entry.mood %}
-                                    <span class="me-2">{{ other_entry.mood_emoji }}</span>
-                                    {% endif %}
-                                    <strong>{{ other_entry.title|default:"Untitled" }}</strong>
-                                </div>
-                                <p class="text-muted mb-0 small text-truncate" style="max-width: 400px;">
-                                    {{ other_entry.preview }}
-                                </p>
-                            </div>
-                            <small class="text-muted ms-2">
-                                {{ other_entry.word_count }} words
-                            </small>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Year-over-Year Overview -->
-        {% if yearly_stats %}
-        <div class="year-overview-section mt-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <button class="btn btn-link text-decoration-none p-0 text-dark fw-semibold"
-                                type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#yearOverviewCollapse"
-                                aria-expanded="true"
-                                aria-controls="yearOverviewCollapse">
-                            <i class="bi bi-chevron-down me-2 collapse-icon"></i>
-                            <i class="bi bi-calendar3 me-1"></i>Year-over-Year Overview
-                            <span class="badge bg-secondary ms-2">{{ yearly_stats|length }} years</span>
-                        </button>
-                        <div class="d-flex gap-3">
-                            <div class="streak-badge current-streak" title="Current writing streak">
-                                <i class="bi bi-fire text-warning"></i>
-                                <span class="streak-count">{{ current_streak }}</span>
-                                <span class="streak-label">Current</span>
-                            </div>
-                            <div class="streak-badge best-streak" title="Best writing streak ever">
-                                <i class="bi bi-fire text-danger"></i>
-                                <span class="streak-count">{{ best_streak }}</span>
-                                <span class="streak-label">Best</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="collapse show" id="yearOverviewCollapse">
-                    <div class="card-body pt-0">
-                        <div class="row g-3">
-                            {% for year_stat in yearly_stats %}
-                            <div class="col-12">
-                                <div class="year-stat-card p-3 rounded-3 border {% if forloop.first %}border-primary{% endif %}">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div class="d-flex align-items-center">
-                                            <span class="year-badge-large me-3">{{ year_stat.year }}</span>
-                                            <div>
-                                                <div class="fw-bold">{{ year_stat.entry_count }} entr{{ year_stat.entry_count|pluralize:"y,ies" }}</div>
-                                                <div class="text-muted small">{{ year_stat.total_words|intcomma }} words written (avg {{ year_stat.avg_words }} per entry)</div>
-                                            </div>
-                                        </div>
-                                        <div class="text-end d-flex align-items-center gap-2">
-                                            {% if year_stat.best_streak > 1 %}
-                                            <div class="streak-mini" title="Best streak this year: {{ year_stat.best_streak }} days">
-                                                <i class="bi bi-fire text-orange"></i>
-                                                <span>{{ year_stat.best_streak }}d</span>
-                                            </div>
-                                            {% endif %}
-                                            <span class="fs-3" title="Dominant mood">{{ year_stat.dominant_mood_emoji }}</span>
-                                            {% if year_stat.sentiment_label == 'positive' %}
-                                            <div class="badge bg-success-subtle text-success">Positive Year</div>
-                                            {% elif year_stat.sentiment_label == 'negative' %}
-                                            <div class="badge bg-danger-subtle text-danger">Challenging Year</div>
-                                            {% else %}
-                                            <div class="badge bg-secondary-subtle text-secondary">Balanced Year</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-
-                                    <!-- Mood Bar -->
-                                    {% if year_stat.mood_distribution %}
-                                    <div class="mood-bar mb-3" style="height: 8px; border-radius: 4px; overflow: hidden; display: flex; background: #e5e7eb;">
-                                        {% if year_stat.mood_distribution.ecstatic %}
-                                        <div style="width: {% widthratio year_stat.mood_distribution.ecstatic year_stat.entry_count 100 %}%; background: #fbbf24;" title="Ecstatic: {{ year_stat.mood_distribution.ecstatic }}"></div>
-                                        {% endif %}
-                                        {% if year_stat.mood_distribution.happy %}
-                                        <div style="width: {% widthratio year_stat.mood_distribution.happy year_stat.entry_count 100 %}%; background: #22c55e;" title="Happy: {{ year_stat.mood_distribution.happy }}"></div>
-                                        {% endif %}
-                                        {% if year_stat.mood_distribution.neutral %}
-                                        <div style="width: {% widthratio year_stat.mood_distribution.neutral year_stat.entry_count 100 %}%; background: #9ca3af;" title="Neutral: {{ year_stat.mood_distribution.neutral }}"></div>
-                                        {% endif %}
-                                        {% if year_stat.mood_distribution.sad %}
-                                        <div style="width: {% widthratio year_stat.mood_distribution.sad year_stat.entry_count 100 %}%; background: #3b82f6;" title="Sad: {{ year_stat.mood_distribution.sad }}"></div>
-                                        {% endif %}
-                                        {% if year_stat.mood_distribution.angry %}
-                                        <div style="width: {% widthratio year_stat.mood_distribution.angry year_stat.entry_count 100 %}%; background: #ef4444;" title="Angry: {{ year_stat.mood_distribution.angry }}"></div>
-                                        {% endif %}
-                                    </div>
-                                    {% endif %}
-
-                                    <div class="row g-3 mt-1">
-                                        <!-- Sentiment Stats (from AI analysis) -->
-                                        <div class="col-md-4">
-                                            <div class="small text-muted mb-2"><i class="bi bi-graph-up me-1"></i>Sentiment Analysis</div>
-                                            <div class="d-flex gap-4 text-center justify-content-start">
-                                                <div title="{{ year_stat.positive_count }} positive entries">
-                                                    <div class="fs-5 text-success fw-bold">{{ year_stat.positive_percent }}%</div>
-                                                    <div class="text-muted small">Positive</div>
-                                                </div>
-                                                <div title="{{ year_stat.neutral_count }} neutral entries">
-                                                    <div class="fs-5 text-secondary fw-bold">{{ year_stat.neutral_percent }}%</div>
-                                                    <div class="text-muted small">Neutral</div>
-                                                </div>
-                                                <div title="{{ year_stat.negative_count }} negative entries">
-                                                    <div class="fs-5 text-danger fw-bold">{{ year_stat.negative_percent }}%</div>
-                                                    <div class="text-muted small">Difficult</div>
-                                                </div>
-                                                {% if year_stat.analyzed_percent < 100 %}
-                                                <div class="border-start ps-3">
-                                                    <div class="fs-5 text-warning fw-bold">{{ year_stat.analyzed_percent }}%</div>
-                                                    <div class="text-muted small">Analyzed</div>
-                                                </div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-
-                                        <!-- Top Themes -->
-                                        <div class="col-md-4">
-                                            <div class="small text-muted mb-2"><i class="bi bi-tags me-1"></i>Top Themes</div>
-                                            {% if year_stat.top_themes %}
-                                            <div class="d-flex flex-wrap gap-1">
-                                                {% for theme, count in year_stat.top_themes %}
-                                                <span class="badge bg-primary-subtle text-primary" title="{{ count }} entries">{{ theme|title }}</span>
-                                                {% endfor %}
-                                            </div>
-                                            {% else %}
-                                            <div class="small text-muted fst-italic">No themes detected yet</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <!-- Top Tags / Keywords -->
-                                        <div class="col-md-4">
-                                            {% if year_stat.top_hashtags %}
-                                            <div class="small text-muted mb-2"><i class="bi bi-hash me-1"></i>Top Hashtags</div>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                {% for tag, count in year_stat.top_hashtags %}
-                                                <span class="badge bg-info-subtle text-info" title="{{ count }} uses">#{{ tag }}</span>
-                                                {% endfor %}
-                                            </div>
-                                            {% elif year_stat.top_keywords %}
-                                            <div class="small text-muted mb-2"><i class="bi bi-key me-1"></i>Top Keywords</div>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                {% for keyword, count in year_stat.top_keywords %}
-                                                <span class="badge bg-secondary-subtle text-secondary" title="{{ count }} mentions">{{ keyword }}</span>
-                                                {% endfor %}
-                                            </div>
-                                            {% else %}
-                                            <div class="small text-muted mb-2"><i class="bi bi-key me-1"></i>Keywords</div>
-                                            <div class="small text-muted fst-italic">No keywords detected yet</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% else %}
-        <div class="text-center py-5">
-            <div class="display-1 text-muted mb-3">
-                <i class="bi bi-journal-plus"></i>
-            </div>
-            {% if selected_date %}
-            <h3>No entries for this date</h3>
-            <p class="text-muted mb-4">There are no journal entries on {{ selected_date }}.</p>
-            <a href="{% url 'journal:entry_create' %}?date={{ selected_date }}" class="btn btn-primary btn-lg me-2">
-                Write an Entry
-            </a>
-            <a href="?year={{ cal_year }}&month={{ cal_month }}" class="btn btn-outline-secondary btn-lg">
-                View All Entries
-            </a>
-            {% else %}
-            <h3>No entries yet</h3>
-            <p class="text-muted mb-4">Start your journaling journey today.</p>
-            <a href="{% url 'journal:entry_create' %}" class="btn btn-primary btn-lg">
-                Write Your First Entry
-            </a>
-            {% endif %}
-        </div>
         {% endif %}
     </div>
-
-    <!-- Right Insights Sidebar -->
-    {% include 'journal/partials/insights_sidebar.html' %}
 </div>
 
 <!-- Delete Confirmation Modal -->
@@ -771,229 +1306,344 @@
         <div class="delete-modal-icon">
             <i class="bi bi-trash"></i>
         </div>
-        <h5>Delete Entry?</h5>
-        <p id="deleteModalMessage">Are you sure you want to delete this entry? This action cannot be undone.</p>
-        <div class="delete-modal-actions">
-            <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
-            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+        <h5 class="text-center">Delete Entry?</h5>
+        <p id="deleteModalMessage" class="text-center text-muted">Are you sure you want to delete this entry?</p>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary flex-grow-1" id="cancelDeleteBtn">Cancel</button>
+            <button type="button" class="btn btn-danger flex-grow-1" id="confirmDeleteBtn">
                 <i class="bi bi-trash me-1"></i>Delete
             </button>
         </div>
     </div>
 </div>
-
-<!-- Devotion Modal -->
-{% if daily_devotion %}
-<div class="modal fade" id="devotionModal" tabindex="-1" aria-labelledby="devotionModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary bg-opacity-10">
-                <h5 class="modal-title" id="devotionModalLabel">
-                    <i class="bi bi-book me-2"></i>Add Devotion to Journal
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-light">
-                    <h6 class="text-primary mb-2">{{ daily_devotion.reference }}</h6>
-                    <p class="fst-italic mb-2 small">"{{ daily_devotion.verse }}"</p>
-                    <p class="small mb-0">{{ daily_devotion.reflection }}</p>
-                </div>
-
-                {% if has_entry_today %}
-                <p class="mb-3">You already have an entry for today. How would you like to add this devotion?</p>
-                <div class="d-grid gap-2">
-                    <button type="button" class="btn btn-outline-primary" onclick="addDevotionToEntry('insert')">
-                        <i class="bi bi-file-earmark-text me-2"></i>Insert into Today's Entry
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="addDevotionToEntry('create')">
-                        <i class="bi bi-file-earmark-plus me-2"></i>Create New Entry
-                    </button>
-                </div>
-                {% else %}
-                <p class="mb-3">Would you like to create a new entry with this devotion?</p>
-                <div class="d-grid">
-                    <button type="button" class="btn btn-primary" onclick="addDevotionToEntry('create')">
-                        <i class="bi bi-file-earmark-plus me-2"></i>Create Entry for Today
-                    </button>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
 {% endblock %}
 
 {% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    // Add devotion to entry
-    function addDevotionToEntry(action) {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('devotionModal'));
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Entries Chart
+    const chartCtx = document.getElementById('monthlyEntriesChart');
+    if (chartCtx) {
+        const currentMonth = new Date().getMonth();
+        const currentYear = {{ today.year }};
+        const prevYear = {{ prev_year }};
 
-        fetch("{% url 'journal:add_devotion_to_entry' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': '{{ csrf_token }}'
+        // Data for different year selections
+        const chartData = {
+            '2025': {
+                data: {{ monthly_entry_counts|safe }},
+                count: {{ entries_this_year }}
             },
-            body: `action=${action}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Close modal
-                modal.hide();
-
-                // Show success message
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
-                alert.style.zIndex = '9999';
-                alert.innerHTML = `
-                    <i class="bi bi-check-circle me-2"></i>${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
-                document.body.appendChild(alert);
-
-                // Redirect to the entry
-                setTimeout(() => {
-                    window.location.href = data.redirect_url;
-                }, 1500);
-            } else {
-                alert('Error: ' + data.error);
+            '2024': {
+                data: {{ monthly_entry_counts_prev_year|safe }},
+                count: {{ entries_prev_year }}
+            },
+            'all': {
+                data: {{ monthly_entry_counts_all_time|safe }},
+                count: {{ entries_all_time }}
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+        };
+
+        const entriesChart = new Chart(chartCtx, {
+            type: 'bar',
+            data: {
+                labels: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
+                datasets: [{
+                    data: chartData['2025'].data,
+                    backgroundColor: chartData['2025'].data.map((_, i) =>
+                        i === currentMonth ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)'
+                    ),
+                    borderRadius: 4,
+                    barThickness: 12
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } }
+                    },
+                    y: {
+                        display: true,
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)', stepSize: 10 }
+                    }
+                }
+            }
+        });
+
+        // Year tab click handlers
+        document.querySelectorAll('.year-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('.year-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // Get selected year
+                const year = this.dataset.year;
+                const yearData = chartData[year];
+
+                if (yearData) {
+                    // Update chart data
+                    entriesChart.data.datasets[0].data = yearData.data;
+                    // Highlight current month only for current year
+                    entriesChart.data.datasets[0].backgroundColor = yearData.data.map((_, i) =>
+                        (year === '2025' && i === currentMonth) ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)'
+                    );
+                    entriesChart.update();
+
+                    // Update entries count
+                    const countEl = document.querySelector('.entries-count');
+                    const labelEl = document.querySelector('.entries-label');
+                    if (countEl) countEl.textContent = yearData.count;
+                    if (labelEl) labelEl.textContent = yearData.count === 1 ? 'Entry' : 'Entries';
+                }
+            });
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Toggle insights sidebar
-        const insightsToggle = document.querySelector('.insights-toggle');
-        const insightsSidebar = document.querySelector('.insights-sidebar-right');
+    // Places Map
+    {% if map_locations %}
+    const locations = {{ map_locations|safe }};
 
-        if (insightsToggle && insightsSidebar) {
-            insightsToggle.addEventListener('click', function() {
-                insightsSidebar.classList.toggle('collapsed');
+    if (locations.length > 0) {
+        // Calculate center
+        let sumLat = 0, sumLng = 0;
+        locations.forEach(loc => {
+            sumLat += loc.lat;
+            sumLng += loc.lng;
+        });
+        const centerLat = sumLat / locations.length;
+        const centerLng = sumLng / locations.length;
+
+        const map = L.map('placesMap').setView([centerLat, centerLng], 4);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap',
+            maxZoom: 18
+        }).addTo(map);
+
+        const markers = [];
+        locations.forEach(loc => {
+            const color = loc.type === 'travel' ? '#3b82f6' : loc.type === 'place' ? '#10b981' : '#f59e0b';
+            const icon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background:${color};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;box-shadow:0 2px 8px ${color}80;"><i class="bi bi-geo-alt-fill"></i></div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 28],
+                popupAnchor: [0, -28]
             });
-        }
 
-        // Calendar scroll functionality
-        const calendarScroll = document.getElementById('calendarScroll');
-        const todayBtn = document.getElementById('todayBtn');
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth() + 1; // JS months are 0-indexed
-
-        // Function to scroll to a specific month
-        function scrollToMonth(year, month, behavior = 'auto') {
-            if (!calendarScroll) return;
-            const monthSection = calendarScroll.querySelector(
-                `[data-year="${year}"][data-month="${month}"]`
-            );
-            if (monthSection) {
-                monthSection.scrollIntoView({ behavior: behavior, block: 'start' });
-                calendarScroll.scrollTop -= 10;
-            }
-        }
-
-        // Scroll to selected date's month if filtering, otherwise current month
-        if (calendarScroll) {
-            {% if selected_date %}
-            // Parse the selected date and scroll to that month
-            const selectedDate = new Date('{{ selected_date }}');
-            const selectedYear = selectedDate.getFullYear();
-            const selectedMonth = selectedDate.getMonth() + 1;
-            setTimeout(() => scrollToMonth(selectedYear, selectedMonth), 100);
-            {% else %}
-            // Scroll to current month
-            setTimeout(() => scrollToMonth(currentYear, currentMonth), 100);
-            {% endif %}
-        }
-
-        // Today button click handler
-        if (todayBtn) {
-            todayBtn.addEventListener('click', function() {
-                scrollToMonth(currentYear, currentMonth, 'smooth');
-            });
-        }
-
-        // Delete entry functionality
-        const deleteModal = document.getElementById('deleteModal');
-        const deleteModalMessage = document.getElementById('deleteModalMessage');
-        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        let entryToDelete = null;
-
-        // Open modal when delete button is clicked
-        document.querySelectorAll('.delete-entry-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                entryToDelete = this.dataset.entryId;
-                const entryTitle = this.dataset.entryTitle;
-                deleteModalMessage.textContent = `Are you sure you want to delete "${entryTitle}"? This action cannot be undone.`;
-                deleteModal.classList.add('active');
-            });
+            const marker = L.marker([loc.lat, loc.lng], { icon: icon })
+                .addTo(map)
+                .bindPopup(`<strong>${loc.name}</strong><br><small>${loc.count} visit${loc.count > 1 ? 's' : ''}</small>`);
+            markers.push(marker);
         });
 
-        // Close modal
-        function closeDeleteModal() {
-            deleteModal.classList.remove('active');
-            entryToDelete = null;
+        if (markers.length > 1) {
+            const group = L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
         }
 
+        // Fix for tiles not fully loading - invalidate size after render
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+    }
+    {% endif %}
+
+    // Calendar scroll to current month (left sidebar)
+    const calendarScroll = document.getElementById('calendarScroll');
+    const todayBtn = document.getElementById('todayBtn');
+    const today = new Date();
+
+    function scrollToMonth(year, month, behavior = 'auto') {
+        if (!calendarScroll) return;
+        const monthSection = calendarScroll.querySelector(`[data-year="${year}"][data-month="${month}"]`);
+        if (monthSection) {
+            monthSection.scrollIntoView({ behavior: behavior, block: 'start' });
+            calendarScroll.scrollTop -= 10;
+        }
+    }
+
+    if (calendarScroll) {
+        setTimeout(() => scrollToMonth(today.getFullYear(), today.getMonth() + 1), 100);
+    }
+
+    if (todayBtn) {
+        todayBtn.addEventListener('click', function() {
+            scrollToMonth(today.getFullYear(), today.getMonth() + 1, 'smooth');
+        });
+    }
+
+    // New Calendar Grid (Insights section)
+    const calendarDays = document.getElementById('calendarDays');
+    const calendarMonthTitle = document.getElementById('calendarMonthTitle');
+    const calPrevMonth = document.getElementById('calPrevMonth');
+    const calNextMonth = document.getElementById('calNextMonth');
+
+    // Entry dates from server (for highlighting days with entries)
+    const entryDates = new Set([
+        {% for month_data in calendar_months %}
+            {% for week in month_data.weeks %}
+                {% for day in week %}
+                    {% if day.has_entry %}'{{ day.date|date:"Y-m-d" }}',{% endif %}
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+    ]);
+
+    let currentCalYear = today.getFullYear();
+    let currentCalMonth = today.getMonth();
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    function renderCalendar(year, month) {
+        if (!calendarDays) return;
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDayOfWeek = firstDay.getDay();
+        const daysInMonth = lastDay.getDate();
+
+        // Update title
+        if (calendarMonthTitle) {
+            calendarMonthTitle.textContent = `${monthNames[month]} ${year}`;
+        }
+
+        // Clear existing days
+        calendarDays.innerHTML = '';
+
+        // Previous month days (grayed out)
+        const prevMonthLastDay = new Date(year, month, 0).getDate();
+        for (let i = startDayOfWeek - 1; i >= 0; i--) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'calendar-day other-month';
+            dayEl.textContent = prevMonthLastDay - i;
+            calendarDays.appendChild(dayEl);
+        }
+
+        // Current month days
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'calendar-day';
+
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            // Check if today
+            if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                dayEl.classList.add('today');
+            }
+
+            // Check if has entry
+            if (entryDates.has(dateStr)) {
+                dayEl.classList.add('has-entry');
+            }
+
+            dayEl.textContent = day;
+
+            // Click to filter entries by date
+            dayEl.addEventListener('click', function() {
+                window.location.href = `?date=${dateStr}`;
+            });
+
+            calendarDays.appendChild(dayEl);
+        }
+
+        // Next month days (grayed out)
+        const totalCells = startDayOfWeek + daysInMonth;
+        const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+        for (let i = 1; i <= remainingCells; i++) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'calendar-day other-month';
+            dayEl.textContent = i;
+            calendarDays.appendChild(dayEl);
+        }
+    }
+
+    // Initialize calendar
+    renderCalendar(currentCalYear, currentCalMonth);
+
+    // Navigation
+    if (calPrevMonth) {
+        calPrevMonth.addEventListener('click', function() {
+            currentCalMonth--;
+            if (currentCalMonth < 0) {
+                currentCalMonth = 11;
+                currentCalYear--;
+            }
+            renderCalendar(currentCalYear, currentCalMonth);
+        });
+    }
+
+    if (calNextMonth) {
+        calNextMonth.addEventListener('click', function() {
+            currentCalMonth++;
+            if (currentCalMonth > 11) {
+                currentCalMonth = 0;
+                currentCalYear++;
+            }
+            renderCalendar(currentCalYear, currentCalMonth);
+        });
+    }
+
+    // Delete entry functionality
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteModalMessage = document.getElementById('deleteModalMessage');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    let entryToDelete = null;
+
+    document.querySelectorAll('.delete-entry-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            entryToDelete = this.dataset.entryId;
+            const entryTitle = this.dataset.entryTitle;
+            deleteModalMessage.textContent = `Are you sure you want to delete "${entryTitle}"?`;
+            deleteModal.classList.add('active');
+        });
+    });
+
+    function closeDeleteModal() {
+        deleteModal.classList.remove('active');
+        entryToDelete = null;
+    }
+
+    if (cancelDeleteBtn) {
         cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    }
 
+    if (deleteModal) {
         deleteModal.addEventListener('click', function(e) {
-            if (e.target === deleteModal) {
-                closeDeleteModal();
-            }
+            if (e.target === deleteModal) closeDeleteModal();
         });
+    }
 
-        // Handle escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && deleteModal.classList.contains('active')) {
-                closeDeleteModal();
-            }
-        });
-
-        // Constants
-        const VISIBLE_ENTRIES_COUNT = 5;
-        const showAll = {{ show_all|yesno:"true,false" }};
-
-        // Function to attach delete handler to a button
-        function attachDeleteHandler(btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                entryToDelete = this.dataset.entryId;
-                const entryTitle = this.dataset.entryTitle;
-                deleteModalMessage.textContent = `Are you sure you want to delete "${entryTitle}"? This action cannot be undone.`;
-                deleteModal.classList.add('active');
-            });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && deleteModal && deleteModal.classList.contains('active')) {
+            closeDeleteModal();
         }
+    });
 
-        // Function to fetch the next entry to fill the list
-        function fetchNextEntry(offset) {
-            const params = new URLSearchParams();
-            params.set('offset', offset);
-            {% if query %}params.set('q', '{{ query }}');{% endif %}
-            {% if mood %}params.set('mood', '{{ mood }}');{% endif %}
-
-            return fetch(`/journal/api/entry-at-offset/?${params.toString()}`)
-                .then(response => response.json());
-        }
-
-        // Confirm delete
+    if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', function() {
             if (!entryToDelete) return;
 
             confirmDeleteBtn.disabled = true;
-            confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
+            confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
             fetch(`/journal/${entryToDelete}/delete/`, {
                 method: 'POST',
@@ -1005,153 +1655,60 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const entryList = document.getElementById('entry-list');
                     const entryRow = document.querySelector(`.entry-row[data-entry-id="${entryToDelete}"]`);
-                    const currentVisibleCount = entryList.querySelectorAll('.entry-row').length;
-
-                    // Update entry count badge
-                    const countBadge = document.querySelector('.card-header .badge');
-                    let totalCount = 0;
-                    if (countBadge) {
-                        totalCount = parseInt(countBadge.textContent) - 1;
-                        countBadge.textContent = totalCount;
-                    }
-
-                    // Remove the entry row from the DOM
                     if (entryRow) {
-                        entryRow.style.transition = 'opacity 0.3s, transform 0.3s';
                         entryRow.style.opacity = '0';
                         entryRow.style.transform = 'translateX(-20px)';
-
-                        setTimeout(() => {
-                            entryRow.remove();
-
-                            // If not showing all entries and there are more entries available,
-                            // fetch the next one to maintain the visible count
-                            if (!showAll && currentVisibleCount <= VISIBLE_ENTRIES_COUNT && totalCount >= VISIBLE_ENTRIES_COUNT) {
-                                fetchNextEntry(VISIBLE_ENTRIES_COUNT - 1).then(nextData => {
-                                    if (nextData.html) {
-                                        // Insert the new entry HTML
-                                        entryList.insertAdjacentHTML('beforeend', nextData.html);
-
-                                        // Attach delete handler to the new button
-                                        const newBtn = entryList.querySelector(`.entry-row[data-entry-id="${nextData.entry_id}"] .delete-entry-btn`);
-                                        if (newBtn) {
-                                            attachDeleteHandler(newBtn);
-                                        }
-
-                                        // Animate the new entry in
-                                        const newRow = entryList.querySelector(`.entry-row[data-entry-id="${nextData.entry_id}"]`);
-                                        if (newRow) {
-                                            newRow.style.opacity = '0';
-                                            newRow.style.transform = 'translateX(20px)';
-                                            setTimeout(() => {
-                                                newRow.style.transition = 'opacity 0.3s, transform 0.3s';
-                                                newRow.style.opacity = '1';
-                                                newRow.style.transform = 'translateX(0)';
-                                            }, 50);
-                                        }
-                                    }
-                                });
-                            }
-
-                            // Update "Show X more entries" text
-                            const showMoreText = document.getElementById('showMoreText');
-                            const showMoreSection = document.getElementById('showMoreSection');
-                            if (showMoreText && totalCount > VISIBLE_ENTRIES_COUNT) {
-                                const remaining = totalCount - VISIBLE_ENTRIES_COUNT;
-                                showMoreText.textContent = `Show ${remaining} more ${remaining === 1 ? 'entry' : 'entries'}`;
-                            } else if (showMoreSection && totalCount <= VISIBLE_ENTRIES_COUNT) {
-                                // Hide the "show more" section if no more entries
-                                showMoreSection.style.display = 'none';
-                            }
-                        }, 300);
+                        setTimeout(() => entryRow.remove(), 300);
                     }
-
                     closeDeleteModal();
                 } else {
-                    alert('Failed to delete entry. Please try again.');
+                    alert('Failed to delete entry.');
                 }
             })
-            .catch(err => {
-                alert('An error occurred. Please try again.');
-            })
+            .catch(() => alert('An error occurred.'))
             .finally(() => {
                 confirmDeleteBtn.disabled = false;
                 confirmDeleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Delete';
             });
         });
-    });
+    }
 
-    // Analyze all unanalyzed entries
-    let isAnalyzing = false;
-    let totalToAnalyze = {{ unanalyzed_count|default:0 }};
-    let totalAnalyzed = 0;
+    // Devotion button handlers
+    const devotionBtns = document.querySelectorAll('.devotion-btn');
+    devotionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.dataset.action;
+            const originalText = this.innerHTML;
 
-    function analyzeAllEntries() {
-        if (isAnalyzing) return;
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
-        const btn = document.getElementById('analyzeEntriesBtn');
-        const banner = document.getElementById('unanalyzedBanner');
-        const progress = document.getElementById('analysisProgress');
-        const progressBar = document.getElementById('analysisProgressBar');
-        const progressText = document.getElementById('analysisText');
-        const progressCount = document.getElementById('analysisCount');
-
-        isAnalyzing = true;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Analyzing...';
-        banner.style.display = 'none';
-        progress.style.display = 'block';
-
-        function runBatch() {
-            fetch('{% url "journal:analyze_entries" %}', {
+            fetch('{% url "journal:add_devotion_to_entry" %}', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: JSON.stringify({ limit: 25 })
+                body: `action=${action}`
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    totalAnalyzed += data.analyzed;
-
-                    const percent = totalToAnalyze > 0
-                        ? Math.round((totalAnalyzed / totalToAnalyze) * 100)
-                        : 100;
-
-                    progressBar.style.width = percent + '%';
-                    progressCount.textContent = `${totalAnalyzed} / ${totalToAnalyze}`;
-                    progressText.textContent = `Analyzing entries...`;
-
-                    if (data.remaining > 0) {
-                        setTimeout(runBatch, 100);
-                    } else {
-                        // Done!
-                        isAnalyzing = false;
-                        progressBar.classList.remove('progress-bar-animated', 'progress-bar-striped');
-                        progressBar.classList.add('bg-success');
-                        progressText.textContent = `Analysis complete!`;
-
-                        // Reload page after a short delay to show updated data
-                        setTimeout(() => location.reload(), 1500);
-                    }
+                    window.location.href = data.redirect_url;
                 } else {
-                    throw new Error('Analysis failed');
+                    alert(data.error || 'Something went wrong');
+                    this.disabled = false;
+                    this.innerHTML = originalText;
                 }
             })
-            .catch(error => {
-                isAnalyzing = false;
-                progressBar.classList.remove('progress-bar-animated', 'progress-bar-striped');
-                progressBar.classList.add('bg-danger');
-                progressText.textContent = 'Error during analysis. Please refresh and try again.';
-                console.error('Analysis error:', error);
+            .catch(() => {
+                alert('An error occurred');
+                this.disabled = false;
+                this.innerHTML = originalText;
             });
-        }
-
-        runBatch();
-    }
+        });
+    });
+});
 </script>
 {% endblock %}

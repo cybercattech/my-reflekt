@@ -1,0 +1,26 @@
+Hi there!
+
+{{ admin_name }} ({{ admin_email }}) has invited you to join Reflekt with FREE premium access through their Family Plan!
+
+WHAT IS REFLEKT?
+Reflekt is a journaling app that helps you understand yourself better through:
+- Daily journal entries with mood tracking
+- AI-powered insights into your emotions
+- Goals & habits tracking
+- Beautiful analytics and yearly reviews
+
+WITH THE FAMILY PLAN, YOU GET:
+- FREE premium access - no payment required!
+- All premium features included
+- Automatic friend connection with {{ admin_name }}
+
+YOUR PRIVACY IS PROTECTED:
+Being on a Family Plan does NOT give anyone access to your journal entries. Your entries are 100% private and encrypted. Only you can read them. The Family Plan simply means {{ admin_name }} covers the subscription cost for you. Think of it as a gift - your journal is yours alone.
+
+Create your free account here:
+{{ signup_url }}
+
+Sign up with this email address ({{ invited_email }}) to automatically join the family plan.
+
+Happy journaling!
+The Reflekt Team

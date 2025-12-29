@@ -1,0 +1,227 @@
+/* ==========================================================================
+   Badge Components - Badge and tag styles across the application
+   ========================================================================== */
+
+/* ==========================================================================
+   Mood Badges
+   ========================================================================== */
+
+.badge-mood-ecstatic { background-color: #8b5cf6 !important; color: white; }
+.badge-mood-happy { background-color: #22c55e !important; color: white; }
+.badge-mood-neutral { background-color: #6b7280 !important; color: white; }
+.badge-mood-sad { background-color: #3b82f6 !important; color: white; }
+.badge-mood-angry { background-color: #ef4444 !important; color: white; }
+
+/* ==========================================================================
+   Status Badges
+   ========================================================================== */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-badge.not_started { background: #f3f4f6; color: #6b7280; }
+.status-badge.in_progress { background: #dbeafe; color: #1d4ed8; }
+.status-badge.completed { background: #dcfce7; color: #16a34a; }
+.status-badge.on_hold { background: #fef3c7; color: #d97706; }
+.status-badge.abandoned { background: #fee2e2; color: #dc2626; }
+
+/* ==========================================================================
+   Priority Badges
+   ========================================================================== */
+
+.priority-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.priority-badge.high { background: #fee2e2; color: #dc2626; }
+.priority-badge.medium { background: #fef3c7; color: #d97706; }
+.priority-badge.low { background: #dbeafe; color: #1d4ed8; }
+
+/* ==========================================================================
+   Sentiment Badges
+   ========================================================================== */
+
+.sentiment-badge-pill {
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.sentiment-badge-pill.positive {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+}
+
+.sentiment-badge-pill.negative {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.sentiment-badge-pill.neutral {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
+/* ==========================================================================
+   Streak Badges
+   ========================================================================== */
+
+.streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #d97706;
+}
+
+.streak-badge.fire {
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    color: #dc2626;
+}
+
+/* ==========================================================================
+   Achievement Badge Icons
+   ========================================================================== */
+
+.badge-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.badge-icon-circle.badge-bronze { background: linear-gradient(135deg, #cd7f32, #a0522d); color: white; }
+.badge-icon-circle.badge-silver { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: white; }
+.badge-icon-circle.badge-gold { background: linear-gradient(135deg, #ffd700, #ffb800); color: white; }
+.badge-icon-circle.badge-platinum { background: linear-gradient(135deg, #e5e4e2, #b0b0b0); color: white; }
+.badge-icon-circle.badge-diamond { background: linear-gradient(135deg, #b9f2ff, #00bfff); color: white; }
+
+/* Large Achievement Badge Display */
+.badge-display-large {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.badge-display-large.badge-bronze {
+    background: linear-gradient(145deg, #f4d4a4 0%, #cd853f 50%, #8b4513 100%);
+    box-shadow: 0 4px 12px rgba(205, 133, 63, 0.4);
+    color: #5c3317;
+}
+
+.badge-display-large.badge-silver {
+    background: linear-gradient(145deg, #ffffff 0%, #d4d4d4 50%, #a0a0a0 100%);
+    box-shadow: 0 4px 12px rgba(192, 192, 192, 0.5);
+    color: #404040;
+}
+
+.badge-display-large.badge-gold {
+    background: linear-gradient(145deg, #fff8dc 0%, #ffd700 50%, #b8860b 100%);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
+    color: #8b6914;
+}
+
+.badge-display-large.badge-platinum {
+    background: linear-gradient(145deg, #f5f5f5 0%, #e5e4e2 50%, #a8a8a8 100%);
+    box-shadow: 0 4px 12px rgba(168, 168, 168, 0.5);
+    color: #505050;
+}
+
+.badge-display-large.badge-diamond {
+    background: linear-gradient(145deg, #e0ffff 0%, #b9f2ff 50%, #00bfff 100%);
+    box-shadow: 0 4px 12px rgba(0, 191, 255, 0.5);
+    color: #006994;
+}
+
+/* ==========================================================================
+   Tag Clouds
+   ========================================================================== */
+
+.tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.theme-tag {
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    color: #4338ca;
+}
+
+.keyword-tag {
+    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+    color: #0f766e;
+}
+
+/* Theme Badge (pill style) */
+.theme-badge {
+    display: inline-flex;
+    align-items: center;
+    background: white;
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    color: #6366f1;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Category Badges
+   ========================================================================== */
+
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 50px;
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* ==========================================================================
+   Custom Badge Colors
+   ========================================================================== */
+
+.bg-purple-subtle {
+    background-color: #f3e8ff !important;
+}
+
+.text-purple {
+    color: #7c3aed !important;
+}

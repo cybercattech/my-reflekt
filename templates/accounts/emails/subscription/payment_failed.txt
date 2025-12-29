@@ -1,0 +1,24 @@
+Payment Failed - Action Required
+
+Hi {{ user_name }},
+
+We were unable to process your subscription payment. As a result, your account has been temporarily downgraded to the Free plan.
+
+WHAT THIS MEANS:
+- Premium features are temporarily unavailable
+- Your data and journal entries are safe
+- You can restore access by updating your payment method
+
+COMMON REASONS FOR PAYMENT FAILURE:
+- Expired card
+- Insufficient funds
+- Card declined by your bank
+- Outdated billing information
+
+Resubscribe now: {{ site_url }}/accounts/pricing/
+
+Need help? If you believe this is an error or need assistance, please reply to this email. We're here to help you get back to Premium!
+
+---
+
+We hope to see you back on Premium soon!

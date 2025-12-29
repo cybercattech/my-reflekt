@@ -1,0 +1,15 @@
+Hi {{ admin_name }},
+
+Great news! {{ member_name }} ({{ member_email }}) has accepted your Family Plan invitation and is now part of your family!
+
+YOUR FAMILY PLAN STATUS:
+You now have {{ member_count }} member(s) on your family plan. You can add up to 5 family members total.
+
+PRIVACY REMINDER:
+Remember: You and {{ member_name }} are now connected as friends, but you cannot see each other's journal entries. Everyone's journal remains completely private and encrypted. The family plan is simply a shared subscription.
+
+Manage your family plan here:
+{{ site_url }}/accounts/family/
+
+Happy journaling!
+The Reflekt Team

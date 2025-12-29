@@ -1,0 +1,103 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'blog:admin_list' %}" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left me-1"></i>Back to Posts
+        </a>
+        <h1 class="mt-2 mb-0">{{ title }}</h1>
+    </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control form-control-lg"
+                               value="{% if post %}{{ post.title }}{% elif form_data.title %}{{ form_data.title }}{% endif %}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Content <span class="text-danger">*</span></label>
+                        <textarea name="content" class="form-control" rows="20"
+                                  style="font-family: monospace;" required>{% if post %}{{ post.content }}{% elif form_data.content %}{{ form_data.content }}{% endif %}</textarea>
+                        <small class="text-muted">Supports Markdown formatting</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Excerpt</label>
+                        <textarea name="excerpt" class="form-control" rows="3"
+                                  placeholder="Brief summary (auto-generated if empty)">{% if post %}{{ post.excerpt }}{% elif form_data.excerpt %}{{ form_data.excerpt }}{% endif %}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Publish</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="draft" {% if post.status == 'draft' or not post %}selected{% endif %}>Draft</option>
+                            <option value="published" {% if post.status == 'published' %}selected{% endif %}>Published</option>
+                        </select>
+                    </div>
+
+                    {% if post.created_at %}
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Created</small>
+                        <strong>{{ post.created_at|date:"M j, Y g:i A" }}</strong>
+                    </div>
+                    {% endif %}
+
+                    {% if post.published_at %}
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Published</small>
+                        <strong>{{ post.published_at|date:"M j, Y g:i A" }}</strong>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>
+                            {% if post %}Save Changes{% else %}Create Post{% endif %}
+                        </button>
+                        {% if post %}
+                        <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-outline-secondary" target="_blank">
+                            <i class="bi bi-eye me-1"></i>Preview
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Featured Image</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Image URL</label>
+                        <input type="url" name="featured_image" class="form-control"
+                               placeholder="https://example.com/image.jpg"
+                               value="{% if post %}{{ post.featured_image }}{% elif form_data.featured_image %}{{ form_data.featured_image }}{% endif %}">
+                    </div>
+                    {% if post.featured_image %}
+                    <img src="{{ post.featured_image }}" class="img-fluid rounded" alt="Featured image">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

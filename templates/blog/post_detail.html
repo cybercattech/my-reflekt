@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load markdown_extras %}
+
+{% block title %}{{ post.title }} - Blog{% endblock %}
+
+{% block extra_css %}
+<style>
+    .post-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+    }
+
+    .post-category {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.375rem 0.75rem;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        text-decoration: none;
+        margin-bottom: 1rem;
+    }
+
+    .post-category:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .post-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .post-meta {
+        opacity: 0.9;
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .post-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .post-featured-image {
+        margin-top: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .post-featured-image img {
+        width: 100%;
+        max-height: 500px;
+        object-fit: cover;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Post Header -->
+<div class="post-header">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <a href="{% url 'blog:post_list' %}" class="text-white text-decoration-none mb-4 d-inline-block opacity-75">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Blog
+                </a>
+
+                {% if post.status == 'draft' %}
+                <span class="badge bg-warning text-dark mb-2 d-block" style="width: fit-content;">Draft - Not Published</span>
+                {% endif %}
+
+                {% if post.category %}
+                <a href="{% url 'blog:category' post.category.slug %}" class="post-category">
+                    {{ post.category.name }}
+                </a>
+                {% endif %}
+
+                <h1>{{ post.title }}</h1>
+
+                <div class="post-meta">
+                    <span>
+                        <i class="bi bi-calendar3"></i>
+                        {% if post.published_at %}
+                        {{ post.published_at|date:"F j, Y" }}
+                        {% else %}
+                        {{ post.created_at|date:"F j, Y" }}
+                        {% endif %}
+                    </span>
+                    <span>
+                        <i class="bi bi-clock"></i>
+                        {{ post.reading_time }} min read
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<article class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {% if post.featured_image %}
+            <div class="post-featured-image">
+                <img src="{{ post.featured_image }}" alt="{{ post.title }}">
+            </div>
+            {% endif %}
+
+            <!-- Post content -->
+            <div class="post-content">
+                {{ post.content|render_blog_markdown }}
+            </div>
+
+            <!-- Admin edit link -->
+            {% if request.user.is_staff %}
+            <div class="mt-5 pt-4 border-top">
+                <a href="{% url 'blog:admin_edit' post.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i>Edit Post
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</article>
+
+<style>
+.post-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+.post-content p {
+    margin-bottom: 1.5rem;
+}
+.post-content h1 {
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+.post-content h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+.post-content h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+}
+.post-content h4 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+.post-content ul, .post-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+.post-content li {
+    margin-bottom: 0.5rem;
+}
+.post-content blockquote {
+    border-left: 4px solid #667eea;
+    padding-left: 1.5rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: #6b7280;
+    background: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-radius: 0 8px 8px 0;
+}
+.post-content code {
+    background-color: #f3f4f6;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+.post-content pre {
+    background-color: #1f2937;
+    color: #f3f4f6;
+    padding: 1.25rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+.post-content pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+}
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+}
+.post-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}
+.post-content th, .post-content td {
+    border: 1px solid #e5e7eb;
+    padding: 0.75rem;
+    text-align: left;
+}
+.post-content th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+.post-content hr {
+    border: none;
+    border-top: 2px solid #e5e7eb;
+    margin: 2rem 0;
+}
+
+/* Admonition Styles for MyST Directives */
+.admonition {
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    border-left: 4px solid;
+}
+.admonition-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+.admonition-content {
+    line-height: 1.6;
+}
+.admonition-note {
+    background: #e8f4fd;
+    border-color: #0d6efd;
+    color: #084298;
+}
+.admonition-warning {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #664d03;
+}
+.admonition-danger {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #842029;
+}
+.admonition-tip {
+    background: #d1e7dd;
+    border-color: #198754;
+    color: #0f5132;
+}
+.admonition-important {
+    background: #e0cffc;
+    border-color: #6f42c1;
+    color: #432874;
+}
+.admonition-hint {
+    background: #e2e3e5;
+    border-color: #6c757d;
+    color: #41464b;
+}
+.admonition-caution {
+    background: #fff3cd;
+    border-color: #fd7e14;
+    color: #664d03;
+}
+.admonition-attention {
+    background: #cff4fc;
+    border-color: #0dcaf0;
+    color: #055160;
+}
+
+/* Code syntax highlighting */
+.highlight {
+    background: #1f2937;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+}
+</style>
+{% endblock %}

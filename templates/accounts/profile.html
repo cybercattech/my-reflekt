@@ -277,6 +277,18 @@
                 </div>
             </div>
 
+            <!-- Streak Badges -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-award me-2"></i>Streak Badges</span>
+                    <span class="badge bg-primary">{{ earned_badges|length }} / {{ total_badges }}</span>
+                </div>
+                <div class="card-body">
+                    {% include 'accounts/badges/_badge_styles.html' %}
+                    {% include 'accounts/badges/_badge_display.html' with earned_badges=earned_badges next_badge=next_badge show_locked=True all_badges=all_badges earned_badge_ids=earned_badge_ids %}
+                </div>
+            </div>
+
             <!-- Preferences -->
             <div class="card mb-4">
                 <div class="card-header">
@@ -417,6 +429,19 @@
                                     <option value="IN" {% if profile.country_code == 'IN' %}selected{% endif %}>India</option>
                                     <option value="JP" {% if profile.country_code == 'JP' %}selected{% endif %}>Japan</option>
                                 </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">Temperature</label>
+                            <div class="col-sm-9">
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="temperature_unit" id="temp_f" value="F"
+                                           {% if profile.temperature_unit == 'F' %}checked{% endif %}>
+                                    <label class="btn btn-outline-primary" for="temp_f">°F Fahrenheit</label>
+                                    <input type="radio" class="btn-check" name="temperature_unit" id="temp_c" value="C"
+                                           {% if profile.temperature_unit == 'C' %}checked{% endif %}>
+                                    <label class="btn btn-outline-primary" for="temp_c">°C Celsius</label>
+                                </div>
                             </div>
                         </div>
                         <div class="form-text mb-4">

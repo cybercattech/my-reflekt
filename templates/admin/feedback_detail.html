@@ -1,0 +1,141 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="mb-4">
+    <a href="{% url 'accounts:admin_feedback_list' %}" class="text-decoration-none text-muted">
+        <i class="bi bi-arrow-left me-1"></i>Back to Feedback
+    </a>
+</div>
+
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    {% if feedback.feedback_type == 'bug' %}
+                    <span class="badge bg-danger me-2"><i class="bi bi-bug me-1"></i>Bug Report</span>
+                    {% elif feedback.feedback_type == 'idea' %}
+                    <span class="badge bg-success me-2"><i class="bi bi-lightbulb me-1"></i>Feature Idea</span>
+                    {% else %}
+                    <span class="badge bg-secondary me-2"><i class="bi bi-chat-left-text me-1"></i>Other</span>
+                    {% endif %}
+                    <h5 class="mb-0">{{ feedback.subject }}</h5>
+                </div>
+                {% if feedback.status == 'new' %}
+                <span class="badge bg-warning text-dark">New</span>
+                {% elif feedback.status == 'reviewed' %}
+                <span class="badge bg-info">Reviewed</span>
+                {% elif feedback.status == 'in_progress' %}
+                <span class="badge bg-primary">In Progress</span>
+                {% elif feedback.status == 'resolved' %}
+                <span class="badge bg-success">Resolved</span>
+                {% else %}
+                <span class="badge bg-secondary">Closed</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">Message</h6>
+                    <div class="bg-light p-3 rounded" style="white-space: pre-wrap;">{{ feedback.message }}</div>
+                </div>
+
+                {% if feedback.page_url %}
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">Page URL</h6>
+                    <a href="{{ feedback.page_url }}" target="_blank" class="text-break">
+                        {{ feedback.page_url }}
+                        <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Admin Notes & Status Update -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Update Feedback</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="new" {% if feedback.status == 'new' %}selected{% endif %}>New</option>
+                            <option value="reviewed" {% if feedback.status == 'reviewed' %}selected{% endif %}>Reviewed</option>
+                            <option value="in_progress" {% if feedback.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="resolved" {% if feedback.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="closed" {% if feedback.status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Admin Notes</label>
+                        <textarea name="admin_notes" class="form-control" rows="4" placeholder="Internal notes about this feedback...">{{ feedback.admin_notes }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="text-muted small">Submitted By</label>
+                    <div>
+                        <a href="{% url 'accounts:admin_user_detail' feedback.user.pk %}">
+                            {{ feedback.user.email }}
+                        </a>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small">Submitted On</label>
+                    <div>{{ feedback.created_at|date:"F j, Y, g:i A" }}</div>
+                </div>
+                {% if feedback.updated_at != feedback.created_at %}
+                <div class="mb-3">
+                    <label class="text-muted small">Last Updated</label>
+                    <div>{{ feedback.updated_at|date:"F j, Y, g:i A" }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'accounts:admin_feedback_status' feedback.pk %}" class="d-grid gap-2">
+                    {% csrf_token %}
+                    {% if feedback.status == 'new' %}
+                    <button type="submit" name="status" value="reviewed" class="btn btn-outline-info">
+                        <i class="bi bi-check me-1"></i>Mark as Reviewed
+                    </button>
+                    {% endif %}
+                    {% if feedback.status != 'resolved' %}
+                    <button type="submit" name="status" value="resolved" class="btn btn-outline-success">
+                        <i class="bi bi-check-circle me-1"></i>Mark as Resolved
+                    </button>
+                    {% endif %}
+                    {% if feedback.status != 'closed' %}
+                    <button type="submit" name="status" value="closed" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Close
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1000 @@
+/* ==========================================================================
+   Analytics Page Styles - Dashboard, monthly, yearly views
+   ========================================================================== */
+
+/* ==========================================================================
+   Premium Overlay
+   ========================================================================== */
+
+.premium-locked {
+    position: relative;
+    overflow: hidden;
+}
+
+.premium-locked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+}
+
+.premium-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 11;
+    text-align: center;
+    width: 90%;
+}
+
+.premium-badge {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Dashboard Stats Grid
+   ========================================================================== */
+
+.analytics-stats-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1rem;
+    min-height: 280px;
+}
+
+.analytics-stats-grid .entries-card {
+    grid-column: 1;
+    grid-row: 1 / 3;
+}
+
+.analytics-stats-grid .words-stats-card {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.analytics-stats-grid .month-stats-card {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.analytics-stats-grid .journaled-stats-card {
+    grid-column: 3;
+    grid-row: 1 / 3;
+}
+
+/* Month Stats Card - Blue Gradient */
+.month-stats-card {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-radius: 16px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+}
+
+.month-stats-card .month-label-top {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.month-stats-card .month-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.month-stats-card .month-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+/* Words Stats Card Override - Teal Gradient */
+.analytics-page .words-stats-card {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+}
+
+/* ==========================================================================
+   Monthly View Stats Grid
+   ========================================================================== */
+
+.monthly-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.monthly-stats-grid .stat-card {
+    border-radius: 16px;
+    padding: 1.5rem;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.monthly-stats-grid .stat-card.entries {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.monthly-stats-grid .stat-card.words {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+
+.monthly-stats-grid .stat-card.sentiment {
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+}
+
+.monthly-stats-grid .stat-card.mood {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+.monthly-stats-grid .stat-card .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.monthly-stats-grid .stat-card .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* ==========================================================================
+   Section Labels
+   ========================================================================== */
+
+.section-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+}
+
+/* ==========================================================================
+   Modern Card Base
+   ========================================================================== */
+
+.modern-card {
+    background: white;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.modern-card .card-header {
+    background: transparent;
+    border-bottom: 1px solid #f3f4f6;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.modern-card .card-body {
+    padding: 1.25rem;
+}
+
+/* ==========================================================================
+   Gradient Cards
+   ========================================================================== */
+
+.gradient-card {
+    border-radius: 16px;
+    border: none;
+    color: white;
+    overflow: hidden;
+}
+
+.gradient-card.sentiment-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-card.mood-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.gradient-card.badges-card {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.gradient-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: white;
+}
+
+.gradient-card .card-header a {
+    color: white;
+    border-color: rgba(255,255,255,0.5);
+}
+
+.gradient-card .card-header a:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: white;
+    color: white;
+}
+
+.gradient-card .card-body {
+    padding: 1.25rem;
+}
+
+/* ==========================================================================
+   Calendar Card
+   ========================================================================== */
+
+.calendar-card {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+    color: white;
+}
+
+.calendar-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: white;
+}
+
+.calendar-card .card-body {
+    padding: 1.25rem;
+}
+
+.calendar-day-header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.8;
+    padding: 0.5rem 0;
+}
+
+.analytics-calendar-day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.2s;
+    text-decoration: none;
+    color: white;
+}
+
+.analytics-calendar-day:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.05);
+}
+
+.analytics-calendar-day.empty {
+    background: transparent;
+}
+
+.analytics-calendar-day.has-entry {
+    background: rgba(255,255,255,0.25);
+}
+
+.analytics-calendar-day .day-number {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.analytics-calendar-day .day-mood {
+    font-size: 1.25rem;
+}
+
+/* ==========================================================================
+   Mood Card
+   ========================================================================== */
+
+.analytics-mood-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+    color: white;
+}
+
+.analytics-mood-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: white;
+}
+
+.analytics-mood-card .card-body {
+    padding: 1.25rem;
+}
+
+/* Mood Distribution Items */
+.mood-dist-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+.mood-dist-item .mood-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mood-dist-item .mood-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    margin: 0 1rem;
+    overflow: hidden;
+}
+
+.mood-dist-item .mood-bar-fill {
+    height: 100%;
+    background: white;
+    border-radius: 4px;
+}
+
+.mood-dist-item .mood-count {
+    background: rgba(255,255,255,0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Themes Card
+   ========================================================================== */
+
+.themes-card {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+    color: white;
+}
+
+.themes-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: white;
+}
+
+.themes-card .card-body {
+    padding: 1.25rem;
+}
+
+.theme-badge {
+    display: inline-flex;
+    align-items: center;
+    background: white;
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    color: #6366f1;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   List Card
+   ========================================================================== */
+
+.list-card {
+    background: white;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.list-card .card-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    border: none;
+}
+
+.list-card .list-group-item {
+    border-left: none;
+    border-right: none;
+    padding: 1rem 1.25rem;
+    transition: background 0.2s;
+}
+
+.list-card .list-group-item:hover {
+    background: #f8fafc;
+}
+
+.list-card .list-group-item:first-child {
+    border-top: none;
+}
+
+/* ==========================================================================
+   Sentiment Badges
+   ========================================================================== */
+
+.analytics-sentiment-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.analytics-sentiment-badge.positive {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+}
+
+.analytics-sentiment-badge.negative {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.analytics-sentiment-badge.neutral {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
+/* ==========================================================================
+   Insights Pills
+   ========================================================================== */
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.insight-pill {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.insight-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.insight-pill .insight-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.insight-pill .insight-icon.success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+.insight-pill .insight-icon.primary { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
+.insight-pill .insight-icon.danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+.insight-pill .insight-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+
+.insight-pill .insight-text {
+    font-size: 0.9rem;
+    color: #374151;
+    line-height: 1.4;
+}
+
+.insight-pill .insight-detail {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* ==========================================================================
+   Capture Cards
+   ========================================================================== */
+
+.capture-card {
+    border-radius: 16px;
+    border: none;
+    color: white;
+    overflow: hidden;
+    height: 100%;
+}
+
+.capture-card.books-card {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.capture-card.people-card {
+    background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+}
+
+.capture-card.media-card {
+    background: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%);
+}
+
+.capture-card.fitness-card {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+.capture-card .card-header {
+    background: rgba(255,255,255,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.capture-card .card-header a {
+    color: white;
+    border-color: rgba(255,255,255,0.4);
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.capture-card .card-header a:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+.capture-card .card-body {
+    padding: 1rem;
+}
+
+.capture-card .stat-row {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.capture-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.capture-card .stat-label {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.capture-card .capture-list {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.capture-card .capture-list-label {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.capture-card .capture-list-item {
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+    opacity: 0.95;
+}
+
+/* ==========================================================================
+   Recent Entries Card
+   ========================================================================== */
+
+.recent-entries-card {
+    background: white;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.recent-entries-card .card-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    padding: 1rem 1.25rem;
+    border: none;
+}
+
+.recent-entries-card .card-header a {
+    color: white;
+    border-color: rgba(255,255,255,0.4);
+}
+
+.recent-entries-card .list-group-item {
+    border-left: none;
+    border-right: none;
+    padding: 0.875rem 1.25rem;
+    transition: background 0.2s;
+}
+
+.recent-entries-card .list-group-item:hover {
+    background: #f8fafc;
+}
+
+.recent-entries-card .list-group-item:first-child {
+    border-top: none;
+}
+
+/* ==========================================================================
+   Quick Actions Card
+   ========================================================================== */
+
+.quick-actions-card {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    border-radius: 16px;
+    border: none;
+    color: white;
+    overflow: hidden;
+}
+
+.quick-actions-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+}
+
+.quick-actions-card .card-body {
+    padding: 1.25rem;
+}
+
+.quick-actions-card .btn {
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.quick-actions-card .btn-light {
+    background: rgba(255,255,255,0.95);
+    border: none;
+    color: #0284c7;
+}
+
+.quick-actions-card .btn-light:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.quick-actions-card .btn-outline-light {
+    border-color: rgba(255,255,255,0.5);
+    color: white;
+}
+
+.quick-actions-card .btn-outline-light:hover {
+    background: rgba(255,255,255,0.15);
+    border-color: white;
+}
+
+/* ==========================================================================
+   Travel Card
+   ========================================================================== */
+
+.travel-card {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    border-radius: 16px;
+    border: none;
+    color: white;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.travel-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+}
+
+.travel-card .list-group-item {
+    background: transparent;
+    border-color: rgba(255,255,255,0.2);
+    color: white;
+    padding: 0.75rem 1rem;
+}
+
+/* ==========================================================================
+   Recent Badges List
+   ========================================================================== */
+
+.recent-badges-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.recent-badge-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+.badge-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.badge-icon-circle.badge-bronze { background: linear-gradient(135deg, #cd7f32, #a0522d); }
+.badge-icon-circle.badge-silver { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); }
+.badge-icon-circle.badge-gold { background: linear-gradient(135deg, #ffd700, #ffb800); }
+.badge-icon-circle.badge-platinum { background: linear-gradient(135deg, #e5e4e2, #b0b0b0); }
+.badge-icon-circle.badge-diamond { background: linear-gradient(135deg, #b9f2ff, #00bfff); }
+
+.badge-info {
+    flex: 1;
+}
+
+.badge-name-text {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.badge-days-text {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+/* ==========================================================================
+   Environmental Cards - Moon, Weather, Zodiac, Devotion
+   ========================================================================== */
+
+.env-card {
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+    height: 100%;
+}
+
+.env-card.moon-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    color: white;
+}
+
+.env-card.weather-card {
+    background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%);
+    color: white;
+}
+
+.env-card.zodiac-card {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    color: white;
+}
+
+.env-card.devotion-card {
+    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+    color: white;
+}
+
+.env-card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+}
+
+.env-card-body {
+    padding: 1.25rem;
+    flex: 1;
+}
+
+/* Moon Phase Pills */
+.moon-phases-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.moon-phase-pill {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.moon-phase-pill:hover {
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.15);
+}
+
+.moon-phase-pill .phase-emoji {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.moon-phase-pill .phase-name {
+    font-size: 0.65rem;
+    opacity: 0.9;
+    margin-bottom: 0.25rem;
+}
+
+.moon-phase-pill .phase-sentiment {
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.moon-phase-pill .phase-count {
+    font-size: 0.6rem;
+    opacity: 0.7;
+}
+
+.moon-phase-pill .phase-mood {
+    font-size: 0.6rem;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+}
+
+/* Weather Conditions */
+.weather-conditions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.weather-condition-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+.condition-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.condition-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.env-sentiment-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.env-sentiment-badge.positive {
+    background: rgba(74, 222, 128, 0.3);
+    color: #4ade80;
+}
+
+.env-sentiment-badge.negative {
+    background: rgba(248, 113, 113, 0.3);
+    color: #f87171;
+}
+
+.env-sentiment-badge.neutral {
+    background: rgba(148, 163, 184, 0.3);
+    color: #94a3b8;
+}
+
+/* Zodiac Stats */
+.zodiac-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.zodiac-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+/* Devotion Footer */
+.devotion-footer {
+    background: rgba(255,255,255,0.1);
+    padding: 0.75rem 1.25rem;
+    text-align: center;
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.devotion-verse {
+    font-style: italic;
+    padding: 1rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    margin: 1rem 0;
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+
+@media (max-width: 992px) {
+    .analytics-stats-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto;
+    }
+    .analytics-stats-grid .entries-card {
+        grid-column: span 2;
+        grid-row: span 1;
+        min-height: 200px;
+    }
+    .analytics-stats-grid .journaled-stats-card {
+        grid-row: span 1;
+    }
+    .monthly-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .moon-phases-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .analytics-stats-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+    .analytics-stats-grid .entries-card,
+    .analytics-stats-grid .words-stats-card,
+    .analytics-stats-grid .month-stats-card,
+    .analytics-stats-grid .journaled-stats-card {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+    .analytics-stats-grid .entries-card {
+        min-height: 220px;
+    }
+    .monthly-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

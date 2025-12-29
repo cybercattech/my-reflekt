@@ -1,23 +1,42 @@
 """
-Mood classification service.
+Mood classification service using VADER.
 
 Classifies journal entries into mood categories:
 ecstatic, happy, neutral, sad, angry
 
-Ported from journal_mood_analysis.py
+Uses VADER sentiment for consistency with sentiment analysis.
 """
 import re
-from textblob import TextBlob
+from .sentiment import get_sentiment_score
 
 
-# Mood categories with associated keywords
+# Standard mood emoji mapping - single source of truth
+MOOD_EMOJIS = {
+    'ecstatic': '🤩',
+    'happy': '😊',
+    'neutral': '😐',
+    'sad': '😢',
+    'angry': '😠',
+}
+
+# Standard mood colors (hex) - single source of truth
+MOOD_COLORS = {
+    'ecstatic': '#8b5cf6',  # purple
+    'happy': '#22c55e',     # green
+    'neutral': '#6b7280',   # gray
+    'sad': '#3b82f6',       # blue
+    'angry': '#ef4444',     # red
+}
+
+
+# Mood categories with associated keywords (for boosting/adjusting)
 MOOD_KEYWORDS = {
     'ecstatic': {
         'keywords': {
             'amazing', 'incredible', 'fantastic', 'perfect', 'thrilled', 'ecstatic',
             'overjoyed', 'elated', 'euphoric', 'best', 'crushing', 'milestone',
             'breakthrough', 'wonderful', 'magnificent', 'extraordinary', 'blessed',
-            'grateful', 'celebrate', 'victory', 'triumph', 'dream'
+            'grateful', 'celebrate', 'victory', 'triumph'
         },
         'weight': 0.3
     },
@@ -81,9 +100,10 @@ def count_mood_keywords(text: str) -> dict:
 
 def classify_mood(text: str) -> tuple:
     """
-    Classify text into a mood category.
+    Classify text into a mood category using VADER sentiment.
 
-    Uses combination of sentiment analysis and keyword detection.
+    Uses VADER for base sentiment, with keyword detection for fine-tuning.
+    This ensures mood classification aligns with sentiment score.
 
     Args:
         text: Journal entry text
@@ -94,36 +114,41 @@ def classify_mood(text: str) -> tuple:
     if not text or not text.strip():
         return 'neutral', 0.5, {'neutral': 0.5}
 
-    # Get base sentiment score
-    blob = TextBlob(text)
-    sentiment = blob.sentiment.polarity
+    # Get VADER sentiment score (same as used for sentiment_score)
+    sentiment = get_sentiment_score(text)
 
-    # Get keyword counts
+    # Get keyword counts for fine-tuning
     keyword_counts = count_mood_keywords(text)
 
     # Calculate combined score for each mood
     scores = {mood: 0.0 for mood in MOOD_KEYWORDS.keys()}
 
-    # Base scoring from sentiment polarity
-    if sentiment >= 0.3:
-        scores['ecstatic'] = sentiment * 2
-        scores['happy'] = sentiment
-    elif sentiment >= 0.1:
+    # Base scoring from VADER sentiment
+    # VADER compound score ranges from -1 to 1
+    if sentiment >= 0.5:
+        # Very positive -> ecstatic
+        scores['ecstatic'] = sentiment * 1.5
+        scores['happy'] = sentiment * 0.5
+    elif sentiment >= 0.05:
+        # Positive -> happy (with some ecstatic boost for high scores)
         scores['happy'] = sentiment * 2
-        scores['ecstatic'] = sentiment * 0.5
-    elif sentiment >= -0.1:
-        scores['neutral'] = 1 - abs(sentiment)
-    elif sentiment >= -0.3:
-        scores['sad'] = abs(sentiment) * 1.5
+        scores['ecstatic'] = max(0, (sentiment - 0.3) * 2)
+    elif sentiment > -0.05:
+        # Neutral range
+        scores['neutral'] = 1 - abs(sentiment) * 5
+    elif sentiment >= -0.5:
+        # Negative -> sad
+        scores['sad'] = abs(sentiment) * 2
         scores['angry'] = abs(sentiment) * 0.5
     else:
-        scores['angry'] = abs(sentiment) * 1.5
+        # Very negative -> could be angry or very sad
+        scores['angry'] = abs(sentiment) * 1.2
         scores['sad'] = abs(sentiment)
 
-    # Add keyword influence
+    # Add keyword influence (can shift between ecstatic/happy or sad/angry)
     for mood, count in keyword_counts.items():
         if count > 0:
-            scores[mood] = scores.get(mood, 0) + (count * 0.15)
+            scores[mood] = scores.get(mood, 0) + (count * 0.2)
 
     # Normalize scores
     total = sum(scores.values())
@@ -139,11 +164,16 @@ def classify_mood(text: str) -> tuple:
 
 def get_mood_emoji(mood: str) -> str:
     """Get emoji for a mood category."""
-    emoji_map = {
-        'ecstatic': '🤩',
-        'happy': '😊',
-        'neutral': '😐',
-        'sad': '😢',
-        'angry': '😠',
-    }
-    return emoji_map.get(mood, '😐')
+    return MOOD_EMOJIS.get(mood, '😐')
+
+
+def get_mood_color(mood: str) -> str:
+    """Get CSS class suffix for a mood category."""
+    # Returns the mood name itself for use with badge-mood-{mood} classes
+    valid_moods = {'ecstatic', 'happy', 'neutral', 'sad', 'angry'}
+    return mood if mood in valid_moods else 'neutral'
+
+
+def get_mood_hex_color(mood: str) -> str:
+    """Get hex color for a mood category."""
+    return MOOD_COLORS.get(mood, '#6b7280')

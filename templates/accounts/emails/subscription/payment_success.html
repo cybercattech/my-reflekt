@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You for Your Payment</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">Thank You!</h1>
+    </div>
+
+    <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 18px;">Hi {{ user_name }},</p>
+
+        <p style="font-size: 16px;">
+            Thank you for your continued support! Your Reflekt Premium subscription has been renewed successfully.
+        </p>
+
+        <div style="background: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <p style="margin: 0; font-size: 16px; color: #155724;">
+                <strong>Payment Successful</strong>
+            </p>
+        </div>
+
+        <div style="background: white; padding: 25px; border-radius: 8px; margin: 20px 0; border: 1px solid #e0e0e0;">
+            <table style="width: 100%; font-size: 16px;">
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Plan</td>
+                    <td style="padding: 8px 0; text-align: right; font-weight: bold;">{{ plan_name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Amount Charged</td>
+                    <td style="padding: 8px 0; text-align: right; font-weight: bold;">${{ amount }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Next Billing Date</td>
+                    <td style="padding: 8px 0; text-align: right; font-weight: bold;">{{ next_billing_date|date:"F j, Y" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <p style="font-size: 16px;">
+            Your Premium access continues uninterrupted. Keep journaling and exploring all the features Reflekt has to offer!
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ site_url }}/dashboard/" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 35px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
+                Continue Journaling
+            </a>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+        <p style="font-size: 12px; color: #666; text-align: center;">
+            This is your payment confirmation. Keep this email for your records.<br>
+            Questions? Reply to this email - we're here to help!
+        </p>
+    </div>
+</body>
+</html>

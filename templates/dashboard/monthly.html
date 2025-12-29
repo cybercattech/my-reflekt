@@ -3,6 +3,280 @@
 
 {% block title %}{{ month_name }} {{ year }}{% endblock %}
 
+{% block dashboard_css %}
+<style>
+/* Modern Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    border-radius: 16px;
+    padding: 1.5rem;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card.entries {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.stat-card.words {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+
+.stat-card.sentiment {
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+}
+
+.stat-card.mood {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+.stat-card .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Gradient Calendar Card */
+.calendar-card {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+    color: white;
+}
+
+.calendar-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: white;
+}
+
+.calendar-card .card-body {
+    padding: 1.25rem;
+}
+
+.calendar-day-header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.8;
+    padding: 0.5rem 0;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.2s;
+    text-decoration: none;
+    color: white;
+}
+
+.calendar-day:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.05);
+}
+
+.calendar-day.empty {
+    background: transparent;
+}
+
+.calendar-day.has-entry {
+    background: rgba(255,255,255,0.25);
+}
+
+.calendar-day .day-number {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.calendar-day .day-mood {
+    font-size: 1.25rem;
+}
+
+/* Gradient Mood Card */
+.mood-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+    color: white;
+}
+
+.mood-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: white;
+}
+
+.mood-card .card-body {
+    padding: 1.25rem;
+}
+
+/* Mood Distribution Items */
+.mood-dist-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+.mood-dist-item .mood-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mood-dist-item .mood-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    margin: 0 1rem;
+    overflow: hidden;
+}
+
+.mood-dist-item .mood-bar-fill {
+    height: 100%;
+    background: white;
+    border-radius: 4px;
+}
+
+.mood-dist-item .mood-count {
+    background: rgba(255,255,255,0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Gradient Themes Card */
+.themes-card {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+    color: white;
+}
+
+.themes-card .card-header {
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: white;
+}
+
+.themes-card .card-body {
+    padding: 1.25rem;
+}
+
+/* Theme Badge Styling - White pills */
+.theme-badge {
+    display: inline-flex;
+    align-items: center;
+    background: white;
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    color: #6366f1;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Gradient Entries List Card */
+.list-card {
+    background: white;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.list-card .card-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    border: none;
+}
+
+.list-card .list-group-item {
+    border-left: none;
+    border-right: none;
+    padding: 1rem 1.25rem;
+    transition: background 0.2s;
+}
+
+.list-card .list-group-item:hover {
+    background: #f8fafc;
+}
+
+.list-card .list-group-item:first-child {
+    border-top: none;
+}
+
+/* Sentiment Badges */
+.sentiment-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.sentiment-badge.positive {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+}
+
+.sentiment-badge.negative {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.sentiment-badge.neutral {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock dashboard_css %}
+
 {% block dashboard_content %}
 <div class="container-fluid py-4 px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,93 +284,75 @@
     </div>
 
     <!-- Month Stats -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h3 class="display-6 text-primary">{{ snapshot.entry_count }}</h3>
-                    <p class="text-muted mb-0">Entries</p>
-                </div>
-            </div>
+    <div class="stats-grid">
+        <div class="stat-card entries">
+            <div class="stat-value">{{ snapshot.entry_count }}</div>
+            <div class="stat-label">Entries</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h3 class="display-6 text-success">{{ snapshot.total_words|floatformat:0 }}</h3>
-                    <p class="text-muted mb-0">Words</p>
-                </div>
-            </div>
+        <div class="stat-card words">
+            <div class="stat-value">{{ snapshot.total_words|floatformat:0 }}</div>
+            <div class="stat-label">Words</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h3 class="display-6 {% if snapshot.avg_sentiment > 0 %}text-success{% elif snapshot.avg_sentiment < 0 %}text-danger{% else %}text-secondary{% endif %}">
-                        {% if snapshot.avg_sentiment > 0 %}+{% endif %}{{ snapshot.avg_sentiment|floatformat:2 }}
-                    </h3>
-                    <p class="text-muted mb-0">Avg Sentiment</p>
-                </div>
-            </div>
+        <div class="stat-card sentiment">
+            <div class="stat-value">{% if snapshot.avg_sentiment > 0 %}+{% endif %}{{ snapshot.avg_sentiment|floatformat:2 }}</div>
+            <div class="stat-label">Avg Sentiment</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h3 class="display-6">
-                        {% if snapshot.dominant_mood == 'ecstatic' %}🤩
-                        {% elif snapshot.dominant_mood == 'happy' %}😊
-                        {% elif snapshot.dominant_mood == 'neutral' %}😐
-                        {% elif snapshot.dominant_mood == 'sad' %}😢
-                        {% elif snapshot.dominant_mood == 'angry' %}😠
-                        {% endif %}
-                    </h3>
-                    <p class="text-muted mb-0">{{ snapshot.dominant_mood|title }}</p>
-                </div>
+        <div class="stat-card mood">
+            <div class="stat-value">
+                {% if snapshot.dominant_mood == 'ecstatic' %}🤩
+                {% elif snapshot.dominant_mood == 'happy' %}😊
+                {% elif snapshot.dominant_mood == 'neutral' %}😐
+                {% elif snapshot.dominant_mood == 'sad' %}😢
+                {% elif snapshot.dominant_mood == 'angry' %}😠
+                {% endif %}
             </div>
+            <div class="stat-label">{{ snapshot.dominant_mood|title }}</div>
         </div>
     </div>
 
     <!-- Calendar View -->
-    <div class="card mb-4">
+    <div class="calendar-card mb-4">
         <div class="card-header">
             <i class="bi bi-calendar3 me-2"></i>Mood Calendar
         </div>
         <div class="card-body">
             <div class="row row-cols-7 g-2 text-center">
                 <!-- Day headers -->
-                <div class="col"><small class="text-muted fw-bold">Sun</small></div>
-                <div class="col"><small class="text-muted fw-bold">Mon</small></div>
-                <div class="col"><small class="text-muted fw-bold">Tue</small></div>
-                <div class="col"><small class="text-muted fw-bold">Wed</small></div>
-                <div class="col"><small class="text-muted fw-bold">Thu</small></div>
-                <div class="col"><small class="text-muted fw-bold">Fri</small></div>
-                <div class="col"><small class="text-muted fw-bold">Sat</small></div>
+                <div class="col"><div class="calendar-day-header">Sun</div></div>
+                <div class="col"><div class="calendar-day-header">Mon</div></div>
+                <div class="col"><div class="calendar-day-header">Tue</div></div>
+                <div class="col"><div class="calendar-day-header">Wed</div></div>
+                <div class="col"><div class="calendar-day-header">Thu</div></div>
+                <div class="col"><div class="calendar-day-header">Fri</div></div>
+                <div class="col"><div class="calendar-day-header">Sat</div></div>
 
                 <!-- Calendar days -->
                 {% for day in month_days %}
                 <div class="col">
                     {% if day == 0 %}
-                    <div class="p-2"></div>
+                    <div class="calendar-day empty"></div>
                     {% else %}
-                    <div class="border rounded p-2 {% if day in entry_map %}bg-light{% endif %}">
-                        <small class="d-block text-muted">{{ day }}</small>
-                        {% if day in entry_map %}
-                        {% with entry=entry_map|get_item:day %}
-                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="text-decoration-none">
-                            <span class="fs-5">
-                                {% if entry.analysis %}
-                                    {% if entry.analysis.detected_mood == 'ecstatic' %}🤩
-                                    {% elif entry.analysis.detected_mood == 'happy' %}😊
-                                    {% elif entry.analysis.detected_mood == 'neutral' %}😐
-                                    {% elif entry.analysis.detected_mood == 'sad' %}😢
-                                    {% elif entry.analysis.detected_mood == 'angry' %}😠
-                                    {% else %}📝{% endif %}
-                                {% else %}
-                                📝
-                                {% endif %}
-                            </span>
-                        </a>
-                        {% endwith %}
-                        {% endif %}
+                    {% if day in entry_map %}
+                    {% with entry=entry_map|get_item:day %}
+                    <a href="{% url 'journal:entry_detail' entry.pk %}" class="calendar-day has-entry">
+                        <span class="day-number">{{ day }}</span>
+                        <span class="day-mood">
+                            {% if entry.analysis %}
+                                {% if entry.analysis.detected_mood == 'ecstatic' %}🤩
+                                {% elif entry.analysis.detected_mood == 'happy' %}😊
+                                {% elif entry.analysis.detected_mood == 'neutral' %}😐
+                                {% elif entry.analysis.detected_mood == 'sad' %}😢
+                                {% elif entry.analysis.detected_mood == 'angry' %}😠
+                                {% else %}📝{% endif %}
+                            {% else %}📝{% endif %}
+                        </span>
+                    </a>
+                    {% endwith %}
+                    {% else %}
+                    <div class="calendar-day">
+                        <span class="day-number">{{ day }}</span>
                     </div>
+                    {% endif %}
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -104,53 +360,53 @@
         </div>
     </div>
 
-    <!-- Mood Distribution -->
+    <!-- Mood Distribution & Themes -->
     <div class="row g-4 mb-4">
         <div class="col-lg-6">
-            <div class="card h-100">
+            <div class="mood-card h-100">
                 <div class="card-header">
                     <i class="bi bi-pie-chart me-2"></i>Mood Distribution
                 </div>
                 <div class="card-body">
                     {% for mood, count in snapshot.mood_distribution.items %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>
-                            {% if mood == 'ecstatic' %}🤩
-                            {% elif mood == 'happy' %}😊
-                            {% elif mood == 'neutral' %}😐
-                            {% elif mood == 'sad' %}😢
-                            {% elif mood == 'angry' %}😠
-                            {% endif %}
-                            {{ mood|title }}
-                        </span>
-                        <div class="d-flex align-items-center" style="width: 60%;">
-                            <div class="progress flex-grow-1 me-2" style="height: 20px;">
-                                <div class="progress-bar" style="width: {% widthratio count snapshot.entry_count 100 %}%"></div>
-                            </div>
-                            <span class="badge bg-secondary">{{ count }}</span>
+                    <div class="mood-dist-item">
+                        <div class="mood-info">
+                            <span>
+                                {% if mood == 'ecstatic' %}🤩
+                                {% elif mood == 'happy' %}😊
+                                {% elif mood == 'neutral' %}😐
+                                {% elif mood == 'sad' %}😢
+                                {% elif mood == 'angry' %}😠
+                                {% endif %}
+                            </span>
+                            <span>{{ mood|title }}</span>
                         </div>
+                        <div class="mood-bar">
+                            <div class="mood-bar-fill" style="width: {% widthratio count snapshot.entry_count 100 %}%;"></div>
+                        </div>
+                        <span class="mood-count">{{ count }}</span>
                     </div>
                     {% empty %}
-                    <p class="text-muted text-center">No mood data</p>
+                    <p class="text-center mb-0" style="opacity: 0.8;">No mood data</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
         <div class="col-lg-6">
-            <div class="card h-100">
+            <div class="themes-card h-100">
                 <div class="card-header">
                     <i class="bi bi-tags me-2"></i>Top Themes
                 </div>
                 <div class="card-body">
                     {% if snapshot.top_themes %}
-                    <div class="d-flex flex-wrap gap-2">
+                    <div class="d-flex flex-wrap gap-3">
                         {% for theme in snapshot.top_themes %}
-                        <span class="badge bg-primary fs-6">{{ theme|title }}</span>
+                        <span class="theme-badge">{{ theme|clean_theme }}</span>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <p class="text-muted text-center">No themes detected</p>
+                    <p class="text-center mb-0" style="opacity: 0.8;">No themes detected</p>
                     {% endif %}
                 </div>
             </div>
@@ -158,9 +414,10 @@
     </div>
 
     <!-- All Entries -->
-    <div class="card">
-        <div class="card-header">
-            <i class="bi bi-list me-2"></i>All Entries
+    <div class="list-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-list me-2"></i>All Entries</span>
+            <span class="badge" style="background: rgba(255,255,255,0.2);">{{ entries|length }}</span>
         </div>
         <ul class="list-group list-group-flush">
             {% for entry in entries %}
@@ -168,13 +425,13 @@
                 <a href="{% url 'journal:entry_detail' entry.pk %}" class="text-decoration-none">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="me-2">{{ entry.mood_emoji }}</span>
-                            <strong>{{ entry.entry_date|date:"D, M j" }}</strong>
-                            {% if entry.title %} - {{ entry.title }}{% endif %}
-                            <p class="mb-0 text-muted small">{{ entry.preview|truncatewords:15 }}</p>
+                            <span class="me-2" style="font-size: 1.25rem;">{{ entry.mood_emoji }}</span>
+                            <strong class="text-dark">{{ entry.entry_date|date:"D, M j" }}</strong>
+                            {% if entry.title %}<span class="text-muted"> - {{ entry.title }}</span>{% endif %}
+                            <p class="mb-0 text-muted small mt-1">{{ entry.preview|truncatewords:15 }}</p>
                         </div>
                         {% if entry.analysis %}
-                        <span class="badge bg-{% if entry.analysis.sentiment_label == 'positive' %}success{% elif entry.analysis.sentiment_label == 'negative' %}danger{% else %}secondary{% endif %}">
+                        <span class="sentiment-badge {% if entry.analysis.sentiment_label == 'positive' %}positive{% elif entry.analysis.sentiment_label == 'negative' %}negative{% else %}neutral{% endif %}">
                             {% if entry.analysis.sentiment_score > 0 %}+{% endif %}{{ entry.analysis.sentiment_score|floatformat:2 }}
                         </span>
                         {% endif %}
@@ -182,7 +439,7 @@
                 </a>
             </li>
             {% empty %}
-            <li class="list-group-item text-center text-muted">No entries this month</li>
+            <li class="list-group-item text-center text-muted py-4">No entries this month</li>
             {% endfor %}
         </ul>
     </div>

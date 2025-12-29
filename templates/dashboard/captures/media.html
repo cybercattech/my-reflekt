@@ -4,9 +4,129 @@
 
 {% block dashboard_css %}
 <style>
+    /* Modern Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card.total {
+        background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+    }
+
+    .stat-card.movies {
+        background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    }
+
+    .stat-card.shows {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-card .stat-sub {
+        font-size: 0.8rem;
+        opacity: 0.75;
+        margin-top: 0.25rem;
+    }
+
+    .stat-card .stat-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+
+    /* Modern Chart Card */
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .chart-card .card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .chart-card .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Modern List Card */
+    .list-card {
+        background: white;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .list-card .card-header {
+        background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        border: none;
+    }
+
+    .list-card .table {
+        margin-bottom: 0;
+    }
+
+    .list-card .table thead {
+        background: #f8fafc;
+    }
+
+    .list-card .table th {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom-width: 1px;
+    }
+
+    .list-card .table td {
+        vertical-align: middle;
+    }
+
     .media-row:hover {
-        background-color: #f3f4f6;
+        background-color: #f8fafc;
         cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock dashboard_css %}
@@ -35,59 +155,29 @@
     </div>
 
     <!-- Stats Row -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 bg-info text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-white-50">Total Watched</h6>
-                            <h2 class="mb-0">{{ total }}</h2>
-                            <small class="text-white-50">in {{ year }}</small>
-                        </div>
-                        <div class="display-5 opacity-50">
-                            <i class="bi bi-film"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-label">Total Watched</div>
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-sub">in {{ year }}</div>
+            <i class="bi bi-film stat-icon"></i>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 bg-primary text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-white-50">Movies</h6>
-                            <h2 class="mb-0">{{ by_type.movie|default:0 }}</h2>
-                        </div>
-                        <div class="display-5 opacity-50">
-                            <i class="bi bi-camera-reels"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="stat-card movies">
+            <div class="stat-label">Movies</div>
+            <div class="stat-value">{{ by_type.movie|default:0 }}</div>
+            <i class="bi bi-camera-reels stat-icon"></i>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 bg-success text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-white-50">TV Shows</h6>
-                            <h2 class="mb-0">{{ by_type.show|default:0 }}</h2>
-                        </div>
-                        <div class="display-5 opacity-50">
-                            <i class="bi bi-tv"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="stat-card shows">
+            <div class="stat-label">TV Shows</div>
+            <div class="stat-value">{{ by_type.show|default:0 }}</div>
+            <i class="bi bi-tv stat-icon"></i>
         </div>
     </div>
 
     <div class="row g-4">
         <!-- Monthly Chart -->
         <div class="col-lg-8">
-            <div class="card h-100">
+            <div class="chart-card h-100">
                 <div class="card-header">
                     <i class="bi bi-bar-chart me-2"></i>Watched by Month ({{ year }})
                 </div>
@@ -99,7 +189,7 @@
 
         <!-- Rating Distribution -->
         <div class="col-lg-4">
-            <div class="card h-100">
+            <div class="chart-card h-100">
                 <div class="card-header">
                     <i class="bi bi-star me-2"></i>Rating Distribution
                 </div>
@@ -118,7 +208,7 @@
     </div>
 
     <!-- Watched List -->
-    <div class="card mt-4">
+    <div class="list-card mt-4">
         <div class="card-header">
             <i class="bi bi-list me-2"></i>All Watched in {{ year }}
         </div>

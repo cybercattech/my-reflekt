@@ -1,0 +1,20 @@
+Welcome to Reflekt!
+
+Hi {{ user_name }},
+
+Welcome to Reflekt! We're thrilled to have you join our community of mindful journalers.
+
+Your journaling journey starts now. Here's what you can do:
+
+- Write daily journal entries to capture your thoughts and feelings
+- Track your mood patterns over time
+- Get insights into your emotional well-being
+
+Start journaling: {{ site_url }}/dashboard/
+
+Pro Tip: Try to write at least a few sentences every day. Consistency is key to building a meaningful journaling practice.
+
+---
+
+You're receiving this because you signed up for Reflekt.
+Questions? Reply to this email - we're here to help!

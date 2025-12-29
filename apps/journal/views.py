@@ -15,13 +15,21 @@ from django.conf import settings
 from .models import Entry, Attachment, EntryCapture
 from .forms import EntryForm
 from .prompts import get_daily_prompt
+from apps.analytics.services.mood import MOOD_EMOJIS
 
 
 def home(request):
     """Landing page for logged-out users, redirect for logged-in."""
     if request.user.is_authenticated:
         return redirect('journal:entry_list')
-    return render(request, 'journal/home.html')
+
+    # Get latest 6 published blog posts for the home page
+    from apps.blog.models import Post
+    blog_posts = Post.objects.filter(status='published').order_by('-published_at')[:6]
+
+    return render(request, 'journal/home.html', {
+        'blog_posts': blog_posts,
+    })
 
 
 def features(request):
@@ -45,6 +53,12 @@ def entry_list(request):
     mood = request.GET.get('mood', '')
     if mood:
         entries = entries.filter(mood=mood)
+
+    # Filter by capture type (for sidebar navigation)
+    filter_type = request.GET.get('type', '')
+    if filter_type:
+        # Get entries that have captures of this type
+        entries = entries.filter(captures__capture_type=filter_type).distinct()
 
     # Filter by date (for calendar click)
     selected_date = request.GET.get('date', '')
@@ -153,21 +167,18 @@ def entry_list(request):
         count=Count('mood')
     ).order_by('-count')
 
-    mood_emojis = {
-        'ecstatic': '🤩',
-        'happy': '😊',
-        'neutral': '😐',
-        'sad': '😢',
-        'angry': '😠',
-    }
+    writing_moods_list = list(writing_moods[:5])
+    max_mood_count = writing_moods_list[0]['count'] if writing_moods_list else 1
+
     writing_mood_stats = [
         {
             'mood': m['mood'],
-            'emoji': mood_emojis.get(m['mood'], ''),
+            'emoji': MOOD_EMOJIS.get(m['mood'], ''),
             'count': m['count'],
-            'label': m['mood'].title()
+            'label': m['mood'].title(),
+            'percentage': round((m['count'] / max_mood_count) * 100)
         }
-        for m in writing_moods[:5]
+        for m in writing_moods_list
     ]
 
     # Perceived mood stats (AI-detected mood from analysis)
@@ -187,7 +198,7 @@ def entry_list(request):
     perceived_mood_stats = [
         {
             'mood': mood_name,
-            'emoji': mood_emojis.get(mood_name, '🔮'),
+            'emoji': MOOD_EMOJIS.get(mood_name, '😐'),
             'count': count,
             'label': mood_name.title()
         }
@@ -293,7 +304,7 @@ def entry_list(request):
                 else:
                     neutral_sentiment_count += 1
 
-                # Collect detected moods
+                # Collect detected moods (AI-analyzed)
                 detected = entry.analysis.detected_mood
                 if detected:
                     mood_distribution[detected] += 1
@@ -304,12 +315,7 @@ def entry_list(request):
                 for keyword in entry.analysis.keywords or []:
                     keywords_counter[keyword] += 1
 
-        # Also add user-selected moods (they take priority in display)
-        for entry in year_entries:
-            if entry.mood:
-                mood_distribution[entry.mood] += 1
-
-        # Find dominant mood
+        # Find dominant mood (based on AI-detected moods only, for consistency with sentiment)
         dominant_mood = ''
         if mood_distribution:
             dominant_mood = mood_distribution.most_common(1)[0][0]
@@ -349,12 +355,7 @@ def entry_list(request):
             'best_streak': year_best_streak,
             'mood_distribution': mood_dist_dict,
             'dominant_mood': dominant_mood,
-            'dominant_mood_emoji': {
-                'ecstatic': '🤩', 'happy': '😊', 'neutral': '😐',
-                'sad': '😢', 'angry': '😠',
-                'joyful': '😄', 'content': '🙂', 'anxious': '😰',
-                'reflective': '🤔', 'hopeful': '🌟', 'frustrated': '😤',
-            }.get(dominant_mood, '📝'),
+            'dominant_mood_emoji': MOOD_EMOJIS.get(dominant_mood, '😐'),
             'avg_sentiment': round(avg_sentiment, 2),
             'sentiment_label': sentiment_label,
             'top_themes': themes_counter.most_common(5),
@@ -381,12 +382,110 @@ def entry_list(request):
         # Check if user has an entry for today
         has_entry_today = Entry.objects.filter(user=request.user, entry_date=today).exists()
 
+    # === NEW INSIGHTS DATA ===
+
+    # Journaled days this year and this month
+    this_year_entries = Entry.objects.filter(
+        user=request.user,
+        entry_date__year=today.year
+    )
+    journaled_days_year = this_year_entries.values('entry_date').distinct().count()
+    journaled_days_month = Entry.objects.filter(
+        user=request.user,
+        entry_date__year=today.year,
+        entry_date__month=today.month
+    ).values('entry_date').distinct().count()
+
+    # Word counts this month and this year
+    words_this_month = Entry.objects.filter(
+        user=request.user,
+        entry_date__year=today.year,
+        entry_date__month=today.month
+    ).aggregate(total=Sum('word_count'))['total'] or 0
+
+    words_this_year = this_year_entries.aggregate(total=Sum('word_count'))['total'] or 0
+
+    # Monthly entry counts for bar chart (current year)
+    monthly_entry_counts = []
+    for month_num in range(1, 13):
+        count = Entry.objects.filter(
+            user=request.user,
+            entry_date__year=today.year,
+            entry_date__month=month_num
+        ).count()
+        monthly_entry_counts.append(count)
+
+    # Total entries this year
+    entries_this_year = sum(monthly_entry_counts)
+
+    # Monthly entry counts for previous year
+    prev_year = today.year - 1
+    monthly_entry_counts_prev_year = []
+    for month_num in range(1, 13):
+        count = Entry.objects.filter(
+            user=request.user,
+            entry_date__year=prev_year,
+            entry_date__month=month_num
+        ).count()
+        monthly_entry_counts_prev_year.append(count)
+    entries_prev_year = sum(monthly_entry_counts_prev_year)
+
+    # Monthly entry counts for all-time (sum across all years by month)
+    monthly_entry_counts_all_time = []
+    for month_num in range(1, 13):
+        count = Entry.objects.filter(
+            user=request.user,
+            entry_date__month=month_num
+        ).count()
+        monthly_entry_counts_all_time.append(count)
+    entries_all_time = Entry.objects.filter(user=request.user).count()
+
+    # Longest weekly streak (consecutive weeks with at least 1 entry)
+    longest_weekly_streak = 0
+    if all_entry_dates:
+        # Get unique weeks (year, week_number) for all entries
+        weeks_with_entries = set()
+        for entry_date in all_entry_dates:
+            iso_cal = entry_date.isocalendar()
+            weeks_with_entries.add((iso_cal[0], iso_cal[1]))  # (year, week)
+
+        # Sort weeks and find longest consecutive streak
+        sorted_weeks = sorted(weeks_with_entries)
+        if sorted_weeks:
+            weekly_streak = 1
+            for i in range(1, len(sorted_weeks)):
+                prev_year, prev_week = sorted_weeks[i-1]
+                curr_year, curr_week = sorted_weeks[i]
+
+                # Check if consecutive week
+                if curr_year == prev_year and curr_week == prev_week + 1:
+                    weekly_streak += 1
+                elif curr_year == prev_year + 1 and prev_week >= 52 and curr_week == 1:
+                    # Year transition (week 52/53 to week 1)
+                    weekly_streak += 1
+                else:
+                    longest_weekly_streak = max(longest_weekly_streak, weekly_streak)
+                    weekly_streak = 1
+            longest_weekly_streak = max(longest_weekly_streak, weekly_streak)
+
+    # Map locations from travel and place captures
+    from apps.journal.services.geocoding import get_map_locations_for_user
+    map_locations = get_map_locations_for_user(request.user)
+    total_places = len(map_locations)
+
+    # Highest earned badge
+    from apps.accounts.models import UserBadge
+    earned_badges = UserBadge.get_user_badges(request.user)
+    # Get the highest badge (most days required)
+    highest_badge = max(earned_badges, key=lambda b: b['days']) if earned_badges else None
+
     return render(request, 'journal/entry_list.html', {
         'show_all': show_all,
         'daily_prompt': daily_prompt,
         'entries': entries,
         'query': query,
         'mood': mood,
+        'filter_type': filter_type,
         'selected_date': selected_date,
         'filter_date': filter_date,
         'same_day_other_years': same_day_other_years,
@@ -410,6 +509,22 @@ def entry_list(request):
         # Daily devotion
         'daily_devotion': daily_devotion,
         'has_entry_today': has_entry_today,
+        # New insight data
+        'journaled_days_year': journaled_days_year,
+        'journaled_days_month': journaled_days_month,
+        'words_this_month': words_this_month,
+        'words_this_year': words_this_year,
+        'monthly_entry_counts': monthly_entry_counts,
+        'monthly_entry_counts_prev_year': monthly_entry_counts_prev_year,
+        'monthly_entry_counts_all_time': monthly_entry_counts_all_time,
+        'entries_this_year': entries_this_year,
+        'entries_prev_year': entries_prev_year,
+        'entries_all_time': entries_all_time,
+        'prev_year': prev_year,
+        'longest_weekly_streak': longest_weekly_streak,
+        'map_locations': map_locations,
+        'total_places': total_places,
+        'highest_badge': highest_badge,
     })
 
 
@@ -480,19 +595,18 @@ def get_sidebar_context(user):
         entry_date__gte=thirty_days_ago
     ).select_related('analysis')
 
-    mood_emojis = {
-        'ecstatic': '🤩', 'happy': '😊', 'neutral': '😐',
-        'sad': '😢', 'angry': '😠',
-    }
-
     writing_moods = recent_entries.exclude(mood='').values('mood').annotate(
         count=Count('mood')
     ).order_by('-count')[:5]
 
+    writing_moods_list = list(writing_moods)
+    max_mood_count = writing_moods_list[0]['count'] if writing_moods_list else 1
+
     writing_mood_stats = [
-        {'mood': m['mood'], 'emoji': mood_emojis.get(m['mood'], ''),
-         'count': m['count'], 'label': m['mood'].title()}
-        for m in writing_moods
+        {'mood': m['mood'], 'emoji': MOOD_EMOJIS.get(m['mood'], ''),
+         'count': m['count'], 'label': m['mood'].title(),
+         'percentage': round((m['count'] / max_mood_count) * 100)}
+        for m in writing_moods_list
     ]
 
     # Perceived mood stats (AI-detected mood from analysis)
@@ -512,7 +626,7 @@ def get_sidebar_context(user):
     perceived_mood_stats = [
         {
             'mood': mood_name,
-            'emoji': mood_emojis.get(mood_name, '🔮'),
+            'emoji': MOOD_EMOJIS.get(mood_name, '😐'),
             'count': count,
             'label': mood_name.title()
         }
@@ -752,8 +866,8 @@ def entry_at_offset(request):
 
     analysis_badge = ''
     if hasattr(entry, 'analysis') and entry.analysis:
-        sentiment_class = 'success' if entry.analysis.sentiment_label == 'positive' else ('danger' if entry.analysis.sentiment_label == 'negative' else 'secondary')
-        analysis_badge = f'<span class="badge bg-{sentiment_class} ms-2">{entry.analysis.detected_mood}</span>'
+        mood = entry.analysis.detected_mood
+        analysis_badge = f'<span class="badge badge-mood-{mood} ms-2">{mood}</span>'
 
     analyzed_icon = '<i class="bi bi-check-circle text-success" title="Analyzed"></i>' if entry.is_analyzed else '<i class="bi bi-hourglass text-warning" title="Processing..."></i>'
 
@@ -1283,6 +1397,19 @@ def save_capture(request):
                 items.append(capture_data[key])
         capture_data = {'items': items}
 
+    # Convert numeric fields from strings to integers
+    if capture_type == 'watched' and capture_data.get('rating'):
+        try:
+            capture_data['rating'] = int(capture_data['rating'])
+        except (ValueError, TypeError):
+            capture_data['rating'] = 0
+
+    if capture_type == 'workout' and capture_data.get('duration'):
+        try:
+            capture_data['duration'] = int(capture_data['duration'])
+        except (ValueError, TypeError):
+            capture_data['duration'] = 0
+
     # Create the capture
     capture = EntryCapture.objects.create(
         entry=entry,
@@ -1325,6 +1452,52 @@ def get_entry_captures(request, entry_pk):
     } for c in captures]
 
     return JsonResponse({'captures': data})
+
+
+@login_required
+def capture_count(request):
+    """Get the count of visits/uses for a specific capture type and name."""
+    capture_type = request.GET.get('type', '')
+    name = request.GET.get('name', '')
+
+    if not capture_type or not name:
+        return JsonResponse({'count': 0})
+
+    # Build the query based on capture type
+    from django.db.models import Q
+
+    if capture_type == 'place':
+        # For places, match by name
+        count = EntryCapture.objects.filter(
+            entry__user=request.user,
+            capture_type='place',
+            data__name__iexact=name
+        ).count()
+    elif capture_type == 'travel':
+        # For travel, match by destination
+        count = EntryCapture.objects.filter(
+            entry__user=request.user,
+            capture_type='travel',
+            data__destination__iexact=name
+        ).count()
+    elif capture_type == 'watched':
+        # For watched, match by title
+        count = EntryCapture.objects.filter(
+            entry__user=request.user,
+            capture_type='watched',
+            data__title__iexact=name
+        ).count()
+    elif capture_type == 'person':
+        # For person, match by name
+        count = EntryCapture.objects.filter(
+            entry__user=request.user,
+            capture_type='person',
+            data__name__iexact=name
+        ).count()
+    else:
+        count = 0
+
+    return JsonResponse({'count': count, 'type': capture_type, 'name': name})
 
 
 @login_required

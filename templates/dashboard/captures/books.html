@@ -4,13 +4,166 @@
 
 {% block dashboard_css %}
 <style>
-    .book-item:hover {
-        background-color: #f3f4f6;
+    /* Modern Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card.finished {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    }
+
+    .stat-card.reading {
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+    }
+
+    .stat-card.alltime {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .stat-card.rating {
+        background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-card .stat-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+
+    /* Modern Chart Card */
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .chart-card .card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .chart-card .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Modern List Card */
+    .list-card {
+        background: white;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .list-card .card-header {
+        background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        border: none;
+    }
+
+    .list-card.reading .card-header {
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+    }
+
+    .list-card.finished .card-header {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .list-card.wishlist .card-header {
+        background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    }
+
+    .list-card .list-group-item {
+        border-left: none;
+        border-right: none;
+        padding: 1rem 1.25rem;
+        transition: background 0.2s;
+    }
+
+    .list-card .list-group-item:first-child {
+        border-top: none;
+    }
+
+    .list-card .list-group-item:hover {
+        background-color: #f8fafc;
         cursor: pointer;
     }
+
+    .list-card .table {
+        margin-bottom: 0;
+    }
+
+    .list-card .table thead {
+        background: #f8fafc;
+    }
+
+    .list-card .table th {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom-width: 1px;
+    }
+
+    .list-card .table td {
+        vertical-align: middle;
+    }
+
     .book-row:hover {
-        background-color: #f3f4f6;
+        background-color: #f8fafc;
         cursor: pointer;
+    }
+
+    .book-item:hover {
+        background-color: #f8fafc;
+        cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock dashboard_css %}
@@ -39,79 +192,35 @@
     </div>
 
     <!-- Stats Row -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 bg-primary text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-white-50">Finished in {{ year }}</h6>
-                            <h2 class="mb-0">{{ stats.total_finished }}</h2>
-                        </div>
-                        <div class="display-5 opacity-50">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="stats-grid">
+        <div class="stat-card finished">
+            <div class="stat-label">Finished in {{ year }}</div>
+            <div class="stat-value">{{ stats.total_finished }}</div>
+            <i class="bi bi-check-circle stat-icon"></i>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 bg-info text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-white-50">Currently Reading</h6>
-                            <h2 class="mb-0">{{ stats.currently_reading }}</h2>
-                        </div>
-                        <div class="display-5 opacity-50">
-                            <i class="bi bi-bookmark"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="stat-card reading">
+            <div class="stat-label">Currently Reading</div>
+            <div class="stat-value">{{ stats.currently_reading }}</div>
+            <i class="bi bi-bookmark stat-icon"></i>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 bg-success text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-white-50">All-Time Finished</h6>
-                            <h2 class="mb-0">{{ stats.total_all_time }}</h2>
-                        </div>
-                        <div class="display-5 opacity-50">
-                            <i class="bi bi-collection"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="stat-card alltime">
+            <div class="stat-label">All-Time Finished</div>
+            <div class="stat-value">{{ stats.total_all_time }}</div>
+            <i class="bi bi-collection stat-icon"></i>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 bg-warning text-dark h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="opacity-75">Avg Rating</h6>
-                            <h2 class="mb-0">
-                                {% if stats.avg_rating %}
-                                {{ stats.avg_rating }}<small class="opacity-75">/5</small>
-                                {% else %}
-                                --
-                                {% endif %}
-                            </h2>
-                        </div>
-                        <div class="display-5 opacity-50">
-                            <i class="bi bi-star-fill"></i>
-                        </div>
-                    </div>
-                </div>
+        <div class="stat-card rating">
+            <div class="stat-label">Avg Rating</div>
+            <div class="stat-value">
+                {% if stats.avg_rating %}{{ stats.avg_rating }}<small style="font-size: 1rem; opacity: 0.8;">/5</small>{% else %}--{% endif %}
             </div>
+            <i class="bi bi-star-fill stat-icon"></i>
         </div>
     </div>
 
     <div class="row g-4">
         <!-- Books by Month Chart -->
         <div class="col-lg-8">
-            <div class="card h-100">
+            <div class="chart-card h-100">
                 <div class="card-header">
                     <i class="bi bi-bar-chart me-2"></i>Books Finished by Month ({{ year }})
                 </div>
@@ -123,7 +232,7 @@
 
         <!-- Want to Read -->
         <div class="col-lg-4">
-            <div class="card h-100">
+            <div class="list-card wishlist h-100">
                 <div class="card-header">
                     <i class="bi bi-bookmark-star me-2"></i>Want to Read ({{ stats.want_to_read }})
                 </div>
@@ -146,7 +255,7 @@
     <div class="row g-4 mt-2">
         <!-- Currently Reading -->
         <div class="col-lg-6">
-            <div class="card">
+            <div class="list-card reading">
                 <div class="card-header">
                     <i class="bi bi-bookmark me-2"></i>Currently Reading
                 </div>
@@ -163,8 +272,8 @@
                             </div>
                             {% if book.total_pages %}
                             <div class="text-end ms-3" style="min-width: 100px;">
-                                <div class="progress mb-1" style="height: 8px;">
-                                    <div class="progress-bar bg-primary" style="width: {{ book.progress_percentage }}%"></div>
+                                <div class="progress mb-1" style="height: 8px; background: #e2e8f0;">
+                                    <div class="progress-bar" style="width: {{ book.progress_percentage }}%; background: linear-gradient(90deg, #0ea5e9, #06b6d4);"></div>
                                 </div>
                                 <small class="text-muted">{{ book.current_page }}/{{ book.total_pages }} ({{ book.progress_percentage }}%)</small>
                             </div>
@@ -182,7 +291,7 @@
 
         <!-- Finished Books -->
         <div class="col-lg-6">
-            <div class="card">
+            <div class="list-card finished">
                 <div class="card-header">
                     <i class="bi bi-check-circle me-2"></i>Finished in {{ year }}
                 </div>
