@@ -6,33 +6,6 @@ from .models import Entry, EntryCapture
 
 logger = logging.getLogger(__name__)
 
-# Cache for Redis availability check (avoid repeated connection attempts)
-_celery_available = None
-_celery_check_time = 0
-
-
-def is_celery_available():
-    """Quick check if Celery/Redis is available (cached for 60 seconds)."""
-    import time
-    global _celery_available, _celery_check_time
-
-    # Return cached result if checked recently (within 60 seconds)
-    now = time.time()
-    if _celery_available is not None and (now - _celery_check_time) < 60:
-        return _celery_available
-
-    try:
-        from django.conf import settings
-        import redis
-        r = redis.from_url(settings.CELERY_BROKER_URL, socket_connect_timeout=1)
-        r.ping()
-        _celery_available = True
-    except Exception:
-        _celery_available = False
-
-    _celery_check_time = now
-    return _celery_available
-
 
 def run_sync_analysis(entry):
     """
@@ -87,20 +60,17 @@ def trigger_entry_analysis(sender, instance, created, **kwargs):
     Falls back to synchronous analysis if Redis/Celery isn't available.
     """
     if not instance.is_analyzed:
-        # Only try Celery if Redis is available (fast check)
-        if is_celery_available():
-            try:
-                from apps.analytics.tasks import analyze_entry
-                analyze_entry.delay(instance.id)
-                return
-            except Exception as e:
-                logger.warning(f"Celery task failed: {e}")
-
-        # Run synchronously
         try:
-            run_sync_analysis(instance)
-        except Exception as sync_error:
-            logger.error(f"Sync analysis failed: {sync_error}")
+            # Try async first (faster for user)
+            from apps.analytics.tasks import analyze_entry
+            analyze_entry.delay(instance.id)
+        except Exception as e:
+            # Redis/Celery not available - run synchronously
+            logger.warning(f"Celery unavailable, running sync analysis: {e}")
+            try:
+                run_sync_analysis(instance)
+            except Exception as sync_error:
+                logger.error(f"Sync analysis failed: {sync_error}")
 
 
 def run_sync_capture_processing(capture):
@@ -130,20 +100,17 @@ def trigger_capture_processing(sender, instance, created, **kwargs):
     Links books/people to tracked entities and updates snapshots.
     """
     if created:
-        # Only try Celery if Redis is available (fast check)
-        if is_celery_available():
-            try:
-                from apps.analytics.tasks import process_capture
-                process_capture.delay(instance.id)
-                return
-            except Exception as e:
-                logger.warning(f"Celery task failed: {e}")
-
-        # Run synchronously (fast for simple captures)
         try:
-            run_sync_capture_processing(instance)
-        except Exception as sync_error:
-            logger.error(f"Sync capture processing failed: {sync_error}")
+            # Try async first
+            from apps.analytics.tasks import process_capture
+            process_capture.delay(instance.id)
+        except Exception as e:
+            # Redis/Celery not available - run synchronously
+            logger.warning(f"Celery unavailable, running sync capture processing: {e}")
+            try:
+                run_sync_capture_processing(instance)
+            except Exception as sync_error:
+                logger.error(f"Sync capture processing failed: {sync_error}")
 
 
 @receiver(post_save, sender=Entry)
@@ -201,24 +168,20 @@ def update_person_mentions(sender, instance, created, **kwargs):
         entry_date = instance.entry_date
 
         for person in people:
-            # Recalculate mention count by iterating through entries
-            # (can't use content__regex because content is encrypted)
-            person_pattern = re.compile(rf'\[[^\]]+\]\(/analytics/people/{person.pk}/\)')
-            mention_count = 0
-            first_date = None
-            last_date = None
+            # Update mention dates
+            if not person.first_mention_date or entry_date < person.first_mention_date:
+                person.first_mention_date = entry_date
+            if not person.last_mention_date or entry_date > person.last_mention_date:
+                person.last_mention_date = entry_date
 
-            for entry in Entry.objects.filter(user=instance.user):
-                if entry.content and person_pattern.search(entry.content):
-                    mention_count += 1
-                    if first_date is None or entry.entry_date < first_date:
-                        first_date = entry.entry_date
-                    if last_date is None or entry.entry_date > last_date:
-                        last_date = entry.entry_date
-
+            # Recalculate mention count by searching all user's entries
+            person_pattern = rf'\[[^\]]+\]\(/analytics/people/{person.pk}/\)'
+            mention_count = Entry.objects.filter(
+                user=instance.user,
+                content__regex=person_pattern
+            ).count()
             person.mention_count = mention_count
-            person.first_mention_date = first_date
-            person.last_mention_date = last_date
+
             person.save()
 
         if matches:
@@ -226,45 +189,3 @@ def update_person_mentions(sender, instance, created, **kwargs):
 
     except Exception as e:
         logger.error(f"Person mention tracking failed for entry {instance.id}: {e}")
-
-
-@receiver(post_save, sender=Entry)
-def check_and_award_streak_badges(sender, instance, created, **kwargs):
-    """
-    Check and award streak badges when an entry is saved.
-    Only checks on new entries to avoid excessive processing.
-    """
-    if not created:
-        return
-
-    try:
-        from datetime import timedelta
-        from django.utils import timezone
-        from apps.accounts.models import UserBadge
-
-        user = instance.user
-        today = timezone.now().date()
-
-        # Calculate current streak
-        all_entry_dates = set(
-            Entry.objects.filter(user=user).values_list('entry_date', flat=True)
-        )
-
-        current_streak = 0
-        check_date = today
-        # If no entry today, start from yesterday
-        if check_date not in all_entry_dates:
-            check_date = today - timedelta(days=1)
-        while check_date in all_entry_dates:
-            current_streak += 1
-            check_date -= timedelta(days=1)
-
-        # Check and award any new badges
-        new_badges = UserBadge.check_and_award_badges(user, current_streak)
-
-        if new_badges:
-            badge_names = [b['name'] for b in new_badges]
-            logger.info(f"Awarded badges to {user.email}: {badge_names}")
-
-    except Exception as e:
-        logger.error(f"Badge check failed for entry {instance.id}: {e}")

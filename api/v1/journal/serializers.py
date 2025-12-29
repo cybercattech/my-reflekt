@@ -78,7 +78,7 @@ class EntryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Entry
         fields = [
-            'id', 'title', 'preview', 'word_count',
+            'id', 'title', 'content', 'preview', 'word_count',
             'mood', 'mood_emoji', 'energy',
             'entry_date', 'created_at', 'is_analyzed',
             'attachment_count', 'tags'

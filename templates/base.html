@@ -1,9 +1,12 @@
 {% load static %}
 {% load subscription_tags %}
-{% load compress %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Pinterest -->
+    <meta name="p:domain_verify" content="bbccc4702c9526e30c0a9dfaecb7809f"/>
+
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Reflekt{% endblock %} | Your Writing, Understood</title>
@@ -17,19 +20,169 @@
     <!-- Quill for rich text editor -->
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 
-    <!-- Application CSS -->
-    {% compress css %}
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components/badges.css' %}">
-    {% endcompress %}
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #7c3aed;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .main-content {
+            flex: 1;
+        }
+        .mood-emoji {
+            font-size: 1.5rem;
+        }
+        .entry-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s;
+        }
+        .sentiment-positive { color: #22c55e; }
+        .sentiment-negative { color: #ef4444; }
+        .sentiment-neutral { color: #6b7280; }
+
+        /* POV blocks - received from friends (light blue) */
+        .alert-pov {
+            background-color: #e0f2fe;
+            border: 1px solid #7dd3fc;
+            border-left: 4px solid #0ea5e9;
+            border-radius: 0.5rem;
+            color: #0c4a6e;
+        }
+        .admonition-pov .admonition-title {
+            color: #0369a1;
+            font-weight: 600;
+        }
+        .admonition-pov .admonition-content {
+            color: #0c4a6e;
+        }
+
+        /* POV blocks - sent to friends (light purple) */
+        .alert-pov-author {
+            background-color: #f3e8ff;
+            border: 1px solid #d8b4fe;
+            border-left: 4px solid #a855f7;
+            border-radius: 0.5rem;
+            color: #581c87;
+        }
+        .admonition-pov-author .admonition-title {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+        .admonition-pov-author .admonition-content {
+            color: #581c87;
+        }
+
+        /* Goal and Habit tracker blocks */
+        .tracker-block {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+        }
+        .tracker-block a {
+            text-decoration: none;
+        }
+        .tracker-block a:hover {
+            text-decoration: underline;
+        }
+        .tracker-goal {
+            background-color: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        .tracker-goal a {
+            color: #166534;
+            font-weight: 500;
+        }
+        .tracker-habit {
+            background-color: #fef3c7;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+        }
+        .tracker-habit a {
+            color: #92400e;
+            font-weight: 500;
+        }
+
+        /* Editor styling */
+        .EasyMDEContainer .CodeMirror {
+            border-radius: 0.375rem;
+            border: 1px solid #dee2e6;
+        }
+        .editor-toolbar {
+            border-radius: 0.375rem 0.375rem 0 0;
+        }
+
+        /* Toast-style notifications */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 300px;
+        }
+        .toast-alert {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+        .toast-alert.alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .toast-alert.alert-error, .toast-alert.alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .toast-alert.alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .toast-alert.alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .toast-alert .btn-close {
+            padding: 0.25rem;
+            font-size: 0.7rem;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .toast-alert.hiding {
+            animation: slideOut 0.3s ease-in forwards;
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="bi bi-journal-text me-2"></i>Reflekt
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <img src="{% static 'img/logo_white.png' %}" alt="Reflekt" height="28" class="me-2">Reflekt
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -83,14 +236,6 @@
                                 <i class="bi bi-activity me-2"></i>Fitness
                                 {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">PRO</span>{% endif %}
                             </a></li>
-                            <li><a class="dropdown-item" href="{% if user|user_is_premium %}{% url 'analytics:travel' %}{% else %}{% url 'accounts:upgrade' %}{% endif %}">
-                                <i class="bi bi-geo-alt me-2"></i>Travel & Places
-                                {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">PRO</span>{% endif %}
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% if user|user_is_premium %}{% url 'analytics:wellness' %}{% else %}{% url 'accounts:upgrade' %}{% endif %}">
-                                <i class="bi bi-heart-pulse me-2"></i>Wellness
-                                {% if user|user_is_free %}<span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">PRO</span>{% endif %}
-                            </a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -114,13 +259,6 @@
                             <i class="bi bi-gear me-1"></i>Settings
                         </a>
                     </li>
-                    {% if user.is_staff %}
-                    <li class="nav-item">
-                        <a class="nav-link text-warning" href="{% url 'accounts:admin_panel' %}">
-                            <i class="bi bi-shield-lock me-1"></i>Admin
-                        </a>
-                    </li>
-                    {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
@@ -155,7 +293,7 @@
                         <a class="nav-link" href="{% url 'account_login' %}">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary ms-2" href="{% url 'accounts:pricing' %}">Sign Up</a>
+                        <a class="btn btn-primary ms-2" href="{% url 'account_signup' %}">Sign Up</a>
                     </li>
                 </ul>
                 {% endif %}
@@ -211,6 +349,16 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-95ZN179H2X"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-95ZN179H2X');
+    </script>
+
     {% if user.is_authenticated %}
     <script>
     // Update POV badge with unread count
@@ -234,134 +382,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         updatePovBadge();
         setInterval(updatePovBadge, 60000); // Every minute
-    });
-    </script>
-
-    <!-- Floating Feedback Button -->
-    <button type="button" class="btn btn-primary feedback-fab" data-bs-toggle="modal" data-bs-target="#feedbackModal" title="Send Feedback">
-        <i class="bi bi-chat-dots-fill"></i>
-    </button>
-
-    <!-- Feedback Modal -->
-    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title" id="feedbackModalLabel">Send Feedback</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="feedbackForm">
-                        <div class="mb-3">
-                            <label class="form-label">What type of feedback?</label>
-                            <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="feedbackType" id="typeBug" value="bug" checked>
-                                <label class="btn btn-outline-danger" for="typeBug">
-                                    <i class="bi bi-bug me-1"></i>Bug Report
-                                </label>
-                                <input type="radio" class="btn-check" name="feedbackType" id="typeIdea" value="idea">
-                                <label class="btn btn-outline-success" for="typeIdea">
-                                    <i class="bi bi-lightbulb me-1"></i>Feature Idea
-                                </label>
-                                <input type="radio" class="btn-check" name="feedbackType" id="typeOther" value="other">
-                                <label class="btn btn-outline-secondary" for="typeOther">
-                                    <i class="bi bi-chat-left-text me-1"></i>Other
-                                </label>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="feedbackSubject" class="form-label">Subject</label>
-                            <input type="text" class="form-control" id="feedbackSubject" placeholder="Brief summary..." required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="feedbackMessage" class="form-label">Details</label>
-                            <textarea class="form-control" id="feedbackMessage" rows="4" placeholder="Please describe your feedback in detail..." required></textarea>
-                        </div>
-                        <input type="hidden" id="feedbackPageUrl">
-                    </form>
-                    <div id="feedbackSuccess" class="text-center py-4 d-none">
-                        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
-                        <h5 class="mt-3">Thank you!</h5>
-                        <p class="text-muted mb-0">Your feedback has been submitted.</p>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0" id="feedbackFooter">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="submitFeedback">
-                        <i class="bi bi-send me-1"></i>Send Feedback
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('feedbackForm');
-        const successDiv = document.getElementById('feedbackSuccess');
-        const footer = document.getElementById('feedbackFooter');
-        const submitBtn = document.getElementById('submitFeedback');
-        const modal = document.getElementById('feedbackModal');
-
-        // Set page URL when modal opens
-        modal.addEventListener('show.bs.modal', function() {
-            document.getElementById('feedbackPageUrl').value = window.location.href;
-            // Reset form state
-            form.classList.remove('d-none');
-            successDiv.classList.add('d-none');
-            footer.classList.remove('d-none');
-            form.reset();
-        });
-
-        submitBtn.addEventListener('click', async function() {
-            const subject = document.getElementById('feedbackSubject').value.trim();
-            const message = document.getElementById('feedbackMessage').value.trim();
-            const feedbackType = document.querySelector('input[name="feedbackType"]:checked').value;
-            const pageUrl = document.getElementById('feedbackPageUrl').value;
-
-            if (!subject || !message) {
-                alert('Please fill in both subject and details.');
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending...';
-
-            try {
-                const response = await fetch('{% url "accounts:submit_feedback" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({
-                        type: feedbackType,
-                        subject: subject,
-                        message: message,
-                        page_url: pageUrl
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    form.classList.add('d-none');
-                    footer.classList.add('d-none');
-                    successDiv.classList.remove('d-none');
-                    // Auto-close after 2 seconds
-                    setTimeout(() => {
-                        bootstrap.Modal.getInstance(modal).hide();
-                    }, 2000);
-                } else {
-                    alert(data.error || 'Something went wrong. Please try again.');
-                }
-            } catch (error) {
-                alert('Failed to submit feedback. Please try again.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-send me-1"></i>Send Feedback';
-            }
-        });
     });
     </script>
     {% endif %}

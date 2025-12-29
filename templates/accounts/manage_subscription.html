@@ -60,21 +60,13 @@
                         {% endif %}
 
                         {% if subscription %}
-                            {% if subscription.status == 'trialing' %}
-                                <div class="alert alert-info mt-3">
-                                    <i class="bi bi-gift me-2"></i>
-                                    <strong>Free Trial Active!</strong> Your trial ends on {{ subscription.trial_end|date:"F j, Y" }}.
-                                    You won't be charged until your trial period ends.
-                                </div>
-                            {% endif %}
-
                             {% if subscription.cancel_at_period_end %}
                                 <div class="alert alert-warning mt-3">
                                     <i class="bi bi-exclamation-triangle me-2"></i>
                                     Your subscription will be cancelled on {{ subscription.current_period_end|date:"F j, Y" }}.
                                     You will retain access until then.
                                 </div>
-                            {% elif subscription.status != 'trialing' %}
+                            {% else %}
                                 <div class="mb-2">
                                     <small class="text-muted">
                                         <i class="bi bi-arrow-repeat me-1"></i>

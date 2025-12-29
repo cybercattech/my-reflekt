@@ -29,15 +29,17 @@
                 {% csrf_token %}
 
                 <!-- Preview Card -->
-                <div class="preview-card mb-4">
-                    <h6 class="preview-label mb-3">Preview</h6>
-                    <div class="d-flex align-items-center gap-3">
-                        <div id="iconPreview" class="icon-preview" style="background: {{ form.color.value|default:'#4f46e5' }};">
-                            <i id="iconClass" class="{{ form.icon.value|default:'bi-check-circle' }}"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold" id="namePreview">{{ form.name.value|default:'Habit Name' }}</div>
-                            <div class="text-muted small" id="frequencyPreview">Every day</div>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted">Preview</h6>
+                        <div class="d-flex align-items-center gap-3">
+                            <div id="iconPreview" class="icon-preview" style="background: {{ form.color.value|default:'#4f46e5' }}; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                                <i id="iconClass" class="{{ form.icon.value|default:'bi-check-circle' }}" style="font-size: 1.25rem;"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold" id="namePreview">{{ form.name.value|default:'Habit Name' }}</div>
+                                <div class="text-muted small" id="frequencyPreview">Every day</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -130,21 +132,25 @@
 
         <!-- Sidebar Tips -->
         <div class="col-lg-4">
-            <div class="tips-card mb-4">
-                <h5><i class="bi bi-lightbulb me-2"></i>Tips for Success</h5>
-                <ul class="small mb-0">
-                    <li><strong>Start small</strong> - Begin with habits that take less than 2 minutes</li>
-                    <li><strong>Be specific</strong> - "Exercise" is vague, "Walk 10 minutes" is clear</li>
-                    <li><strong>Stack habits</strong> - Link new habits to existing routines</li>
-                    <li><strong>Track progress</strong> - Seeing your streak builds motivation</li>
-                </ul>
+            <div class="card bg-light border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-lightbulb text-warning me-2"></i>Tips for Success</h5>
+                    <ul class="small text-muted mb-0">
+                        <li class="mb-2"><strong>Start small</strong> - Begin with habits that take less than 2 minutes</li>
+                        <li class="mb-2"><strong>Be specific</strong> - "Exercise" is vague, "Walk 10 minutes" is clear</li>
+                        <li class="mb-2"><strong>Stack habits</strong> - Link new habits to existing routines</li>
+                        <li><strong>Track progress</strong> - Seeing your streak builds motivation</li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="streak-card">
-                <h5><i class="bi bi-fire me-2"></i>Habit Streaks</h5>
-                <p class="small mb-0">
-                    Consistency is key! Your streak will grow each day you complete this habit. Don't break the chain!
-                </p>
+            <div class="card border-0" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white;">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-fire me-2"></i>Habit Streaks</h5>
+                    <p class="card-text small opacity-75 mb-0">
+                        Consistency is key! Your streak will grow each day you complete this habit. Don't break the chain!
+                    </p>
+                </div>
             </div>
         </div>
     </div>

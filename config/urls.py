@@ -6,18 +6,13 @@ from django.urls import path, include
 from django.conf import settings
 
 urlpatterns = [
-    # REST API
-    path('api/', include('api.urls')),
-
-    # Web App
-    # path('admin/', admin.site.urls),  # Disabled - using custom admin panel instead
+    path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('accounts/', include('apps.accounts.urls')),
     path('journal/', include('apps.journal.urls')),
     path('goals/', include('apps.goals.urls')),
     path('habits/', include('apps.habits.urls')),
     path('dashboard/', include('apps.analytics.urls')),
-    path('blog/', include('apps.blog.urls')),
     path('', include('apps.journal.urls_home')),
 ]
 

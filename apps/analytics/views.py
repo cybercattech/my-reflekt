@@ -64,65 +64,6 @@ def dashboard(request):
         total_words=Sum('word_count'),
     )
 
-    # Monthly entry counts for insight cards
-    monthly_entry_counts = []
-    monthly_entry_counts_prev_year = []
-    monthly_entry_counts_all_time = []
-    prev_year = current_year - 1
-
-    for month_num in range(1, 13):
-        # Current year
-        count_current = Entry.objects.filter(
-            user=user,
-            entry_date__year=current_year,
-            entry_date__month=month_num
-        ).count()
-        monthly_entry_counts.append(count_current)
-
-        # Previous year
-        count_prev = Entry.objects.filter(
-            user=user,
-            entry_date__year=prev_year,
-            entry_date__month=month_num
-        ).count()
-        monthly_entry_counts_prev_year.append(count_prev)
-
-        # All time
-        count_all = Entry.objects.filter(
-            user=user,
-            entry_date__month=month_num
-        ).count()
-        monthly_entry_counts_all_time.append(count_all)
-
-    entries_this_year = sum(monthly_entry_counts)
-    entries_prev_year = sum(monthly_entry_counts_prev_year)
-
-    # Journaled days count
-    journaled_days = Entry.objects.filter(user=user).values('entry_date').distinct().count()
-    stats['journaled_days'] = journaled_days
-    stats['entries_this_year'] = entries_this_year
-    stats['entries_prev_year'] = entries_prev_year
-
-    # Perfect months - months where user wrote every single day
-    import calendar
-    from collections import defaultdict
-
-    # Get all entry dates grouped by year-month
-    all_entry_dates = Entry.objects.filter(user=user).values_list('entry_date', flat=True)
-    entries_by_month = defaultdict(set)
-    for entry_date in all_entry_dates:
-        key = (entry_date.year, entry_date.month)
-        entries_by_month[key].add(entry_date.day)
-
-    # Count perfect months
-    perfect_months = 0
-    for (year, month), days in entries_by_month.items():
-        days_in_month = calendar.monthrange(year, month)[1]
-        if len(days) == days_in_month:
-            perfect_months += 1
-
-    stats['perfect_months'] = perfect_months
-
     # =========================================================================
     # Capture summaries for dashboard cards
     # =========================================================================
@@ -285,28 +226,6 @@ def dashboard(request):
         from apps.analytics.services.devotion import get_daily_devotion
         daily_devotion = get_daily_devotion()
 
-    # ==========================================================================
-    # Streak Badges
-    # ==========================================================================
-    from apps.accounts.models import UserBadge
-    from datetime import timedelta
-
-    # Calculate actual current streak from entry dates
-    all_entry_dates = set(
-        Entry.objects.filter(user=user).values_list('entry_date', flat=True)
-    )
-    current_streak = 0
-    check_date = now.date()
-    # If no entry today, start from yesterday
-    if check_date not in all_entry_dates:
-        check_date = now.date() - timedelta(days=1)
-    while check_date in all_entry_dates:
-        current_streak += 1
-        check_date -= timedelta(days=1)
-
-    earned_badges = UserBadge.get_user_badges(user)
-    next_badge = UserBadge.get_next_badge(user, current_streak)
-
     return render(request, 'dashboard/index.html', {
         'current_snapshot': current_snapshot,
         'snapshots_json': json.dumps(snapshots_data),
@@ -315,10 +234,6 @@ def dashboard(request):
         'stats': stats,
         'current_year': now.year,
         'current_month': now.month,
-        # Monthly entry data for insight cards chart
-        'monthly_entry_counts': monthly_entry_counts,
-        'monthly_entry_counts_prev_year': monthly_entry_counts_prev_year,
-        'monthly_entry_counts_all_time': monthly_entry_counts_all_time,
         # Capture summaries
         'books_reading': books_reading,
         'books_finished_year': books_finished_year,
@@ -336,10 +251,6 @@ def dashboard(request):
         'zodiac_insights': correlations.get('zodiac'),
         # Daily devotion
         'daily_devotion': daily_devotion,
-        # Streak badges
-        'earned_badges': earned_badges,
-        'next_badge': next_badge,
-        'current_streak': current_streak,
         # Sidebar
         'active_page': 'dashboard',
     })
@@ -391,17 +302,10 @@ def monthly_view(request, year, month):
 def yearly_view(request, year):
     """Year-in-review page."""
     import json
-    from apps.journal.models import Entry
     user = request.user
 
     # Check if user is premium
     is_premium = user.profile.is_premium
-
-    # Get all years where user has entries
-    available_years = Entry.objects.filter(user=user).dates(
-        'entry_date', 'year', order='DESC'
-    )
-    available_years = [d.year for d in available_years]
 
     review = None
     monthly_snapshots = []
@@ -442,7 +346,6 @@ def yearly_view(request, year):
         'monthly_trend_json': monthly_trend_json,
         'year': year,
         'current_year': year,
-        'available_years': available_years,
         'active_page': 'yearly',
         'is_premium': is_premium,
     })
@@ -1127,174 +1030,4 @@ def fitness_dashboard(request):
         'avg_duration': round(total_duration / workouts.count(), 1) if workouts.count() else 0,
         'current_year': year,
         'active_page': 'fitness',
-    })
-
-
-@login_required
-@premium_required
-def travel_dashboard(request):
-    """Travel and places analytics."""
-    from apps.journal.models import EntryCapture
-
-    user = request.user
-    now = timezone.now()
-    year = int(request.GET.get('year', now.year))
-
-    # Get all travel captures
-    travels = EntryCapture.objects.filter(
-        entry__user=user,
-        capture_type='travel',
-        entry__entry_date__year=year
-    ).select_related('entry').order_by('-entry__entry_date')
-
-    # Get all place captures
-    places = EntryCapture.objects.filter(
-        entry__user=user,
-        capture_type='place',
-        entry__entry_date__year=year
-    ).select_related('entry').order_by('-entry__entry_date')
-
-    # Travel stats
-    by_mode = {}
-    destinations = {}
-    monthly_travels = [0] * 12
-
-    for t in travels:
-        mode = t.data.get('mode', 'other')
-        by_mode[mode] = by_mode.get(mode, 0) + 1
-
-        dest = t.data.get('destination', '')
-        if dest:
-            destinations[dest] = destinations.get(dest, 0) + 1
-
-        monthly_travels[t.entry.entry_date.month - 1] += 1
-
-    # Place stats
-    by_place_type = {}
-    place_visits = {}
-    monthly_places = [0] * 12
-
-    for p in places:
-        place_type = p.data.get('type', 'other')
-        by_place_type[place_type] = by_place_type.get(place_type, 0) + 1
-
-        name = p.data.get('name', '')
-        if name:
-            place_visits[name] = place_visits.get(name, 0) + 1
-
-        monthly_places[p.entry.entry_date.month - 1] += 1
-
-    # Sort destinations and places by visit count
-    top_destinations = sorted(destinations.items(), key=lambda x: x[1], reverse=True)[:10]
-    top_places = sorted(place_visits.items(), key=lambda x: x[1], reverse=True)[:10]
-
-    # Get available years
-    travel_years = EntryCapture.objects.filter(
-        entry__user=user,
-        capture_type__in=['travel', 'place']
-    ).dates('entry__entry_date', 'year').values_list('entry__entry_date__year', flat=True)
-    available_years = sorted(set(travel_years), reverse=True) if travel_years else [now.year]
-
-    return render(request, 'dashboard/captures/travel.html', {
-        'year': year,
-        'available_years': available_years,
-        'travels': travels[:30],
-        'places': places[:30],
-        'by_mode': by_mode,
-        'by_place_type': by_place_type,
-        'top_destinations': top_destinations,
-        'top_places': top_places,
-        'monthly_travels': monthly_travels,
-        'monthly_places': monthly_places,
-        'total_travels': travels.count(),
-        'total_places': places.count(),
-        'active_page': 'travel',
-    })
-
-
-@login_required
-@premium_required
-def wellness_dashboard(request):
-    """Wellness analytics - meals, dreams, and gratitude."""
-    from apps.journal.models import Entry, EntryCapture
-    import re
-
-    user = request.user
-    now = timezone.now()
-    year = int(request.GET.get('year', now.year))
-
-    # Get all entries for the year
-    entries = Entry.objects.filter(
-        user=user,
-        entry_date__year=year
-    ).select_related('analysis').order_by('-entry_date')
-
-    # Find entries with dream blocks
-    dream_pattern = re.compile(r'\{dream\}.*?\{/dream\}', re.DOTALL | re.IGNORECASE)
-    dream_entries = []
-    for entry in entries:
-        if entry.content and dream_pattern.search(entry.content):
-            dream_entries.append(entry)
-
-    # Find entries with gratitude blocks
-    gratitude_pattern = re.compile(r'\{gratitude\}.*?\{/gratitude\}', re.DOTALL | re.IGNORECASE)
-    gratitude_entries = []
-    for entry in entries:
-        if entry.content and gratitude_pattern.search(entry.content):
-            gratitude_entries.append(entry)
-
-    # Get meal captures
-    meals = EntryCapture.objects.filter(
-        entry__user=user,
-        capture_type='meal',
-        entry__entry_date__year=year
-    ).select_related('entry').order_by('-entry__entry_date')
-
-    # Meal stats
-    meal_types = {}
-    monthly_meals = [0] * 12
-    for meal in meals:
-        meal_type = meal.data.get('type', 'other')
-        meal_types[meal_type] = meal_types.get(meal_type, 0) + 1
-        monthly_meals[meal.entry.entry_date.month - 1] += 1
-
-    # Monthly dream/gratitude counts
-    monthly_dreams = [0] * 12
-    monthly_gratitude = [0] * 12
-
-    for entry in dream_entries:
-        monthly_dreams[entry.entry_date.month - 1] += 1
-
-    for entry in gratitude_entries:
-        monthly_gratitude[entry.entry_date.month - 1] += 1
-
-    # Get available years
-    years_with_data = set()
-    for entry in Entry.objects.filter(user=user):
-        if entry.content:
-            if dream_pattern.search(entry.content) or gratitude_pattern.search(entry.content):
-                years_with_data.add(entry.entry_date.year)
-
-    meal_years = EntryCapture.objects.filter(
-        entry__user=user,
-        capture_type='meal'
-    ).dates('entry__entry_date', 'year').values_list('entry__entry_date__year', flat=True)
-    years_with_data.update(meal_years)
-
-    available_years = sorted(years_with_data, reverse=True) if years_with_data else [now.year]
-
-    return render(request, 'dashboard/captures/wellness.html', {
-        'year': year,
-        'available_years': available_years,
-        'dream_entries': dream_entries[:30],
-        'gratitude_entries': gratitude_entries[:30],
-        'meals': meals[:30],
-        'meal_types': meal_types,
-        'monthly_dreams': monthly_dreams,
-        'monthly_gratitude': monthly_gratitude,
-        'monthly_meals': monthly_meals,
-        'total_dreams': len(dream_entries),
-        'total_gratitude': len(gratitude_entries),
-        'total_meals': meals.count(),
-        'active_page': 'wellness',
     })

@@ -27,17 +27,7 @@
       "Bash(printf:*)",
       "Bash(test:*)",
       "Bash(git log:*)",
-      "Bash(git rev-parse:*)",
-      "Bash(. .venv/bin/activate)",
-      "Bash(DJANGO_SETTINGS_MODULE=config.settings.development python:*)",
-      "Bash(for dir in auth journal analytics goals habits friends)",
-      "Bash(do)",
-      "Bash(if [ ! -f \"/Users/sfetter/Documents/CyberCat/Sandbox/reflekt/api/v1/$dir/urls.py\" ])",
-      "Bash(then)",
-      "Bash(echo:*)",
-      "Bash(fi)",
-      "Bash(/Users/sfetter/Documents/CyberCat/Sandbox/reflekt/.venv/bin/pip install:*)",
-      "Bash(DJANGO_SETTINGS_MODULE=config.settings.development .venv/bin/python:*)"
+      "Bash(git rev-parse:*)"
     ]
   }
 }

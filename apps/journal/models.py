@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from encrypted_model_fields.fields import EncryptedTextField, EncryptedCharField
-from apps.analytics.services.mood import MOOD_EMOJIS
 
 
 class Entry(models.Model):
@@ -122,7 +121,14 @@ class Entry(models.Model):
     @property
     def mood_emoji(self):
         """Return emoji for mood."""
-        return MOOD_EMOJIS.get(self.mood, '')
+        emoji_map = {
+            'ecstatic': '🤩',
+            'happy': '😊',
+            'neutral': '😐',
+            'sad': '😢',
+            'angry': '😠',
+        }
+        return emoji_map.get(self.mood, '')
 
 
 class Tag(models.Model):
@@ -299,8 +305,7 @@ class EntryCapture(models.Model):
         elif self.capture_type == 'watched':
             title = data.get('title', 'Unknown')
             media_type = data.get('type', '')
-            rating_val = int(data.get('rating', 0) or 0)
-            rating = '★' * rating_val + '☆' * (5 - rating_val) if rating_val else ''
+            rating = '★' * data.get('rating', 0) + '☆' * (5 - data.get('rating', 0)) if data.get('rating') else ''
             text = f'"{title}"'
             parts = []
             if media_type:
@@ -474,28 +479,3 @@ class POVReply(models.Model):
 
     def __str__(self):
         return f"Reply by {self.author.email} on POV {self.pov.id}"
-
-
-class GeocodedLocation(models.Model):
-    """
-    Cache for geocoded location names.
-
-    Stores lat/lng coordinates for place names to avoid
-    repeated API calls to the geocoding service.
-    """
-    name = models.CharField(max_length=255, unique=True, db_index=True)
-    lat = models.FloatField(null=True, blank=True)
-    lng = models.FloatField(null=True, blank=True)
-    geocoded_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-geocoded_at']
-
-    def __str__(self):
-        if self.lat and self.lng:
-            return f"{self.name} ({self.lat:.4f}, {self.lng:.4f})"
-        return f"{self.name} (not geocoded)"
-
-    @property
-    def has_coordinates(self):
-        return self.lat is not None and self.lng is not None

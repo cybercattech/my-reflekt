@@ -5,21 +5,8 @@ from . import admin_views
 app_name = 'accounts'
 
 urlpatterns = [
-    # Admin Panel
-    path('manage/', admin_views.admin_panel, name='admin_panel'),
-    path('manage/users/', admin_views.user_list, name='admin_user_list'),
-    path('manage/users/create/', admin_views.create_user, name='admin_create_user'),
-    path('manage/users/<int:user_id>/', admin_views.user_detail, name='admin_user_detail'),
-    path('manage/users/<int:user_id>/edit/', admin_views.edit_user, name='admin_edit_user'),
-    path('manage/users/<int:user_id>/toggle-premium/', admin_views.toggle_premium, name='admin_toggle_premium'),
-    path('manage/users/<int:user_id>/delete/', admin_views.delete_user, name='admin_delete_user'),
-    path('manage/subscriptions/', admin_views.subscription_dashboard, name='subscription_dashboard'),
-    path('manage/emails/', admin_views.email_templates_list, name='admin_email_templates'),
-    path('manage/emails/<str:template_id>/preview/', admin_views.email_template_preview, name='admin_email_preview'),
-    path('manage/emails/<str:template_id>/send-test/', admin_views.send_test_email, name='admin_send_test_email'),
-    path('manage/feedback/', admin_views.feedback_list, name='admin_feedback_list'),
-    path('manage/feedback/<int:feedback_id>/', admin_views.feedback_detail, name='admin_feedback_detail'),
-    path('manage/feedback/<int:feedback_id>/status/', admin_views.feedback_update_status, name='admin_feedback_status'),
+    # Admin
+    path('admin/subscriptions/', admin_views.subscription_dashboard, name='subscription_dashboard'),
 
     # Subscription
     path('pricing/', views.pricing_view, name='pricing'),
@@ -63,7 +50,4 @@ urlpatterns = [
     # Legal
     path('privacy/', views.privacy_policy, name='privacy'),
     path('terms/', views.terms_of_service, name='terms'),
-
-    # Feedback
-    path('feedback/submit/', views.submit_feedback, name='submit_feedback'),
 ]

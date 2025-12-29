@@ -6,235 +6,6 @@
 
 {% block dashboard_css %}
 <style>
-/* Modern Stats Cards */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.stat-card {
-    border-radius: 16px;
-    padding: 1.5rem;
-    color: white;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card.entries {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-}
-
-.stat-card.words {
-    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-}
-
-.stat-card.sentiment {
-    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
-}
-
-.stat-card.mood {
-    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-}
-
-.stat-card .stat-value {
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1;
-    margin-bottom: 0.5rem;
-}
-
-.stat-card .stat-label {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-/* Gradient Chart Cards */
-.chart-card {
-    border-radius: 16px;
-    border: none;
-    overflow: hidden;
-}
-
-.chart-card.mood-card {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-}
-
-.chart-card.sentiment-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.chart-card .card-header {
-    background: rgba(255,255,255,0.1);
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-    color: white;
-}
-
-.chart-card .card-body {
-    padding: 1.25rem;
-}
-
-/* Mood Distribution Items */
-.mood-dist-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-}
-
-.mood-dist-item .mood-info {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.mood-dist-item .mood-bar {
-    flex: 1;
-    height: 8px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 4px;
-    margin: 0 1rem;
-    overflow: hidden;
-}
-
-.mood-dist-item .mood-bar-fill {
-    height: 100%;
-    background: white;
-    border-radius: 4px;
-}
-
-.mood-dist-item .mood-count {
-    background: rgba(255,255,255,0.2);
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-/* Highlight/Lowlight Cards */
-.highlight-card {
-    background: white;
-    border-radius: 16px;
-    border: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    overflow: hidden;
-}
-
-.highlight-card .card-header {
-    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-    color: white;
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-    border: none;
-}
-
-.lowlight-card {
-    background: white;
-    border-radius: 16px;
-    border: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    overflow: hidden;
-}
-
-.lowlight-card .card-header {
-    background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
-    color: white;
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-    border: none;
-}
-
-/* Insights Card */
-.insights-card {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    border-radius: 16px;
-    border: 1px solid #7dd3fc;
-    padding: 1.25rem;
-}
-
-.insights-card h6 {
-    color: #0369a1;
-}
-
-/* Themes Card - Gradient Style */
-.themes-card {
-    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-    border-radius: 16px;
-    border: none;
-    overflow: hidden;
-    color: white;
-}
-
-.themes-card .card-header {
-    background: rgba(255,255,255,0.1);
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-    color: white;
-}
-
-.themes-card .card-body {
-    padding: 1.25rem;
-}
-
-/* Theme Badge Styling - White pills with sentiment */
-.theme-badge {
-    display: inline-flex;
-    align-items: center;
-    background: white;
-    border-radius: 50px;
-    padding: 0.5rem 1rem;
-    color: #6366f1;
-    font-size: 0.9rem;
-    gap: 0.5rem;
-}
-
-.theme-name {
-    font-weight: 600;
-}
-
-.theme-sentiment {
-    padding: 0.15rem 0.5rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: #e0e7ff;
-    color: #4f46e5;
-}
-
-.theme-sentiment.positive {
-    background: #dcfce7;
-    color: #16a34a;
-}
-
-.theme-sentiment.negative {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.theme-sentiment.neutral {
-    background: #f3f4f6;
-    color: #6b7280;
-}
-
-.entry-item {
-    transition: background 0.2s;
-}
-
-.entry-item:hover {
-    background-color: #f8fafc;
-}
-
-/* Premium Locked */
 .premium-content-locked {
     position: relative;
     min-height: 500px;
@@ -264,18 +35,8 @@
     max-width: 500px;
     width: 90%;
 }
-
-/* Responsive */
-@media (max-width: 992px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 576px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
+.entry-item:hover {
+    background-color: #f8f9fa;
 }
 .entry-content {
     line-height: 1.7;
@@ -351,16 +112,7 @@
 {% block dashboard_content %}
 <div class="container-fluid py-4 px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center gap-3">
-            <h1 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Year in Review</h1>
-            {% if available_years %}
-            <select class="form-select form-select-lg" id="yearSelector" style="width: auto;">
-                {% for y in available_years %}
-                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
-                {% endfor %}
-            </select>
-            {% endif %}
-        </div>
+        <h1><i class="bi bi-calendar-check me-2"></i>{{ year }} Year in Review</h1>
     </div>
 
     {% if not is_premium %}
@@ -420,46 +172,65 @@
     </div>
     {% else %}
     <!-- Premium user: Show actual content -->
+    </div>
 
     {% if review %}
     <!-- Overview Stats -->
-    <div class="stats-grid">
-        <div class="stat-card entries">
-            <div class="stat-value">{{ review.total_entries }}</div>
-            <div class="stat-label">Total Entries</div>
-        </div>
-        <div class="stat-card words">
-            <div class="stat-value">{{ review.total_words|floatformat:0 }}</div>
-            <div class="stat-label">Words Written</div>
-        </div>
-        <div class="stat-card sentiment">
-            <div class="stat-value">{% if review.avg_sentiment > 0 %}+{% endif %}{{ review.avg_sentiment|floatformat:2 }}</div>
-            <div class="stat-label">Avg Sentiment</div>
-        </div>
-        <div class="stat-card mood">
-            <div class="stat-value">
-                {% if review.dominant_mood == 'ecstatic' %}🤩
-                {% elif review.dominant_mood == 'happy' %}😊
-                {% elif review.dominant_mood == 'neutral' %}😐
-                {% elif review.dominant_mood == 'sad' %}😢
-                {% elif review.dominant_mood == 'angry' %}😠
-                {% endif %}
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-5 text-primary">{{ review.total_entries }}</h3>
+                    <p class="text-muted mb-0">Total Entries</p>
+                </div>
             </div>
-            <div class="stat-label">{{ review.dominant_mood|title }} Year</div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-5 text-success">{{ review.total_words|floatformat:0 }}</h3>
+                    <p class="text-muted mb-0">Words Written</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-5 {% if review.avg_sentiment > 0 %}text-success{% elif review.avg_sentiment < 0 %}text-danger{% else %}text-secondary{% endif %}">
+                        {% if review.avg_sentiment > 0 %}+{% endif %}{{ review.avg_sentiment|floatformat:2 }}
+                    </h3>
+                    <p class="text-muted mb-0">Avg Sentiment</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h3 class="display-5">
+                        {% if review.dominant_mood == 'ecstatic' %}🤩
+                        {% elif review.dominant_mood == 'happy' %}😊
+                        {% elif review.dominant_mood == 'neutral' %}😐
+                        {% elif review.dominant_mood == 'sad' %}😢
+                        {% elif review.dominant_mood == 'angry' %}😠
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">{{ review.dominant_mood|title }} Year</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Mood Distribution & Sentiment Trend -->
+    <!-- Mood Distribution -->
     <div class="row g-4 mb-4">
         <div class="col-lg-6">
-            <div class="chart-card mood-card h-100">
+            <div class="card h-100">
                 <div class="card-header">
-                    <i class="bi bi-pie-chart me-2"></i>Mood Distribution
+                    <i class="bi bi-bar-chart me-2"></i>Mood Distribution
                 </div>
                 <div class="card-body">
                     {% for mood, count in review.mood_distribution.items %}
-                    <div class="mood-dist-item">
-                        <div class="mood-info">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
                             <span>
                                 {% if mood == 'ecstatic' %}🤩
                                 {% elif mood == 'happy' %}😊
@@ -467,26 +238,24 @@
                                 {% elif mood == 'sad' %}😢
                                 {% elif mood == 'angry' %}😠
                                 {% endif %}
+                                {{ mood|title }}
                             </span>
-                            <span>{{ mood|title }}</span>
+                            <span>{{ count }} days</span>
                         </div>
-                        <div class="mood-bar">
-                            <div class="mood-bar-fill" style="width: {% widthratio count review.total_entries 100 %}%;"></div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-{% if mood == 'ecstatic' %}purple{% elif mood == 'happy' %}success{% elif mood == 'neutral' %}secondary{% elif mood == 'sad' %}info{% else %}danger{% endif %}"
+                                 style="width: {% widthratio count review.total_entries 100 %}%"></div>
                         </div>
-                        <span class="mood-count">{{ count }}</span>
                     </div>
-                    {% empty %}
-                    <p class="text-center mb-0" style="opacity: 0.8;">No mood data available</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
         <div class="col-lg-6">
-            <div class="chart-card sentiment-card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-graph-up me-2"></i>Monthly Sentiment Trend</span>
-                    <small style="opacity: 0.8;">Avg. positivity by month</small>
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-graph-up me-2"></i>Monthly Sentiment Trend
                 </div>
                 <div class="card-body">
                     <canvas id="monthlyTrendChart" height="200"></canvas>
@@ -497,21 +266,21 @@
 
     <!-- Themes -->
     {% if review.top_themes %}
-    <div class="themes-card mb-4">
+    <div class="card mb-4">
         <div class="card-header">
             <i class="bi bi-tags me-2"></i>Top Themes This Year
         </div>
         <div class="card-body">
-            <div class="d-flex flex-wrap gap-3">
+            <div class="d-flex flex-wrap gap-2">
                 {% for theme in review.top_themes %}
-                <div class="theme-badge">
-                    <span class="theme-name">{{ theme|clean_theme }}</span>
+                <span class="badge bg-primary fs-6 p-2">
+                    {{ theme|title }}
                     {% if theme in review.theme_sentiments %}
-                    <span class="theme-sentiment {% if review.theme_sentiments|get_item:theme > 0 %}positive{% elif review.theme_sentiments|get_item:theme < 0 %}negative{% else %}neutral{% endif %}">
-                        {% if review.theme_sentiments|get_item:theme > 0 %}+{% endif %}{{ review.theme_sentiments|get_item:theme|floatformat:2 }}
-                    </span>
+                    <small class="ms-1 {% if review.theme_sentiments|get_item:theme > 0 %}text-success{% elif review.theme_sentiments|get_item:theme < 0 %}text-danger{% endif %}">
+                        ({% if review.theme_sentiments|get_item:theme > 0 %}+{% endif %}{{ review.theme_sentiments|get_item:theme|floatformat:2 }})
+                    </small>
                     {% endif %}
-                </div>
+                </span>
                 {% endfor %}
             </div>
         </div>
@@ -521,8 +290,8 @@
     <!-- Highlights & Lowlights -->
     <div class="row g-4 mb-4">
         <div class="col-lg-6">
-            <div class="highlight-card h-100">
-                <div class="card-header">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white">
                     <i class="bi bi-star me-2"></i>Top Highlights
                 </div>
                 <ul class="list-group list-group-flush">
@@ -530,7 +299,7 @@
                     <li class="list-group-item entry-item" data-entry-id="{{ day.id }}" style="cursor: pointer;">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <strong>{{ day.date|format_iso_date }}</strong>
+                                <strong>{{ day.date }}</strong>
                                 <span class="ms-2">
                                     {% if day.mood == 'ecstatic' %}🤩
                                     {% elif day.mood == 'happy' %}😊
@@ -545,15 +314,15 @@
                         </div>
                     </li>
                     {% empty %}
-                    <li class="list-group-item text-muted text-center py-4">No highlights yet</li>
+                    <li class="list-group-item text-muted text-center">No highlights yet</li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
 
         <div class="col-lg-6">
-            <div class="lowlight-card h-100">
-                <div class="card-header">
+            <div class="card border-secondary h-100">
+                <div class="card-header bg-secondary text-white">
                     <i class="bi bi-cloud-rain me-2"></i>Challenging Days
                 </div>
                 <ul class="list-group list-group-flush">
@@ -561,7 +330,7 @@
                     <li class="list-group-item entry-item" data-entry-id="{{ day.id }}" style="cursor: pointer;">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <strong>{{ day.date|format_iso_date }}</strong>
+                                <strong>{{ day.date }}</strong>
                                 <span class="ms-2">
                                     {% if day.mood == 'ecstatic' %}🤩
                                     {% elif day.mood == 'happy' %}😊
@@ -576,7 +345,7 @@
                         </div>
                     </li>
                     {% empty %}
-                    <li class="list-group-item text-muted text-center py-4">No data</li>
+                    <li class="list-group-item text-muted text-center">No data</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -585,13 +354,17 @@
 
     <!-- Insights -->
     {% if review.insights %}
-    <div class="insights-card mb-4">
-        <h6><i class="bi bi-lightbulb me-2"></i>Key Insights</h6>
-        <ul class="mb-0" style="color: #0369a1;">
-            {% for insight in review.insights %}
-            <li class="mb-2">{{ insight }}</li>
-            {% endfor %}
-        </ul>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-lightbulb me-2"></i>Key Insights
+        </div>
+        <div class="card-body">
+            <ul class="mb-0">
+                {% for insight in review.insights %}
+                <li class="mb-2">{{ insight }}</li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
     {% endif %}
 
@@ -621,6 +394,7 @@
         </a>
     </div>
     {% endif %}
+</div>
 
 <!-- Entry View/Edit Modal -->
 <div class="modal fade" id="entryModal" tabindex="-1">
@@ -720,7 +494,7 @@
 {% block dashboard_js %}
 {% if review and monthly_trend_json %}
 <script>
-// Monthly Trend Chart - White on gradient background
+// Monthly Trend Chart
 const ctx = document.getElementById('monthlyTrendChart');
 if (ctx) {
     const trend = {{ monthly_trend_json|safe }};
@@ -731,36 +505,17 @@ if (ctx) {
             datasets: [{
                 label: 'Sentiment',
                 data: trend.map(t => t.sentiment),
-                borderColor: 'rgba(255,255,255,0.9)',
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
                 fill: true,
-                tension: 0.3,
-                pointBackgroundColor: 'white',
-                pointBorderColor: 'white'
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: {
-                    grid: { color: 'rgba(255,255,255,0.1)' },
-                    ticks: { color: 'rgba(255,255,255,0.8)' }
-                },
-                y: {
-                    min: -1,
-                    max: 1,
-                    grid: { color: 'rgba(255,255,255,0.1)' },
-                    ticks: {
-                        color: 'rgba(255,255,255,0.8)',
-                        callback: function(value) {
-                            if (value === 0) return 'Neutral';
-                            if (value === 1) return 'Positive';
-                            if (value === -1) return 'Negative';
-                            return '';
-                        }
-                    }
-                }
+                y: { min: -1, max: 1 }
             },
             plugins: {
                 legend: { display: false }
@@ -931,17 +686,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endif %}
-
-<script>
-// Year selector navigation
-document.addEventListener('DOMContentLoaded', function() {
-    const yearSelector = document.getElementById('yearSelector');
-    if (yearSelector) {
-        yearSelector.addEventListener('change', function() {
-            const selectedYear = this.value;
-            window.location.href = '/dashboard/year/' + selectedYear + '/';
-        });
-    }
-});
-</script>
 {% endblock dashboard_js %}

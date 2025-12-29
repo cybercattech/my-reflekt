@@ -5,7 +5,7 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="bg-dark text-white py-5">
+<section class="bg-dark text-white py-5" style="background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.6)), url('{% static 'img/reflection.jpg' %}') center/cover no-repeat;">
     <div class="container py-5">
         <div class="row align-items-center">
             <div class="col-lg-6">
@@ -29,9 +29,7 @@
                 </p>
             </div>
             <div class="col-lg-6 d-none d-lg-block text-center">
-                <div class="display-1">
-                    <i class="bi bi-journal-text"></i>
-                </div>
+                <img src="{% static 'img/logo_white.png' %}" alt="Reflekt" class="img-fluid" style="max-width: 280px; opacity: 0.9;">
             </div>
         </div>
     </div>
@@ -309,53 +307,6 @@
         </div>
     </div>
 </section>
-
-<!-- Blog Posts -->
-{% if blog_posts %}
-<section class="py-5 bg-light">
-    <div class="container py-4">
-        <div class="text-center mb-5">
-            <h2 class="mb-2">From Our Blog</h2>
-            <p class="text-muted">Tips, insights, and stories about journaling and self-reflection</p>
-        </div>
-        <div class="row g-4">
-            {% for post in blog_posts %}
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    {% if post.featured_image %}
-                    <img src="{{ post.featured_image }}" class="card-img-top" alt="{{ post.title }}" style="height: 180px; object-fit: cover;">
-                    {% else %}
-                    <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" style="height: 180px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="bi bi-journal-text text-white" style="font-size: 3rem;"></i>
-                    </div>
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none text-dark stretched-link">
-                                {{ post.title }}
-                            </a>
-                        </h5>
-                        <p class="card-text text-muted small">
-                            {{ post.excerpt|default:post.content|truncatewords:20 }}
-                        </p>
-                    </div>
-                    <div class="card-footer bg-white border-0">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar3 me-1"></i>{{ post.published_at|date:"M j, Y" }}
-                        </small>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        <div class="text-center mt-4">
-            <a href="{% url 'blog:post_list' %}" class="btn btn-outline-primary">
-                View All Posts <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
 
 <!-- CTA -->
 <section class="py-5 bg-primary text-white">

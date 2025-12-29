@@ -37,816 +37,6 @@
     font-weight: 600;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
-/* Insights Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 1rem;
-    min-height: 280px;
-}
-
-.stats-grid .entries-card {
-    grid-column: 1;
-    grid-row: 1 / 3;
-}
-
-.stats-grid .words-stats-card {
-    grid-column: 2;
-    grid-row: 1;
-}
-
-.stats-grid .month-stats-card {
-    grid-column: 2;
-    grid-row: 2;
-}
-
-.stats-grid .journaled-stats-card {
-    grid-column: 3;
-    grid-row: 1 / 3;
-}
-
-/* Entries Card - Purple Gradient */
-.entries-card {
-    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
-    border-radius: 16px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    padding: 1.25rem;
-}
-
-.entries-card .entries-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.entries-card .entries-count {
-    font-size: 4rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.entries-card .entries-label {
-    font-size: 1.25rem;
-    opacity: 0.9;
-}
-
-.entries-card .chart-area {
-    flex: 1;
-    min-height: 80px;
-    margin: 0.5rem 0;
-}
-
-.entries-card .year-tabs {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: auto;
-}
-
-.entries-card .year-tab {
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    background: transparent;
-    color: rgba(255,255,255,0.7);
-    border: 1px solid rgba(255,255,255,0.3);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.entries-card .year-tab:hover {
-    color: white;
-    background: rgba(255,255,255,0.1);
-}
-
-.entries-card .year-tab.active {
-    background: rgba(67, 56, 202, 0.8);
-    color: white;
-}
-
-/* Words Card - Teal Gradient */
-.words-stats-card {
-    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-    border-radius: 16px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    text-align: center;
-}
-
-.words-stats-card .words-label-top {
-    font-size: 0.85rem;
-    opacity: 0.9;
-}
-
-.words-stats-card .words-value {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.words-stats-card .words-label {
-    font-size: 0.85rem;
-    opacity: 0.9;
-}
-
-/* Month Stats Card - Blue Gradient */
-.month-stats-card {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border-radius: 16px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    text-align: center;
-}
-
-.month-stats-card .month-label-top {
-    font-size: 0.85rem;
-    opacity: 0.9;
-}
-
-.month-stats-card .month-value {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.month-stats-card .month-label {
-    font-size: 0.85rem;
-    opacity: 0.9;
-}
-
-/* Journaled Days Card - Pink/Rose Gradient */
-.journaled-stats-card {
-    background: linear-gradient(135deg, #be185d 0%, #9f1239 100%);
-    border-radius: 16px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-    padding: 1.25rem;
-    text-align: center;
-}
-
-.journaled-stats-card .journaled-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.journaled-stats-card .journaled-label-top {
-    font-size: 1rem;
-    opacity: 0.9;
-}
-
-.journaled-stats-card .journaled-value {
-    font-size: 3rem;
-    font-weight: 700;
-    line-height: 1;
-    margin: 0.25rem 0;
-}
-
-.journaled-stats-card .journaled-unit {
-    font-size: 1rem;
-    opacity: 0.9;
-}
-
-.journaled-stats-card .journaled-breakdown {
-    display: flex;
-    gap: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    width: 100%;
-    justify-content: space-evenly;
-}
-
-.journaled-stats-card .breakdown-item {
-    text-align: center;
-    flex: 1;
-}
-
-.journaled-stats-card .breakdown-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    line-height: 1;
-}
-
-.journaled-stats-card .breakdown-label {
-    font-size: 0.7rem;
-    opacity: 0.8;
-    margin-top: 0.25rem;
-}
-
-/* Section Labels */
-.section-label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6b7280;
-    margin-bottom: 0.75rem;
-}
-
-/* Modern Card Base */
-.modern-card {
-    background: white;
-    border-radius: 16px;
-    border: none;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    overflow: hidden;
-}
-
-.modern-card .card-header {
-    background: transparent;
-    border-bottom: 1px solid #f3f4f6;
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-    color: #374151;
-}
-
-.modern-card .card-body {
-    padding: 1.25rem;
-}
-
-/* Gradient Cards */
-.gradient-card {
-    border-radius: 16px;
-    border: none;
-    color: white;
-    overflow: hidden;
-}
-
-.gradient-card.sentiment-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.gradient-card.mood-card {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.gradient-card.badges-card {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-}
-
-.gradient-card .card-header {
-    background: rgba(255,255,255,0.1);
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-    color: white;
-}
-
-.gradient-card .card-header a {
-    color: white;
-    border-color: rgba(255,255,255,0.5);
-}
-
-.gradient-card .card-header a:hover {
-    background: rgba(255,255,255,0.2);
-    border-color: white;
-    color: white;
-}
-
-.gradient-card .card-body {
-    padding: 1.25rem;
-}
-
-/* Insights Pills */
-.insights-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
-}
-
-.insight-pill {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border-radius: 12px;
-    padding: 1rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    border: 1px solid #e2e8f0;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.insight-pill:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.insight-pill .insight-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-.insight-pill .insight-icon.success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
-.insight-pill .insight-icon.primary { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
-.insight-pill .insight-icon.danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-.insight-pill .insight-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-
-.insight-pill .insight-text {
-    font-size: 0.9rem;
-    color: #374151;
-    line-height: 1.4;
-}
-
-.insight-pill .insight-detail {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 0.25rem;
-}
-
-/* Capture Cards - Compact Gradient Style */
-.capture-card {
-    border-radius: 16px;
-    border: none;
-    color: white;
-    overflow: hidden;
-    height: 100%;
-}
-
-.capture-card.books-card {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-}
-
-.capture-card.people-card {
-    background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
-}
-
-.capture-card.media-card {
-    background: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%);
-}
-
-.capture-card.fitness-card {
-    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-}
-
-.capture-card .card-header {
-    background: rgba(255,255,255,0.15);
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding: 0.75rem 1rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.capture-card .card-header a {
-    color: white;
-    border-color: rgba(255,255,255,0.4);
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-}
-
-.capture-card .card-header a:hover {
-    background: rgba(255,255,255,0.2);
-    color: white;
-}
-
-.capture-card .card-body {
-    padding: 1rem;
-}
-
-.capture-card .stat-row {
-    display: flex;
-    justify-content: space-around;
-    text-align: center;
-    margin-bottom: 0.75rem;
-}
-
-.capture-card .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.capture-card .stat-label {
-    font-size: 0.7rem;
-    opacity: 0.9;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.capture-card .capture-list {
-    border-top: 1px solid rgba(255,255,255,0.2);
-    padding-top: 0.75rem;
-    margin-top: 0.5rem;
-}
-
-.capture-card .capture-list-label {
-    font-size: 0.7rem;
-    opacity: 0.8;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-}
-
-.capture-card .capture-list-item {
-    font-size: 0.85rem;
-    padding: 0.25rem 0;
-    opacity: 0.95;
-}
-
-/* Recent Entries Card */
-.recent-entries-card {
-    background: white;
-    border-radius: 16px;
-    border: none;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    overflow: hidden;
-}
-
-.recent-entries-card .card-header {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    color: white;
-    padding: 1rem 1.25rem;
-    border: none;
-}
-
-.recent-entries-card .card-header a {
-    color: white;
-    border-color: rgba(255,255,255,0.4);
-}
-
-.recent-entries-card .list-group-item {
-    border-left: none;
-    border-right: none;
-    padding: 0.875rem 1.25rem;
-    transition: background 0.2s;
-}
-
-.recent-entries-card .list-group-item:hover {
-    background: #f8fafc;
-}
-
-.recent-entries-card .list-group-item:first-child {
-    border-top: none;
-}
-
-/* Quick Actions Card */
-.quick-actions-card {
-    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-    border-radius: 16px;
-    border: none;
-    color: white;
-    overflow: hidden;
-}
-
-.quick-actions-card .card-header {
-    background: rgba(255,255,255,0.1);
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-}
-
-.quick-actions-card .card-body {
-    padding: 1.25rem;
-}
-
-.quick-actions-card .btn {
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    font-weight: 500;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.quick-actions-card .btn-light {
-    background: rgba(255,255,255,0.95);
-    border: none;
-    color: #0284c7;
-}
-
-.quick-actions-card .btn-light:hover {
-    background: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.quick-actions-card .btn-outline-light {
-    border-color: rgba(255,255,255,0.5);
-    color: white;
-}
-
-.quick-actions-card .btn-outline-light:hover {
-    background: rgba(255,255,255,0.15);
-    border-color: white;
-}
-
-/* Travel Card */
-.travel-card {
-    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-    border-radius: 16px;
-    border: none;
-    color: white;
-    overflow: hidden;
-    margin-top: 1rem;
-}
-
-.travel-card .card-header {
-    background: rgba(255,255,255,0.1);
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding: 0.75rem 1rem;
-    font-weight: 600;
-}
-
-.travel-card .list-group-item {
-    background: transparent;
-    border-color: rgba(255,255,255,0.2);
-    color: white;
-    padding: 0.75rem 1rem;
-}
-
-/* Recent Badges List */
-.recent-badges-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.recent-badge-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-}
-
-.badge-icon-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-}
-
-.badge-icon-circle.badge-bronze { background: linear-gradient(135deg, #cd7f32, #a0522d); }
-.badge-icon-circle.badge-silver { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); }
-.badge-icon-circle.badge-gold { background: linear-gradient(135deg, #ffd700, #ffb800); }
-.badge-icon-circle.badge-platinum { background: linear-gradient(135deg, #e5e4e2, #b0b0b0); }
-.badge-icon-circle.badge-diamond { background: linear-gradient(135deg, #b9f2ff, #00bfff); }
-
-.badge-info {
-    flex: 1;
-}
-
-.badge-name-text {
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.badge-days-text {
-    font-size: 0.75rem;
-    opacity: 0.8;
-}
-
-/* Environmental Cards - Moon, Weather, Zodiac, Devotion */
-.env-card {
-    border-radius: 16px;
-    border: none;
-    overflow: hidden;
-    height: 100%;
-}
-
-.env-card.moon-card {
-    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-    color: white;
-}
-
-.env-card.weather-card {
-    background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%);
-    color: white;
-}
-
-.env-card.zodiac-card {
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-    color: white;
-}
-
-.env-card.devotion-card {
-    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
-    color: white;
-}
-
-.env-card-header {
-    background: rgba(255,255,255,0.1);
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-}
-
-.env-card-body {
-    padding: 1.25rem;
-    flex: 1;
-}
-
-/* Weather Conditions */
-.weather-conditions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.weather-condition-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0.75rem;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-}
-
-.condition-info {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.condition-stats {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.sentiment-badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.sentiment-badge.positive {
-    background: rgba(74, 222, 128, 0.3);
-    color: #4ade80;
-}
-
-.sentiment-badge.negative {
-    background: rgba(248, 113, 113, 0.3);
-    color: #f87171;
-}
-
-.sentiment-badge.neutral {
-    background: rgba(148, 163, 184, 0.3);
-    color: #94a3b8;
-}
-
-/* Zodiac Stats */
-.zodiac-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.zodiac-stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0.75rem;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-}
-
-/* Devotion Footer */
-.devotion-footer {
-    background: rgba(255,255,255,0.1);
-    padding: 0.75rem 1.25rem;
-    text-align: center;
-    font-size: 0.8rem;
-    opacity: 0.8;
-}
-
-/* Moon Phase Pills */
-.moon-phases-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-}
-
-.moon-phase-pill {
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 0.75rem 0.5rem;
-    text-align: center;
-    transition: transform 0.2s;
-}
-
-.moon-phase-pill:hover {
-    transform: translateY(-2px);
-    background: rgba(255,255,255,0.15);
-}
-
-.moon-phase-pill .phase-emoji {
-    font-size: 1.5rem;
-    margin-bottom: 0.25rem;
-}
-
-.moon-phase-pill .phase-name {
-    font-size: 0.65rem;
-    opacity: 0.9;
-    margin-bottom: 0.25rem;
-}
-
-.moon-phase-pill .phase-sentiment {
-    font-size: 0.7rem;
-    font-weight: 600;
-}
-
-.moon-phase-pill .phase-count {
-    font-size: 0.6rem;
-    opacity: 0.7;
-}
-
-.moon-phase-pill .phase-mood {
-    font-size: 0.6rem;
-    opacity: 0.8;
-    margin-top: 0.25rem;
-}
-
-/* Weather Items */
-.weather-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.weather-item:last-child {
-    border-bottom: none;
-}
-
-/* Zodiac Display */
-.zodiac-symbol {
-    font-size: 4rem;
-    text-align: center;
-    margin-bottom: 0.5rem;
-}
-
-/* Devotion Card */
-.devotion-verse {
-    font-style: italic;
-    padding: 1rem;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-    margin: 1rem 0;
-}
-
-@media (max-width: 768px) {
-    .moon-phases-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Responsive */
-@media (max-width: 992px) {
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto auto;
-    }
-    .entries-card {
-        grid-column: span 2;
-        grid-row: span 1;
-        min-height: 200px;
-    }
-    .journaled-stats-card {
-        grid-row: span 1;
-    }
-}
-
-@media (max-width: 576px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto;
-    }
-    .entries-card,
-    .words-stats-card,
-    .month-stats-card,
-    .journaled-stats-card {
-        grid-column: span 1;
-        grid-row: span 1;
-    }
-    .entries-card {
-        min-height: 220px;
-    }
-}
 </style>
 {% endblock %}
 
@@ -854,58 +44,71 @@
 <div class="container-fluid py-4 px-4">
     <h1 class="mb-4"><i class="bi bi-graph-up me-2"></i>Dashboard</h1>
 
-    <!-- Insights Stats Grid -->
-    <div class="section-label">Insights</div>
-    <div class="stats-grid mb-4">
-        <!-- Entries Card -->
-        <div class="entries-card">
-            <div class="entries-header">
-                <div>
-                    <div class="entries-count">{{ stats.total_entries|default:0 }}</div>
-                    <div class="entries-label">Entr{{ stats.total_entries|default:0|pluralize:"y,ies" }}</div>
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Total Entries</h6>
+                            <h2 class="mb-0">{{ stats.total_entries|default:0 }}</h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="chart-area">
-                <canvas id="dashboardEntriesChart"></canvas>
-            </div>
-            <div class="year-tabs">
-                <button class="year-tab" data-year="all">All-time</button>
-                <button class="year-tab active" data-year="{{ current_year }}">{{ current_year }}</button>
-                {% if current_year > 2024 %}
-                <button class="year-tab" data-year="{{ current_year|add:'-1' }}">{{ current_year|add:'-1' }}</button>
-                {% endif %}
-            </div>
         </div>
-
-        <!-- Words Card -->
-        <div class="words-stats-card">
-            <div class="words-label-top">Written</div>
-            <div class="words-value">{{ stats.total_words|default:0|floatformat:0 }}</div>
-            <div class="words-label">Words</div>
-        </div>
-
-        <!-- Perfect Months Card -->
-        <div class="month-stats-card">
-            <div class="month-label-top">Perfect</div>
-            <div class="month-value">{{ stats.perfect_months|default:0 }}</div>
-            <div class="month-label">Month{{ stats.perfect_months|default:0|pluralize }}</div>
-        </div>
-
-        <!-- Journaled Days Card -->
-        <div class="journaled-stats-card">
-            <div class="journaled-main">
-                <div class="journaled-label-top">Journaled</div>
-                <div class="journaled-value">{{ stats.journaled_days|default:0 }}</div>
-                <div class="journaled-unit">Days</div>
-            </div>
-            <div class="journaled-breakdown">
-                <div class="breakdown-item">
-                    <div class="breakdown-value">{{ current_snapshot.entry_count|default:0 }}</div>
-                    <div class="breakdown-label">This Month</div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Total Words</h6>
+                            <h2 class="mb-0">{{ stats.total_words|default:0|floatformat:0 }}</h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-file-text"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="breakdown-item">
-                    <div class="breakdown-value">{{ stats.entries_this_year|default:0 }}</div>
-                    <div class="breakdown-label">This Year</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">This Month</h6>
+                            <h2 class="mb-0">{{ current_snapshot.entry_count|default:0 }}</h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-calendar-month"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="opacity-75">Avg Sentiment</h6>
+                            <h2 class="mb-0">
+                                {% if current_snapshot %}
+                                {% if current_snapshot.avg_sentiment > 0 %}+{% endif %}{{ current_snapshot.avg_sentiment|floatformat:2 }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </h2>
+                        </div>
+                        <div class="display-5 opacity-50">
+                            <i class="bi bi-emoji-smile"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -913,31 +116,38 @@
 
     <!-- Insights Section -->
     {% if insights %}
-    <div class="section-label">Discoveries</div>
-    <div class="insights-grid mb-4">
-        {% for insight in insights %}
-        <div class="insight-pill">
-            <div class="insight-icon {{ insight.color }}">
-                <i class="{{ insight.icon }}"></i>
-            </div>
-            <div>
-                <div class="insight-text">{{ insight.text|safe }}</div>
-                {% if insight.detail %}
-                <div class="insight-detail">{{ insight.detail }}</div>
-                {% endif %}
+    <div class="card mb-4 border-0 bg-light">
+        <div class="card-body">
+            <h6 class="card-title mb-3"><i class="bi bi-lightbulb me-2"></i>Insights</h6>
+            <div class="row g-3">
+                {% for insight in insights %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3">
+                            <span class="badge bg-{{ insight.color }} rounded-circle p-2">
+                                <i class="{{ insight.icon }}"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <p class="mb-0">{{ insight.text|safe }}</p>
+                            {% if insight.detail %}
+                            <small class="text-muted">{{ insight.detail }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
-        {% endfor %}
     </div>
     {% endif %}
 
-    <div class="section-label">Analytics</div>
     <div class="row g-4">
         <!-- Sentiment Trend Chart -->
-        <div class="col-lg-5">
-            <div class="gradient-card sentiment-card h-100">
+        <div class="{% if zodiac_insights %}col-lg-5{% else %}col-lg-8{% endif %}">
+            <div class="card h-100">
                 <div class="card-header">
-                    <i class="bi bi-graph-up me-2"></i>Sentiment Trend
+                    <i class="bi bi-graph-up me-2"></i>Sentiment Trend (Last 6 Months)
                 </div>
                 <div class="card-body">
                     <canvas id="sentimentChart" height="250"></canvas>
@@ -946,8 +156,8 @@
         </div>
 
         <!-- Current Month Mood -->
-        <div class="col-lg-3">
-            <div class="gradient-card mood-card h-100">
+        <div class="{% if zodiac_insights %}col-lg-3{% else %}col-lg-4{% endif %}">
+            <div class="card h-100">
                 <div class="card-header">
                     <i class="bi bi-pie-chart me-2"></i>This Month's Mood
                 </div>
@@ -955,96 +165,119 @@
                     {% if current_snapshot and current_snapshot.mood_distribution %}
                     <canvas id="moodChart" height="250"></canvas>
                     {% else %}
-                    <div class="text-center py-5" style="opacity: 0.8;">
+                    <div class="text-center py-5 text-muted">
                         <i class="bi bi-bar-chart display-4"></i>
-                        <p class="mt-2">No data yet</p>
+                        <p class="mt-2">No data yet this month</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Streak Badges -->
+        <!-- Zodiac Insights (moved up) -->
+        {% if zodiac_insights %}
         <div class="col-lg-4">
-            {% include 'accounts/badges/_badge_styles.html' %}
-            <div class="gradient-card badges-card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-award me-2"></i>Recent Badges</span>
-                    <a href="{% url 'accounts:profile' %}#badges" class="btn btn-sm btn-outline-light">View All</a>
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
+                <div class="card-header" style="background: linear-gradient(135deg, {{ zodiac_insights.element_color }}22 0%, transparent 100%);">
+                    <i class="bi bi-stars me-2"></i>Zodiac: {{ zodiac_insights.symbol }} {{ zodiac_insights.display_name }}
                 </div>
                 <div class="card-body">
-                    {% if earned_badges %}
-                    <div class="recent-badges-list">
-                        {% for badge in earned_badges|slice:":3" %}
-                        <div class="recent-badge-item">
-                            <div class="badge-icon-circle badge-{{ badge.tier }}">
-                                <i class="bi bi-{{ badge.icon }}"></i>
-                            </div>
-                            <div class="badge-info">
-                                <div class="badge-name-text">{{ badge.name }}</div>
-                                <div class="badge-days-text">{{ badge.days }} day streak</div>
-                            </div>
-                        </div>
-                        {% endfor %}
+                    <div class="text-center mb-3">
+                        <span class="display-4">{{ zodiac_insights.symbol }}</span>
+                        <p class="text-muted small mb-0">{{ zodiac_insights.element|title }} Sign</p>
                     </div>
-                    {% if earned_badges|length > 3 %}
-                    <p class="small mb-0 mt-2 text-center" style="opacity: 0.8;">+ {{ earned_badges|length|add:"-3" }} more badges earned</p>
-                    {% endif %}
-                    {% else %}
-                    <div class="text-center py-3" style="opacity: 0.8;">
-                        <i class="bi bi-award display-4"></i>
-                        <p class="mt-2 mb-0">No badges yet. Start your streak!</p>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Avg Sentiment</span>
+                        <span class="badge bg-{% if zodiac_insights.avg_sentiment > 0.05 %}success{% elif zodiac_insights.avg_sentiment < -0.05 %}danger{% else %}secondary{% endif %}">
+                            {% if zodiac_insights.avg_sentiment > 0 %}+{% endif %}{{ zodiac_insights.avg_sentiment|floatformat:2 }}
+                        </span>
                     </div>
-                    {% endif %}
-                    {% if next_badge %}
-                    <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 0.75rem; margin-top: 0.75rem;">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small>Next: <strong>{{ next_badge.name }}</strong></small>
-                            <small class="badge" style="background: rgba(255,255,255,0.2);">{{ next_badge.days_remaining }} days</small>
-                        </div>
-                        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.2);">
-                            <div class="progress-bar" style="background: white; width: {{ next_badge.progress }}%;"></div>
-                        </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Dominant Mood</span>
+                        <span>{{ zodiac_insights.dominant_mood|title }}</span>
                     </div>
-                    {% endif %}
+                    {% for insight in zodiac_insights.insights %}
+                    <div class="alert alert-light small py-2 mb-2">
+                        <i class="bi bi-lightbulb text-warning me-1"></i>{{ insight }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if user|user_is_free %}
+                <div class="premium-overlay">
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium Feature
+                    </div>
+                    <p class="mb-2 small">Unlock zodiac insights</p>
+                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade Now</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Daily Devotion -->
+        {% if daily_devotion %}
+        <div class="col-lg-4">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-primary bg-opacity-10 border-primary">
+                    <i class="bi bi-book me-2"></i>Daily Devotion
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-quote text-primary" style="font-size: 2rem;"></i>
+                        <p class="text-muted small mb-0">{{ daily_devotion.theme }}</p>
+                    </div>
+                    <h6 class="text-primary mb-2">{{ daily_devotion.reference }}</h6>
+                    <p class="fst-italic mb-3 small">"{{ daily_devotion.verse }}"</p>
+                    <hr class="my-3">
+                    <p class="small mb-0">{{ daily_devotion.reflection }}</p>
+                </div>
+                <div class="card-footer bg-light text-center small text-muted">
+                    <i class="bi bi-calendar3 me-1"></i>Day {{ daily_devotion.day_number }} of the year
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Capture Summary Cards -->
-    <div class="section-label mt-4">Captures</div>
-    <div class="row g-4">
+    <div class="row g-4 mt-2">
         <!-- Books -->
         <div class="col-md-6 col-lg-3">
-            <div class="capture-card books-card {% if user|user_is_free %}premium-locked{% endif %}">
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-book me-2"></i>Books</span>
-                    <a href="{% url 'analytics:books' %}" class="btn btn-sm btn-outline-light">View</a>
+                    <a href="{% url 'analytics:books' %}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
-                    <div class="stat-row">
-                        <div>
-                            <div class="stat-value">{{ books_reading|length }}</div>
-                            <div class="stat-label">Reading</div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="text-center">
+                            <h3 class="mb-0 text-primary">{{ books_reading|length }}</h3>
+                            <small class="text-muted">Reading</small>
                         </div>
-                        <div>
-                            <div class="stat-value">{{ books_finished_year }}</div>
-                            <div class="stat-label">Finished</div>
+                        <div class="text-center">
+                            <h3 class="mb-0 text-success">{{ books_finished_year }}</h3>
+                            <small class="text-muted">Finished ({{ current_year }})</small>
                         </div>
                     </div>
                     {% if books_reading %}
-                    <div class="capture-list">
-                        <div class="capture-list-label">Currently reading</div>
+                    <hr>
+                    <small class="text-muted">Currently reading:</small>
+                    <ul class="list-unstyled mb-0 mt-2">
                         {% for book in books_reading %}
-                        <div class="capture-list-item"><i class="bi bi-book-half me-1"></i>{{ book.title|truncatewords:4 }}</div>
+                        <li class="mb-1">
+                            <i class="bi bi-book-half text-primary me-1"></i>
+                            {{ book.title|truncatewords:5 }}
+                        </li>
                         {% endfor %}
-                    </div>
+                    </ul>
                     {% endif %}
                 </div>
                 {% if user|user_is_free %}
                 <div class="premium-overlay">
-                    <div class="premium-badge mb-2"><i class="bi bi-star-fill me-1"></i>Premium</div>
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium
+                    </div>
                     <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
                 </div>
                 {% endif %}
@@ -1053,33 +286,37 @@
 
         <!-- People -->
         <div class="col-md-6 col-lg-3">
-            <div class="capture-card people-card {% if user|user_is_free %}premium-locked{% endif %}">
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-people me-2"></i>People</span>
-                    <a href="{% url 'analytics:people' %}" class="btn btn-sm btn-outline-light">View</a>
+                    <a href="{% url 'analytics:people' %}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
-                    <div class="stat-row">
-                        <div>
-                            <div class="stat-value">{{ top_people|length }}</div>
-                            <div class="stat-label">Tracked</div>
-                        </div>
+                    <div class="text-center mb-3">
+                        <h3 class="mb-0 text-success">{{ top_people|length }}</h3>
+                        <small class="text-muted">People tracked</small>
                     </div>
                     {% if top_people %}
-                    <div class="capture-list">
-                        <div class="capture-list-label">Most mentioned</div>
+                    <hr>
+                    <small class="text-muted">Most mentioned:</small>
+                    <ul class="list-unstyled mb-0 mt-2">
                         {% for person in top_people|slice:":3" %}
-                        <div class="capture-list-item d-flex justify-content-between">
-                            <span><i class="bi bi-person me-1"></i>{{ person.name }}</span>
-                            <span style="opacity: 0.7;">{{ person.mention_count }}</span>
-                        </div>
+                        <li class="mb-1 d-flex justify-content-between">
+                            <span>
+                                <i class="bi bi-person text-success me-1"></i>
+                                {{ person.name }}
+                            </span>
+                            <span class="badge bg-light text-dark">{{ person.mention_count }}</span>
+                        </li>
                         {% endfor %}
-                    </div>
+                    </ul>
                     {% endif %}
                 </div>
                 {% if user|user_is_free %}
                 <div class="premium-overlay">
-                    <div class="premium-badge mb-2"><i class="bi bi-star-fill me-1"></i>Premium</div>
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium
+                    </div>
                     <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
                 </div>
                 {% endif %}
@@ -1088,33 +325,34 @@
 
         <!-- Media Watched -->
         <div class="col-md-6 col-lg-3">
-            <div class="capture-card media-card {% if user|user_is_free %}premium-locked{% endif %}">
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-film me-2"></i>Media</span>
-                    <a href="{% url 'analytics:media' %}" class="btn btn-sm btn-outline-light">View</a>
+                    <a href="{% url 'analytics:media' %}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
-                    <div class="stat-row">
-                        <div>
-                            <div class="stat-value">{{ watched_count_year }}</div>
-                            <div class="stat-label">Watched {{ current_year }}</div>
-                        </div>
+                    <div class="text-center mb-3">
+                        <h3 class="mb-0 text-info">{{ watched_count_year }}</h3>
+                        <small class="text-muted">Watched ({{ current_year }})</small>
                     </div>
                     {% if recent_watched %}
-                    <div class="capture-list">
-                        <div class="capture-list-label">Recently watched</div>
+                    <hr>
+                    <small class="text-muted">Recently watched:</small>
+                    <ul class="list-unstyled mb-0 mt-2">
                         {% for item in recent_watched|slice:":3" %}
-                        <div class="capture-list-item">
-                            <i class="bi bi-{% if item.data.type == 'show' %}tv{% else %}camera-reels{% endif %} me-1"></i>
-                            {{ item.data.title|default:"Untitled"|truncatewords:3 }}
-                        </div>
+                        <li class="mb-1">
+                            <i class="bi bi-{% if item.data.type == 'show' %}tv{% else %}camera-reels{% endif %} text-info me-1"></i>
+                            {{ item.data.title|default:"Untitled"|truncatewords:4 }}
+                        </li>
                         {% endfor %}
-                    </div>
+                    </ul>
                     {% endif %}
                 </div>
                 {% if user|user_is_free %}
                 <div class="premium-overlay">
-                    <div class="premium-badge mb-2"><i class="bi bi-star-fill me-1"></i>Premium</div>
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium
+                    </div>
                     <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
                 </div>
                 {% endif %}
@@ -1123,33 +361,38 @@
 
         <!-- Fitness -->
         <div class="col-md-6 col-lg-3">
-            <div class="capture-card fitness-card {% if user|user_is_free %}premium-locked{% endif %}">
+            <div class="card h-100 {% if user|user_is_free %}premium-locked{% endif %}">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-activity me-2"></i>Fitness</span>
-                    <a href="{% url 'analytics:fitness' %}" class="btn btn-sm btn-outline-light">View</a>
+                    <a href="{% url 'analytics:fitness' %}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
-                    <div class="stat-row">
-                        <div>
-                            <div class="stat-value">{{ workout_count_year }}</div>
-                            <div class="stat-label">Workouts {{ current_year }}</div>
-                        </div>
+                    <div class="text-center mb-3">
+                        <h3 class="mb-0 text-warning">{{ workout_count_year }}</h3>
+                        <small class="text-muted">Workouts ({{ current_year }})</small>
                     </div>
-                    <div class="capture-list">
-                        {% if workout_count_year > 0 %}
-                        <div class="text-center" style="opacity: 0.9;">
-                            <i class="bi bi-trophy me-1"></i>Keep up the great work!
-                        </div>
-                        {% else %}
-                        <div class="text-center" style="opacity: 0.8; font-size: 0.8rem;">
-                            Use <code style="background: rgba(255,255,255,0.2); padding: 0.1rem 0.3rem; border-radius: 4px;">/workout</code> to track!
-                        </div>
-                        {% endif %}
+                    {% if workout_count_year > 0 %}
+                    <hr>
+                    <div class="text-center">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar-check me-1"></i>
+                            Keep up the great work!
+                        </small>
                     </div>
+                    {% else %}
+                    <hr>
+                    <div class="text-center">
+                        <small class="text-muted">
+                            Use <code>/workout</code> in your entries to track!
+                        </small>
+                    </div>
+                    {% endif %}
                 </div>
                 {% if user|user_is_free %}
                 <div class="premium-overlay">
-                    <div class="premium-badge mb-2"><i class="bi bi-star-fill me-1"></i>Premium</div>
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium
+                    </div>
                     <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
                 </div>
                 {% endif %}
@@ -1157,58 +400,78 @@
         </div>
     </div>
 
-    <!-- Environmental Insights (Moon, Weather, Zodiac, Devotion) -->
-    {% if moon_correlation.phases or weather_correlation.conditions or zodiac_insights or daily_devotion %}
-    <div class="section-label mt-4">Environmental Insights</div>
-    <div class="row g-4">
+    <!-- Environmental Insights (Moon, Weather, Zodiac) -->
+    {% if moon_correlation.phases or weather_correlation.conditions or zodiac_insights %}
+    <div class="row g-4 mt-2">
         <!-- Moon Phase Patterns -->
         {% if moon_correlation.phases %}
         <div class="col-12">
-            <div class="env-card moon-card position-relative {% if user|user_is_free %}premium-locked{% endif %}">
-                <div class="env-card-header d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-moon-stars me-2"></i>Lunar Mood Patterns</span>
-                    <small style="opacity: 0.8;">{{ moon_correlation.total_entries }} entries</small>
+            <div class="card border-0 shadow-sm {% if user|user_is_free %}premium-locked{% endif %}">
+                <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <i class="bi bi-moon-stars me-2"></i>🌙 Lunar Mood Patterns
+                    <span class="float-end small opacity-75">
+                        <i class="bi bi-info-circle me-1"></i>{{ moon_correlation.total_entries }} entries (last {{ moon_correlation.period_days }} days)
+                    </span>
                 </div>
-                <div class="env-card-body">
-                    <!-- Moon Phase Pills Grid -->
-                    <div class="moon-phases-grid">
-                        {% for phase in moon_correlation.phases %}
-                        <div class="moon-phase-pill">
-                            <div class="phase-emoji">
-                                {% if phase.phase == 'full_moon' %}🌕
-                                {% elif phase.phase == 'new_moon' %}🌑
-                                {% elif phase.phase == 'first_quarter' %}🌓
-                                {% elif phase.phase == 'last_quarter' %}🌗
-                                {% elif phase.phase == 'waxing_crescent' %}🌒
-                                {% elif phase.phase == 'waxing_gibbous' %}🌔
-                                {% elif phase.phase == 'waning_crescent' %}🌘
-                                {% elif phase.phase == 'waning_gibbous' %}🌖
-                                {% endif %}
+                <div class="card-body">
+                    <!-- Insights in One Row -->
+                    {% if moon_correlation.insights %}
+                    <div class="row g-2 mb-3">
+                        {% for insight in moon_correlation.insights %}
+                        <div class="col-md-4">
+                            <div class="alert alert-primary border-0 mb-0 py-2 px-3 h-100" style="background-color: #f0f4ff;">
+                                <small class="mb-0">{{ insight }}</small>
                             </div>
-                            <div class="phase-name">{{ phase.display_name }}</div>
-                            <div class="phase-sentiment" style="color: {% if phase.sentiment_label == 'positive' %}#4ade80{% elif phase.sentiment_label == 'negative' %}#f87171{% else %}#94a3b8{% endif %};">
-                                {% if phase.avg_sentiment > 0 %}+{% endif %}{{ phase.avg_sentiment|floatformat:2 }}
-                            </div>
-                            <div class="phase-count">{{ phase.count }} entries</div>
-                            {% if phase.dominant_mood %}
-                            <div class="phase-mood">{{ phase.dominant_mood }}</div>
-                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
+                    {% endif %}
 
-                    {% if moon_correlation.insights %}
-                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                        {% for insight in moon_correlation.insights %}
-                        <div class="small mb-1" style="opacity: 0.9;"><i class="bi bi-lightbulb me-1"></i>{{ insight }}</div>
+                    <!-- Eight Moon Phases in One Row -->
+                    <div class="row g-2">
+                        {% for phase in moon_correlation.phases %}
+                        <div class="col-6 col-sm-4 col-md-3 col-lg-auto" style="flex: 1 1 0;">
+                            <div class="text-center p-2 rounded border h-100 {% if forloop.first %}bg-light{% endif %}"
+                                 style="{% if forloop.first %}border-color: {% if phase.sentiment_label == 'positive' %}#22c55e{% elif phase.sentiment_label == 'negative' %}#ef4444{% else %}#6b7280{% endif %} !important; border-width: 2px !important;{% endif %}">
+                                <div class="fs-3 mb-1">
+                                    {% if phase.phase == 'full_moon' %}🌕
+                                    {% elif phase.phase == 'new_moon' %}🌑
+                                    {% elif phase.phase == 'first_quarter' %}🌓
+                                    {% elif phase.phase == 'last_quarter' %}🌗
+                                    {% elif phase.phase == 'waxing_crescent' %}🌒
+                                    {% elif phase.phase == 'waxing_gibbous' %}🌔
+                                    {% elif phase.phase == 'waning_crescent' %}🌘
+                                    {% elif phase.phase == 'waning_gibbous' %}🌖
+                                    {% endif %}
+                                </div>
+                                <div class="fw-medium small mb-1" style="font-size: 0.75rem; line-height: 1.2;">
+                                    {{ phase.display_name }}
+                                </div>
+                                <div class="mb-1">
+                                    <span class="badge bg-{% if phase.sentiment_label == 'positive' %}success{% elif phase.sentiment_label == 'negative' %}danger{% else %}secondary{% endif %} small">
+                                        {% if phase.avg_sentiment > 0 %}+{% endif %}{{ phase.avg_sentiment|floatformat:2 }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ phase.count }} entries</small>
+                                </div>
+                                {% if phase.dominant_mood %}
+                                <div>
+                                    <small class="text-muted" style="font-size: 0.65rem;">{{ phase.dominant_mood }}</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
                         {% endfor %}
                     </div>
-                    {% endif %}
                 </div>
                 {% if user|user_is_free %}
                 <div class="premium-overlay">
-                    <div class="premium-badge mb-2"><i class="bi bi-star-fill me-1"></i>Premium</div>
-                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
+                    <div class="premium-badge mb-2">
+                        <i class="bi bi-star-fill me-1"></i>Premium Feature
+                    </div>
+                    <p class="mb-2">Unlock moon phase insights and correlations</p>
+                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-warning text-dark">Upgrade Now</a>
                 </div>
                 {% endif %}
             </div>
@@ -1218,121 +481,44 @@
         <!-- Weather Impact -->
         {% if weather_correlation.conditions %}
         <div class="col-md-6 col-lg-4">
-            <div class="env-card weather-card h-100 position-relative {% if user|user_is_free %}premium-locked{% endif %}">
-                <div class="env-card-header">
+            <div class="card h-100">
+                <div class="card-header">
                     <i class="bi bi-cloud-sun me-2"></i>Weather Impact
                 </div>
-                <div class="env-card-body">
-                    <p class="small mb-3" style="opacity: 0.8;">How weather affects your mood</p>
-                    <div class="weather-conditions">
-                        {% for condition in weather_correlation.conditions|slice:":4" %}
-                        <div class="weather-condition-item">
-                            <div class="condition-info">
-                                <i class="{{ condition.icon }} me-1"></i>
-                                <span>{{ condition.display_name }}</span>
-                                {% if condition.avg_temperature %}<small style="opacity: 0.7;">({{ condition.avg_temperature|floatformat:0 }}°)</small>{% endif %}
-                            </div>
-                            <div class="condition-stats">
-                                <span class="sentiment-badge {% if condition.sentiment_label == 'positive' %}positive{% elif condition.sentiment_label == 'negative' %}negative{% else %}neutral{% endif %}">
-                                    {% if condition.avg_sentiment > 0 %}+{% endif %}{{ condition.avg_sentiment|floatformat:2 }}
-                                </span>
-                                <small style="opacity: 0.6;">({{ condition.count }})</small>
-                            </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-3">How weather affects your mood (last 90 days)</p>
+                    {% for condition in weather_correlation.conditions|slice:":4" %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <i class="{{ condition.icon }} me-1"></i>
+                            <span>{{ condition.display_name }}</span>
+                            {% if condition.avg_temperature %}<small class="text-muted">({{ condition.avg_temperature|floatformat:0 }}°C)</small>{% endif %}
                         </div>
-                        {% endfor %}
+                        <div class="text-end">
+                            <span class="badge bg-{% if condition.sentiment_label == 'positive' %}success{% elif condition.sentiment_label == 'negative' %}danger{% else %}secondary{% endif %}">
+                                {% if condition.avg_sentiment > 0 %}+{% endif %}{{ condition.avg_sentiment|floatformat:2 }}
+                            </span>
+                            <small class="text-muted ms-1">({{ condition.count }})</small>
+                        </div>
                     </div>
-                    {% if weather_correlation.insights %}
-                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                        {% for insight in weather_correlation.insights %}
-                        <div class="small mb-1" style="opacity: 0.9;"><i class="bi bi-lightbulb me-1"></i>{{ insight }}</div>
-                        {% endfor %}
+                    {% endfor %}
+                    {% for insight in weather_correlation.insights %}
+                    <div class="alert alert-light small py-2 mb-0 mt-3">
+                        <i class="bi bi-lightbulb text-warning me-1"></i>{{ insight }}
                     </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
-                {% if user|user_is_free %}
-                <div class="premium-overlay">
-                    <div class="premium-badge mb-2"><i class="bi bi-star-fill me-1"></i>Premium</div>
-                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
-                </div>
-                {% endif %}
             </div>
         </div>
         {% elif user.profile.city == '' %}
         <div class="col-md-6 col-lg-4">
-            <div class="env-card weather-card h-100" style="opacity: 0.6;">
-                <div class="env-card-body text-center py-5">
-                    <i class="bi bi-cloud-sun" style="font-size: 3rem; opacity: 0.5;"></i>
-                    <p class="mt-3 mb-2" style="opacity: 0.8;">Weather tracking not enabled</p>
-                    <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-light">
+            <div class="card h-100 border-dashed">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-cloud-sun display-4 text-muted"></i>
+                    <p class="text-muted mt-3 mb-2">Weather tracking not enabled</p>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-primary">
                         Add your city in Settings
                     </a>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Zodiac Insights -->
-        {% if zodiac_insights %}
-        <div class="col-md-6 col-lg-4">
-            <div class="env-card zodiac-card h-100 position-relative {% if user|user_is_free %}premium-locked{% endif %}">
-                <div class="env-card-header">
-                    <i class="bi bi-stars me-2"></i>{{ zodiac_insights.display_name }}
-                </div>
-                <div class="env-card-body">
-                    <div class="text-center mb-3">
-                        <span style="font-size: 3rem;">{{ zodiac_insights.symbol }}</span>
-                        <p class="small mb-0" style="opacity: 0.7;">{{ zodiac_insights.element|title }} Sign</p>
-                    </div>
-                    <div class="zodiac-stats">
-                        <div class="zodiac-stat-row">
-                            <span style="opacity: 0.8;">Avg Sentiment</span>
-                            <span class="sentiment-badge {% if zodiac_insights.avg_sentiment > 0.05 %}positive{% elif zodiac_insights.avg_sentiment < -0.05 %}negative{% else %}neutral{% endif %}">
-                                {% if zodiac_insights.avg_sentiment > 0 %}+{% endif %}{{ zodiac_insights.avg_sentiment|floatformat:2 }}
-                            </span>
-                        </div>
-                        <div class="zodiac-stat-row">
-                            <span style="opacity: 0.8;">Dominant Mood</span>
-                            <span>{{ zodiac_insights.dominant_mood|title }}</span>
-                        </div>
-                    </div>
-                    {% if zodiac_insights.insights %}
-                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                        {% for insight in zodiac_insights.insights %}
-                        <div class="small mb-1" style="opacity: 0.9;"><i class="bi bi-lightbulb me-1"></i>{{ insight }}</div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-                {% if user|user_is_free %}
-                <div class="premium-overlay">
-                    <div class="premium-badge mb-2"><i class="bi bi-star-fill me-1"></i>Premium</div>
-                    <a href="{% url 'accounts:upgrade' %}" class="btn btn-sm btn-warning text-dark">Upgrade</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Daily Devotion -->
-        {% if daily_devotion %}
-        <div class="col-md-6 col-lg-4">
-            <div class="env-card devotion-card h-100">
-                <div class="env-card-header">
-                    <i class="bi bi-book me-2"></i>Daily Devotion
-                </div>
-                <div class="env-card-body">
-                    <div class="text-center mb-3">
-                        <i class="bi bi-quote" style="font-size: 2rem; opacity: 0.7;"></i>
-                        <p class="small mb-0" style="opacity: 0.8;">{{ daily_devotion.theme }}</p>
-                    </div>
-                    <h6 class="mb-2" style="color: #fbbf24;">{{ daily_devotion.reference }}</h6>
-                    <p class="fst-italic mb-3 small" style="opacity: 0.9;">"{{ daily_devotion.verse }}"</p>
-                    <div class="pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                        <p class="small mb-0" style="opacity: 0.85;">{{ daily_devotion.reflection }}</p>
-                    </div>
-                </div>
-                <div class="devotion-footer">
-                    <i class="bi bi-calendar3 me-1"></i>Day {{ daily_devotion.day_number }} of the year
                 </div>
             </div>
         </div>
@@ -1341,13 +527,12 @@
     {% endif %}
 
     <!-- Recent Entries & Quick Links -->
-    <div class="section-label mt-4">Activity</div>
-    <div class="row g-4">
+    <div class="row g-4 mt-2">
         <div class="col-lg-8">
-            <div class="recent-entries-card">
+            <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-clock-history me-2"></i>Recent Entries</span>
-                    <a href="{% url 'journal:entry_list' %}" class="btn btn-sm btn-outline-light">View All</a>
+                    <a href="{% url 'journal:entry_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <ul class="list-group list-group-flush">
                     {% for entry in recent_entries %}
@@ -1356,11 +541,11 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="me-2">{{ entry.mood_emoji }}</span>
-                                    <strong class="text-dark">{{ entry.entry_date|date:"M j" }}</strong>
-                                    {% if entry.title %}<span class="text-muted"> - {{ entry.title }}</span>{% endif %}
+                                    <strong>{{ entry.entry_date|date:"M j" }}</strong>
+                                    {% if entry.title %} - {{ entry.title }}{% endif %}
                                 </div>
                                 {% if entry.analysis %}
-                                <span class="badge badge-mood-{{ entry.analysis.detected_mood }}">
+                                <span class="badge bg-{% if entry.analysis.sentiment_label == 'positive' %}success{% elif entry.analysis.sentiment_label == 'negative' %}danger{% else %}secondary{% endif %}">
                                     {{ entry.analysis.detected_mood }}
                                 </span>
                                 {% endif %}
@@ -1377,45 +562,45 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="quick-actions-card">
+            <div class="card">
                 <div class="card-header">
                     <i class="bi bi-lightning me-2"></i>Quick Actions
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{% url 'journal:entry_create' %}" class="btn btn-light">
+                        <a href="{% url 'journal:entry_create' %}" class="btn btn-primary">
                             <i class="bi bi-plus-circle me-2"></i>New Entry
                         </a>
                         {% if user|user_is_premium %}
-                        <a href="{% url 'analytics:yearly' current_year %}" class="btn btn-outline-light">
+                        <a href="{% url 'analytics:yearly' current_year %}" class="btn btn-outline-primary">
                             <i class="bi bi-calendar-check me-2"></i>{{ current_year }} Year in Review
                         </a>
                         {% else %}
-                        <a href="{% url 'accounts:upgrade' %}" class="btn btn-outline-light">
+                        <a href="{% url 'accounts:upgrade' %}" class="btn btn-outline-warning">
                             <i class="bi bi-star me-2"></i>{{ current_year }} Year in Review
-                            <span class="badge" style="background: rgba(255,255,255,0.2);">Premium</span>
+                            <span class="badge bg-warning text-dark ms-1">Premium</span>
                         </a>
                         {% endif %}
                         {% if current_snapshot %}
                             {% if user|user_is_premium %}
-                            <a href="{% url 'analytics:monthly' current_year current_month %}" class="btn btn-outline-light">
+                            <a href="{% url 'analytics:monthly' current_year current_month %}" class="btn btn-outline-secondary">
                                 <i class="bi bi-calendar-month me-2"></i>This Month Details
                             </a>
                             {% else %}
-                            <a href="{% url 'accounts:upgrade' %}" class="btn btn-outline-light">
+                            <a href="{% url 'accounts:upgrade' %}" class="btn btn-outline-warning">
                                 <i class="bi bi-star me-2"></i>This Month Details
-                                <span class="badge" style="background: rgba(255,255,255,0.2);">Premium</span>
+                                <span class="badge bg-warning text-dark ms-1">Premium</span>
                             </a>
                             {% endif %}
                         {% endif %}
                         {% if user|user_is_premium %}
-                        <a href="{% url 'analytics:captures' %}" class="btn btn-outline-light">
+                        <a href="{% url 'analytics:captures' %}" class="btn btn-outline-info">
                             <i class="bi bi-collection me-2"></i>All Captures
                         </a>
                         {% else %}
-                        <a href="{% url 'accounts:upgrade' %}" class="btn btn-outline-light">
+                        <a href="{% url 'accounts:upgrade' %}" class="btn btn-outline-warning">
                             <i class="bi bi-star me-2"></i>All Captures
-                            <span class="badge" style="background: rgba(255,255,255,0.2);">Premium</span>
+                            <span class="badge bg-warning text-dark ms-1">Premium</span>
                         </a>
                         {% endif %}
                     </div>
@@ -1424,15 +609,16 @@
 
             <!-- Travel Section (if any) -->
             {% if travel_entries %}
-            <div class="travel-card">
+            <div class="card mt-4">
                 <div class="card-header">
                     <i class="bi bi-geo-alt me-2"></i>Places Visited ({{ current_year }})
                 </div>
                 <ul class="list-group list-group-flush">
                     {% for entry in travel_entries|slice:":3" %}
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span><i class="bi bi-pin-map me-1"></i>{{ entry.data.location|default:entry.data.name|default:"Unknown" }}</span>
-                        <small style="opacity: 0.7;">{{ entry.entry.entry_date|date:"M j" }}</small>
+                    <li class="list-group-item">
+                        <i class="bi bi-pin-map text-danger me-1"></i>
+                        {{ entry.data.location|default:entry.data.name|default:"Unknown" }}
+                        <small class="text-muted float-end">{{ entry.entry.entry_date|date:"M j" }}</small>
                     </li>
                     {% endfor %}
                 </ul>
@@ -1445,91 +631,6 @@
 
 {% block dashboard_js %}
 <script>
-// Dashboard Entries Chart
-const dashboardChartCtx = document.getElementById('dashboardEntriesChart');
-if (dashboardChartCtx) {
-    const currentMonth = new Date().getMonth();
-
-    // Data for different year selections
-    const dashboardChartData = {
-        '{{ current_year }}': {
-            data: {{ monthly_entry_counts|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }},
-            count: {{ stats.entries_this_year|default:0 }}
-        },
-        '{{ current_year|add:"-1" }}': {
-            data: {{ monthly_entry_counts_prev_year|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }},
-            count: {{ stats.entries_prev_year|default:0 }}
-        },
-        'all': {
-            data: {{ monthly_entry_counts_all_time|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }},
-            count: {{ stats.total_entries|default:0 }}
-        }
-    };
-
-    const dashboardEntriesChart = new Chart(dashboardChartCtx, {
-        type: 'bar',
-        data: {
-            labels: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
-            datasets: [{
-                data: dashboardChartData['{{ current_year }}'].data,
-                backgroundColor: dashboardChartData['{{ current_year }}'].data.map((_, i) =>
-                    i === currentMonth ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)'
-                ),
-                borderRadius: 4,
-                barThickness: 12
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                x: {
-                    display: true,
-                    grid: { display: false },
-                    ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } }
-                },
-                y: {
-                    display: true,
-                    grid: { color: 'rgba(255,255,255,0.1)' },
-                    ticks: { color: 'rgba(255,255,255,0.7)', stepSize: 10 }
-                }
-            }
-        }
-    });
-
-    // Year tab click handlers
-    document.querySelectorAll('.entries-card .year-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            // Update active state
-            document.querySelectorAll('.entries-card .year-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-
-            // Get selected year
-            const year = this.dataset.year;
-            const yearData = dashboardChartData[year];
-
-            if (yearData) {
-                // Update chart data
-                dashboardEntriesChart.data.datasets[0].data = yearData.data;
-                // Highlight current month only for current year
-                dashboardEntriesChart.data.datasets[0].backgroundColor = yearData.data.map((_, i) =>
-                    (year === '{{ current_year }}' && i === currentMonth) ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)'
-                );
-                dashboardEntriesChart.update();
-
-                // Update entries count
-                const countEl = document.querySelector('.entries-count');
-                const labelEl = document.querySelector('.entries-label');
-                if (countEl) countEl.textContent = yearData.count;
-                if (labelEl) labelEl.textContent = yearData.count === 1 ? 'Entry' : 'Entries';
-            }
-        });
-    });
-}
-
 // Sentiment Trend Chart
 const sentimentCtx = document.getElementById('sentimentChart');
 if (sentimentCtx) {
@@ -1544,28 +645,20 @@ if (sentimentCtx) {
             datasets: [{
                 label: 'Average Sentiment',
                 data: data.length ? data : [0],
-                borderColor: 'rgba(255,255,255,0.9)',
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
                 fill: true,
-                tension: 0.3,
-                pointBackgroundColor: 'white',
-                pointBorderColor: 'white'
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: {
-                    grid: { color: 'rgba(255,255,255,0.1)' },
-                    ticks: { color: 'rgba(255,255,255,0.7)' }
-                },
                 y: {
                     min: -1,
                     max: 1,
-                    grid: { color: 'rgba(255,255,255,0.1)' },
                     ticks: {
-                        color: 'rgba(255,255,255,0.7)',
                         callback: function(value) {
                             if (value === 0) return 'Neutral';
                             if (value === 1) return 'Positive';
@@ -1606,9 +699,7 @@ if (moodCtx) {
                 labels: moodLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
                 datasets: [{
                     data: moodValues,
-                    backgroundColor: moodLabels.map(l => moodColors[l] || '#6b7280'),
-                    borderColor: 'rgba(255,255,255,0.2)',
-                    borderWidth: 2
+                    backgroundColor: moodLabels.map(l => moodColors[l] || '#6b7280')
                 }]
             },
             options: {
@@ -1616,12 +707,7 @@ if (moodCtx) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: 'rgba(255,255,255,0.9)',
-                            padding: 10,
-                            font: { size: 11 }
-                        }
+                        position: 'bottom'
                     }
                 }
             }
