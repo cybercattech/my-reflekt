@@ -37,4 +37,10 @@ urlpatterns = [
     path('api/workout/<int:pk>/', views.workout_detail, name='workout_detail'),
     path('api/workout/<int:pk>/update/', views.workout_update, name='workout_update'),
     path('api/workout/<int:pk>/delete/', views.workout_delete, name='workout_delete'),
+
+    # Moon phase entries API
+    path('api/moon-phase/<str:phase>/entries/', views.moon_phase_entries, name='moon_phase_entries'),
+
+    # Weather condition entries API
+    path('api/weather/<str:condition>/entries/', views.weather_condition_entries, name='weather_condition_entries'),
 ]

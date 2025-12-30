@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from apps.accounts.decorators import premium_required
 from .models import MonthlySnapshot, YearlyReview
@@ -1297,4 +1297,121 @@ def wellness_dashboard(request):
         'total_gratitude': len(gratitude_entries),
         'total_meals': meals.count(),
         'active_page': 'wellness',
+    })
+
+
+@login_required
+@require_http_methods(["GET"])
+def moon_phase_entries(request, phase):
+    """Get entries for a specific moon phase."""
+    from apps.journal.models import Entry
+    from apps.analytics.services.moon import MOON_PHASE_DISPLAY
+
+    user = request.user
+    days = int(request.GET.get('days', 180))
+    start_date = timezone.now().date() - timedelta(days=days)
+
+    # Validate phase
+    valid_phases = ['new_moon', 'waxing_crescent', 'first_quarter', 'waxing_gibbous',
+                    'full_moon', 'waning_gibbous', 'last_quarter', 'waning_crescent']
+    if phase not in valid_phases:
+        return JsonResponse({'error': 'Invalid moon phase'}, status=400)
+
+    # Get entries for this phase
+    entries = Entry.objects.filter(
+        user=user,
+        entry_date__gte=start_date,
+        is_analyzed=True,
+        analysis__moon_phase=phase
+    ).select_related('analysis').order_by('-entry_date')
+
+    # Format entries for response
+    entries_data = []
+    for entry in entries:
+        entries_data.append({
+            'id': entry.pk,
+            'date': entry.entry_date.strftime('%b %d, %Y'),
+            'title': entry.title or entry.entry_date.strftime('%A, %B %d'),
+            'preview': entry.preview[:150] + '...' if len(entry.preview) > 150 else entry.preview,
+            'mood': entry.analysis.detected_mood if hasattr(entry, 'analysis') else '',
+            'mood_emoji': get_mood_emoji(entry.analysis.detected_mood) if hasattr(entry, 'analysis') else '',
+            'sentiment': round(entry.analysis.sentiment_score, 2) if hasattr(entry, 'analysis') else 0,
+            'url': f'/journal/{entry.pk}/',
+        })
+
+    return JsonResponse({
+        'phase': phase,
+        'display_name': MOON_PHASE_DISPLAY.get(phase, phase.replace('_', ' ').title()),
+        'count': len(entries_data),
+        'entries': entries_data,
+    })
+
+
+def get_mood_emoji(mood):
+    """Get emoji for a mood."""
+    emojis = {
+        'ecstatic': '🤩',
+        'happy': '😊',
+        'neutral': '😐',
+        'sad': '😢',
+        'angry': '😠',
+    }
+    return emojis.get(mood, '')
+
+
+@login_required
+@require_http_methods(["GET"])
+def weather_condition_entries(request, condition):
+    """Get entries for a specific weather condition."""
+    from apps.journal.models import Entry
+    from apps.analytics.services.weather import WEATHER_DISPLAY
+
+    user = request.user
+    days = int(request.GET.get('days', 180))
+    start_date = timezone.now().date() - timedelta(days=days)
+
+    # Valid weather conditions
+    valid_conditions = ['clear', 'clouds', 'rain', 'drizzle', 'thunderstorm',
+                        'snow', 'mist', 'fog', 'haze']
+    if condition not in valid_conditions:
+        return JsonResponse({'error': 'Invalid weather condition'}, status=400)
+
+    # Get entries for this weather condition
+    entries = Entry.objects.filter(
+        user=user,
+        entry_date__gte=start_date,
+        is_analyzed=True,
+        analysis__weather_condition=condition
+    ).select_related('analysis').order_by('-entry_date')
+
+    # Format entries for response
+    entries_data = []
+    for entry in entries:
+        temp = None
+        if hasattr(entry, 'analysis') and entry.analysis.temperature is not None:
+            # Convert to user's preferred unit
+            temp_c = entry.analysis.temperature
+            if user.profile.temperature_unit == 'F':
+                temp = round((temp_c * 9/5) + 32)
+            else:
+                temp = round(temp_c)
+
+        entries_data.append({
+            'id': entry.pk,
+            'date': entry.entry_date.strftime('%b %d, %Y'),
+            'title': entry.title or entry.entry_date.strftime('%A, %B %d'),
+            'preview': entry.preview[:150] + '...' if len(entry.preview) > 150 else entry.preview,
+            'mood': entry.analysis.detected_mood if hasattr(entry, 'analysis') else '',
+            'mood_emoji': get_mood_emoji(entry.analysis.detected_mood) if hasattr(entry, 'analysis') else '',
+            'sentiment': round(entry.analysis.sentiment_score, 2) if hasattr(entry, 'analysis') else 0,
+            'temperature': temp,
+            'temp_unit': user.profile.temperature_unit,
+            'url': f'/journal/{entry.pk}/',
+        })
+
+    return JsonResponse({
+        'condition': condition,
+        'display_name': WEATHER_DISPLAY.get(condition, condition.title()),
+        'count': len(entries_data),
+        'entries': entries_data,
     })

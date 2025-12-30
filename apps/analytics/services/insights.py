@@ -64,7 +64,45 @@ def generate_moon_correlation(user: User, days: int = 90) -> Dict:
             continue
 
         avg_sentiment = data['total_sentiment'] / data['count']
-        dominant_mood = max(data['moods'].items(), key=lambda x: x[1])[0] if data['moods'] else ''
+
+        # Get mood distribution
+        moods = data['moods']
+        dominant_mood = max(moods.items(), key=lambda x: x[1])[0] if moods else ''
+
+        # Calculate sentiment-aligned mood display based on actual sentiment score
+        positive_moods = moods.get('ecstatic', 0) + moods.get('happy', 0)
+        negative_moods = moods.get('sad', 0) + moods.get('angry', 0)
+        total = data['count']
+
+        # Determine display mood based on sentiment score (not dominant mood count)
+        # This ensures the label matches what the sentiment actually indicates
+        if total > 0:
+            pos_pct = positive_moods / total
+            neg_pct = negative_moods / total
+
+            # Check for mixed moods (both positive and negative present significantly)
+            has_mixed_moods = pos_pct > 0.25 and neg_pct > 0.25
+
+            if avg_sentiment >= 0.6:
+                display_mood = 'ecstatic'
+            elif avg_sentiment >= 0.4:
+                display_mood = 'happy'
+            elif avg_sentiment >= 0.2:
+                display_mood = 'upbeat'
+            elif avg_sentiment >= -0.2:
+                # Neutral range - check if it's mixed or truly neutral
+                if has_mixed_moods:
+                    display_mood = 'mixed'
+                else:
+                    display_mood = 'neutral'
+            elif avg_sentiment >= -0.4:
+                display_mood = 'reflective'
+            elif avg_sentiment >= -0.6:
+                display_mood = 'sad'
+            else:
+                display_mood = 'difficult'
+        else:
+            display_mood = dominant_mood
 
         results.append({
             'phase': phase,
@@ -74,81 +112,65 @@ def generate_moon_correlation(user: User, days: int = 90) -> Dict:
             'avg_sentiment': round(avg_sentiment, 3),
             'sentiment_label': 'positive' if avg_sentiment > 0.05 else ('negative' if avg_sentiment < -0.05 else 'neutral'),
             'dominant_mood': dominant_mood,
+            'display_mood': display_mood,
         })
 
     # Sort by average sentiment
     results.sort(key=lambda x: x['avg_sentiment'], reverse=True)
 
-    # Generate insights
+    # Generate insights based on display_mood (sentiment-aligned)
     insights = []
-    best_mood_by_phase = {}
 
     if results:
         best_phase = results[0]
         worst_phase = results[-1]
 
-        # Get the most common mood for each phase
-        for phase_result in results:
-            phase = phase_result['phase']
-            # Find data for this phase
-            phase_info = phase_data.get(phase, {})
-            if phase_info.get('moods'):
-                best_mood = max(phase_info['moods'].items(), key=lambda x: x[1])
-                best_mood_by_phase[phase] = best_mood[0]
-
         # Full moon specific insights
         full_moon_data = next((r for r in results if r['phase'] == 'full_moon'), None)
         if full_moon_data and full_moon_data['count'] >= 2:
-            full_moon_mood = best_mood_by_phase.get('full_moon', '')
-            if full_moon_data['avg_sentiment'] > 0.1:
-                mood_text = f"feeling {full_moon_mood}" if full_moon_mood else "more positive"
-                insights.append(
-                    f"🌕 Your writing skews towards {mood_text} during the full moon"
-                )
-            elif full_moon_data['avg_sentiment'] < -0.1:
-                insights.append(
-                    f"🌕 Full moon phases tend to bring more introspective, reflective writing"
-                )
+            mood = full_moon_data['display_mood']
+            sentiment = full_moon_data['avg_sentiment']
+            if sentiment >= 0.4:
+                insights.append(f"🌕 Full moons bring out your brightest, most {mood} writing")
+            elif sentiment >= 0.2:
+                insights.append(f"🌕 Your full moon entries tend to be {mood} and positive")
+            elif sentiment >= -0.2:
+                if mood == 'mixed':
+                    insights.append(f"🌕 Full moon brings varied emotions - a mix of highs and lows")
+                else:
+                    insights.append(f"🌕 Your full moon writing is generally balanced and {mood}")
             else:
-                # Neutral sentiment
-                mood_text = f"feeling {full_moon_mood}" if full_moon_mood else "balanced"
-                insights.append(
-                    f"🌕 Your writing skews towards {mood_text} during the full moon"
-                )
+                insights.append(f"🌕 Full moon phases tend to bring more reflective, introspective writing")
 
         # New moon insights
         new_moon_data = next((r for r in results if r['phase'] == 'new_moon'), None)
         if new_moon_data and new_moon_data['count'] >= 2:
-            new_moon_mood = best_mood_by_phase.get('new_moon', '')
-            if new_moon_data['avg_sentiment'] > 0.1:
-                insights.append(
-                    f"🌑 New moon phases inspire {new_moon_mood if new_moon_mood else 'positive'} energy in your entries"
-                )
-            elif new_moon_data['avg_sentiment'] < -0.1:
-                insights.append(
-                    f"🌑 New moon phases seem to bring more contemplative, introspective moods"
-                )
+            mood = new_moon_data['display_mood']
+            sentiment = new_moon_data['avg_sentiment']
+            if sentiment >= 0.4:
+                insights.append(f"🌑 New moons inspire {mood} energy in your entries")
+            elif sentiment >= 0.2:
+                insights.append(f"🌑 Your new moon writing tends to be {mood}")
+            elif sentiment >= -0.2:
+                if mood == 'mixed':
+                    insights.append(f"🌑 New moon brings emotional variety - both light and shadow")
+                else:
+                    insights.append(f"🌑 New moon writing is balanced, with {mood} undertones")
             else:
-                # Neutral - still generate insight
-                mood_text = f"{new_moon_mood}" if new_moon_mood else "reflective"
-                insights.append(
-                    f"🌑 New moon writing tends toward {mood_text} themes"
-                )
+                insights.append(f"🌑 New moon phases bring more contemplative, introspective moods")
 
-        # General best phase
-        if best_phase['avg_sentiment'] > 0.1 and best_phase['phase'] not in ['full_moon', 'new_moon']:
-            best_mood = best_mood_by_phase.get(best_phase['phase'], '')
-            mood_text = f" and {best_mood}" if best_mood else ""
+        # General best phase (if not already covered)
+        if best_phase['avg_sentiment'] >= 0.3 and best_phase['phase'] not in ['full_moon', 'new_moon']:
             insights.append(
-                f"✨ You feel most positive{mood_text} during {best_phase['display_name']} phases"
+                f"✨ You feel most {best_phase['display_mood']} during {best_phase['display_name']} phases"
             )
 
         # Worst phase (if significantly different)
-        if worst_phase['avg_sentiment'] < -0.05 and best_phase != worst_phase:
+        if worst_phase['avg_sentiment'] < -0.1 and best_phase != worst_phase:
             sentiment_diff = best_phase['avg_sentiment'] - worst_phase['avg_sentiment']
-            if sentiment_diff > 0.2:  # Significant difference
+            if sentiment_diff > 0.3:
                 insights.append(
-                    f"🌙 {worst_phase['display_name']} phases seem to bring more contemplative moods"
+                    f"🌙 {worst_phase['display_name']} phases tend toward more {worst_phase['display_mood']} moods"
                 )
 
         # Waxing vs Waning comparison

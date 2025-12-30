@@ -225,8 +225,10 @@ class Habit(models.Model):
                     break
 
         self.current_streak = streak
-        if streak > self.longest_streak:
-            self.longest_streak = streak
+
+        # Calculate longest streak from all historical data
+        longest = self._calculate_longest_streak()
+        self.longest_streak = max(streak, longest)
 
         # Update total completions
         self.total_completions = self.checkins.filter(completed=True).count()
@@ -236,6 +238,60 @@ class Habit(models.Model):
         self.last_completed_date = last_checkin.check_date if last_checkin else None
 
         self.save(update_fields=['current_streak', 'longest_streak', 'total_completions', 'last_completed_date'])
+
+    def _calculate_longest_streak(self):
+        """Calculate the longest streak from all historical check-ins."""
+        # Get all completed check-in dates as a set for O(1) lookup
+        completed_dates = set(
+            self.checkins.filter(completed=True)
+            .values_list('check_date', flat=True)
+        )
+
+        if not completed_dates:
+            return 0
+
+        # Start from the earliest check-in, not start_date (in case of pre-existing data)
+        earliest_checkin = min(completed_dates)
+        latest_checkin = max(completed_dates)
+
+        longest_streak = 0
+        current_streak = 0
+
+        # For daily habits, simply count consecutive days
+        if self.frequency_type == 'daily':
+            check_date = earliest_checkin
+            while check_date <= latest_checkin:
+                if check_date in completed_dates:
+                    current_streak += 1
+                    longest_streak = max(longest_streak, current_streak)
+                else:
+                    current_streak = 0
+                check_date += timedelta(days=1)
+        else:
+            # For other frequencies, use is_due_on_date logic
+            # But start from earliest checkin date
+            check_date = earliest_checkin
+            while check_date <= latest_checkin:
+                # For non-daily, check if it was a due date
+                if self._is_due_on_date_ignoring_start(check_date):
+                    if check_date in completed_dates:
+                        current_streak += 1
+                        longest_streak = max(longest_streak, current_streak)
+                    else:
+                        current_streak = 0
+                check_date += timedelta(days=1)
+
+        return longest_streak
+
+    def _is_due_on_date_ignoring_start(self, date):
+        """Check if habit would be due on date, ignoring start_date constraint."""
+        if self.frequency_type == 'daily':
+            return True
+        elif self.frequency_type == 'specific_days':
+            day_nums = [int(d) for d in self.specific_days.split(',') if d]
+            return date.weekday() in day_nums
+        # For weekly/x_per_week, treat as daily for streak purposes
+        return True
 
 
 class HabitCheckin(models.Model):

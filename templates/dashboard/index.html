@@ -1,6 +1,7 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% load subscription_tags %}
 {% load challenge_tags %}
+{% load analytics_tags %}
 
 {% block title %}Dashboard{% endblock %}
 
@@ -673,6 +674,12 @@
     padding: 0.5rem 0.75rem;
     background: rgba(255,255,255,0.1);
     border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.weather-condition-item:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateX(3px);
 }
 
 .condition-info {
@@ -695,18 +702,21 @@
 }
 
 .sentiment-badge.positive {
-    background: rgba(74, 222, 128, 0.3);
-    color: #4ade80;
+    background: rgba(74, 222, 128, 0.5);
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .sentiment-badge.negative {
-    background: rgba(248, 113, 113, 0.3);
-    color: #f87171;
+    background: rgba(248, 113, 113, 0.5);
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .sentiment-badge.neutral {
-    background: rgba(148, 163, 184, 0.3);
-    color: #94a3b8;
+    background: rgba(148, 163, 184, 0.5);
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 /* Zodiac Stats */
@@ -746,12 +756,14 @@
     border-radius: 12px;
     padding: 0.75rem 0.5rem;
     text-align: center;
-    transition: transform 0.2s;
+    transition: transform 0.2s, background 0.2s;
+    cursor: pointer;
 }
 
 .moon-phase-pill:hover {
     transform: translateY(-2px);
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .moon-phase-pill .phase-emoji {
@@ -1177,7 +1189,7 @@
                     <!-- Moon Phase Pills Grid -->
                     <div class="moon-phases-grid">
                         {% for phase in moon_correlation.phases %}
-                        <div class="moon-phase-pill">
+                        <div class="moon-phase-pill" data-phase="{{ phase.phase }}" data-display-name="{{ phase.display_name }}" onclick="showMoonPhaseEntries('{{ phase.phase }}', '{{ phase.display_name }}')">
                             <div class="phase-emoji">
                                 {% if phase.phase == 'full_moon' %}🌕
                                 {% elif phase.phase == 'new_moon' %}🌑
@@ -1194,8 +1206,8 @@
                                 {% if phase.avg_sentiment > 0 %}+{% endif %}{{ phase.avg_sentiment|floatformat:2 }}
                             </div>
                             <div class="phase-count">{{ phase.count }} entries</div>
-                            {% if phase.dominant_mood %}
-                            <div class="phase-mood">{{ phase.dominant_mood }}</div>
+                            {% if phase.display_mood %}
+                            <div class="phase-mood">{{ phase.display_mood }}</div>
                             {% endif %}
                         </div>
                         {% endfor %}
@@ -1219,8 +1231,8 @@
         </div>
         {% endif %}
 
-        <!-- Weather Impact -->
-        {% if weather_correlation.conditions %}
+        <!-- Weather Impact (requires at least 5 entries for meaningful data) -->
+        {% if weather_correlation.total_entries >= 5 %}
         <div class="col-md-6 col-lg-4">
             <div class="env-card weather-card h-100 position-relative {% if user|user_is_free %}premium-locked{% endif %}">
                 <div class="env-card-header">
@@ -1230,11 +1242,13 @@
                     <p class="small mb-3" style="opacity: 0.8;">How weather affects your mood</p>
                     <div class="weather-conditions">
                         {% for condition in weather_correlation.conditions|slice:":4" %}
-                        <div class="weather-condition-item">
+                        <div class="weather-condition-item"
+                             onclick="showWeatherEntries('{{ condition.condition }}', '{{ condition.display_name }}', '{{ condition.icon }}')"
+                             style="cursor: pointer;" title="Click to see entries">
                             <div class="condition-info">
                                 <i class="{{ condition.icon }} me-1"></i>
                                 <span>{{ condition.display_name }}</span>
-                                {% if condition.avg_temperature %}<small style="opacity: 0.7;">({{ condition.avg_temperature|floatformat:0 }}°)</small>{% endif %}
+                                {% if condition.avg_temperature %}<small style="opacity: 0.7;">({{ condition.avg_temperature|temperature:user.profile.temperature_unit }})</small>{% endif %}
                             </div>
                             <div class="condition-stats">
                                 <span class="sentiment-badge {% if condition.sentiment_label == 'positive' %}positive{% elif condition.sentiment_label == 'negative' %}negative{% else %}neutral{% endif %}">
@@ -1261,15 +1275,39 @@
                 {% endif %}
             </div>
         </div>
-        {% elif user.profile.city == '' %}
+        {% elif not user.profile.city %}
+        <!-- No city configured -->
         <div class="col-md-6 col-lg-4">
-            <div class="env-card weather-card h-100" style="opacity: 0.6;">
-                <div class="env-card-body text-center py-5">
-                    <i class="bi bi-cloud-sun" style="font-size: 3rem; opacity: 0.5;"></i>
-                    <p class="mt-3 mb-2" style="opacity: 0.8;">Weather tracking not enabled</p>
-                    <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-light">
-                        Add your city in Settings
+            <div class="env-card weather-card h-100" style="opacity: 0.7;">
+                <div class="env-card-header">
+                    <i class="bi bi-cloud-sun me-2"></i>Weather Impact
+                </div>
+                <div class="env-card-body text-center py-4">
+                    <i class="bi bi-geo-alt" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    <p class="mt-3 mb-2" style="opacity: 0.9;">Add your city to track weather</p>
+                    <p class="small mb-3" style="opacity: 0.7;">See how weather conditions affect your mood patterns</p>
+                    <a href="{% url 'accounts:profile' %}#city" class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-gear me-1"></i>Configure in Settings
                     </a>
+                </div>
+            </div>
+        </div>
+        {% elif weather_correlation.total_entries < 5 %}
+        <!-- Has city but not enough data yet -->
+        <div class="col-md-6 col-lg-4">
+            <div class="env-card weather-card h-100" style="opacity: 0.7;">
+                <div class="env-card-header">
+                    <i class="bi bi-cloud-sun me-2"></i>Weather Impact
+                </div>
+                <div class="env-card-body text-center py-4">
+                    <i class="bi bi-hourglass-split" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    <p class="mt-3 mb-2" style="opacity: 0.9;">Collecting weather data...</p>
+                    <p class="small mb-0" style="opacity: 0.7;">
+                        {{ weather_correlation.total_entries }} of 5 entries needed
+                    </p>
+                    <div class="progress mt-2" style="height: 6px; background: rgba(255,255,255,0.2);">
+                        <div class="progress-bar bg-info" style="width: {{ weather_correlation.total_entries|default:0 }}0%;"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1442,6 +1480,82 @@
                 </ul>
             </div>
             {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Moon Phase Entries Modal -->
+<div class="modal fade" id="moonPhaseModal" tabindex="-1" aria-labelledby="moonPhaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); color: white;">
+                <h5 class="modal-title" id="moonPhaseModalLabel">
+                    <span id="moonPhaseEmoji" class="me-2"></span>
+                    <span id="moonPhaseName">Moon Phase</span> Entries
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="moonPhaseLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mt-2">Loading entries...</p>
+                </div>
+                <div id="moonPhaseEntries" class="d-none">
+                    <div class="p-3 bg-light border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span id="moonPhaseCount" class="text-muted small"></span>
+                            <div id="moonPhaseMoodSummary" class="d-flex gap-2"></div>
+                        </div>
+                    </div>
+                    <div class="list-group list-group-flush" id="moonPhaseEntriesList">
+                        <!-- Entries will be populated here -->
+                    </div>
+                </div>
+                <div id="moonPhaseEmpty" class="text-center py-5 d-none">
+                    <i class="bi bi-moon text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">No entries found for this moon phase</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Weather Entries Modal -->
+<div class="modal fade" id="weatherModal" tabindex="-1" aria-labelledby="weatherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white;">
+                <h5 class="modal-title" id="weatherModalLabel">
+                    <i id="weatherIcon" class="bi bi-cloud-sun me-2"></i>
+                    <span id="weatherName">Weather</span> Entries
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="weatherLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mt-2">Loading entries...</p>
+                </div>
+                <div id="weatherEntries" class="d-none">
+                    <div class="p-3 bg-light border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span id="weatherCount" class="text-muted small"></span>
+                            <div id="weatherMoodSummary" class="d-flex gap-2"></div>
+                        </div>
+                    </div>
+                    <div class="list-group list-group-flush" id="weatherEntriesList">
+                        <!-- Entries will be populated here -->
+                    </div>
+                </div>
+                <div id="weatherEmpty" class="text-center py-5 d-none">
+                    <i class="bi bi-cloud text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">No entries found for this weather condition</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -1631,6 +1745,181 @@ if (moodCtx) {
             }
         });
     }
+}
+
+// Moon Phase Entries Modal
+const moonPhaseEmojis = {
+    'full_moon': '🌕',
+    'new_moon': '🌑',
+    'first_quarter': '🌓',
+    'last_quarter': '🌗',
+    'waxing_crescent': '🌒',
+    'waxing_gibbous': '🌔',
+    'waning_crescent': '🌘',
+    'waning_gibbous': '🌖'
+};
+
+function showMoonPhaseEntries(phase, displayName) {
+    const modal = new bootstrap.Modal(document.getElementById('moonPhaseModal'));
+    const loadingEl = document.getElementById('moonPhaseLoading');
+    const entriesEl = document.getElementById('moonPhaseEntries');
+    const emptyEl = document.getElementById('moonPhaseEmpty');
+    const listEl = document.getElementById('moonPhaseEntriesList');
+    const countEl = document.getElementById('moonPhaseCount');
+    const moodSummaryEl = document.getElementById('moonPhaseMoodSummary');
+
+    // Set header
+    document.getElementById('moonPhaseEmoji').textContent = moonPhaseEmojis[phase] || '🌙';
+    document.getElementById('moonPhaseName').textContent = displayName;
+
+    // Show loading, hide others
+    loadingEl.classList.remove('d-none');
+    entriesEl.classList.add('d-none');
+    emptyEl.classList.add('d-none');
+
+    modal.show();
+
+    // Fetch entries
+    fetch(`/dashboard/api/moon-phase/${phase}/entries/`)
+        .then(response => response.json())
+        .then(data => {
+            loadingEl.classList.add('d-none');
+
+            if (data.entries && data.entries.length > 0) {
+                entriesEl.classList.remove('d-none');
+                countEl.textContent = `${data.count} entries in the last 180 days`;
+
+                // Calculate mood summary
+                const moodCounts = {};
+                data.entries.forEach(entry => {
+                    if (entry.mood) {
+                        moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+                    }
+                });
+
+                // Display mood summary
+                moodSummaryEl.innerHTML = Object.entries(moodCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([mood, count]) => {
+                        const colors = {
+                            'ecstatic': '#22c55e',
+                            'happy': '#84cc16',
+                            'neutral': '#94a3b8',
+                            'sad': '#f59e0b',
+                            'angry': '#ef4444'
+                        };
+                        return `<span class="badge" style="background: ${colors[mood] || '#94a3b8'};">${mood}: ${count}</span>`;
+                    }).join('');
+
+                // Display entries
+                listEl.innerHTML = data.entries.map(entry => `
+                    <a href="${entry.url}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2" style="font-size: 1.25rem;">${entry.mood_emoji}</span>
+                                    <h6 class="mb-0">${entry.title}</h6>
+                                </div>
+                                <p class="mb-1 text-muted small">${entry.preview}</p>
+                            </div>
+                            <div class="text-end ms-3">
+                                <small class="text-muted d-block">${entry.date}</small>
+                                <span class="badge ${entry.sentiment >= 0 ? 'bg-success' : 'bg-danger'}">${entry.sentiment >= 0 ? '+' : ''}${entry.sentiment}</span>
+                            </div>
+                        </div>
+                    </a>
+                `).join('');
+            } else {
+                emptyEl.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching moon phase entries:', error);
+            loadingEl.classList.add('d-none');
+            emptyEl.classList.remove('d-none');
+        });
+}
+
+function showWeatherEntries(condition, displayName, iconClass) {
+    const modal = new bootstrap.Modal(document.getElementById('weatherModal'));
+    const loadingEl = document.getElementById('weatherLoading');
+    const entriesEl = document.getElementById('weatherEntries');
+    const emptyEl = document.getElementById('weatherEmpty');
+    const listEl = document.getElementById('weatherEntriesList');
+    const countEl = document.getElementById('weatherCount');
+    const moodSummaryEl = document.getElementById('weatherMoodSummary');
+
+    // Set header
+    document.getElementById('weatherIcon').className = iconClass + ' me-2';
+    document.getElementById('weatherName').textContent = displayName;
+
+    // Show loading, hide others
+    loadingEl.classList.remove('d-none');
+    entriesEl.classList.add('d-none');
+    emptyEl.classList.add('d-none');
+
+    modal.show();
+
+    // Fetch entries
+    fetch(`/dashboard/api/weather/${condition}/entries/`)
+        .then(response => response.json())
+        .then(data => {
+            loadingEl.classList.add('d-none');
+
+            if (data.entries && data.entries.length > 0) {
+                entriesEl.classList.remove('d-none');
+                countEl.textContent = `${data.count} entries in the last 180 days`;
+
+                // Calculate mood summary
+                const moodCounts = {};
+                data.entries.forEach(entry => {
+                    if (entry.mood) {
+                        moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+                    }
+                });
+
+                // Display mood summary
+                moodSummaryEl.innerHTML = Object.entries(moodCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([mood, count]) => {
+                        const colors = {
+                            'ecstatic': '#22c55e',
+                            'happy': '#84cc16',
+                            'neutral': '#94a3b8',
+                            'sad': '#f59e0b',
+                            'angry': '#ef4444'
+                        };
+                        return `<span class="badge" style="background: ${colors[mood] || '#94a3b8'};">${mood}: ${count}</span>`;
+                    }).join('');
+
+                // Display entries
+                listEl.innerHTML = data.entries.map(entry => `
+                    <a href="${entry.url}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2" style="font-size: 1.25rem;">${entry.mood_emoji}</span>
+                                    <h6 class="mb-0">${entry.title}</h6>
+                                </div>
+                                <p class="mb-1 text-muted small">${entry.preview}</p>
+                            </div>
+                            <div class="text-end ms-3">
+                                <small class="text-muted d-block">${entry.date}</small>
+                                ${entry.temperature ? `<small class="text-muted d-block">${entry.temperature}°${entry.temp_unit}</small>` : ''}
+                                <span class="badge ${entry.sentiment >= 0 ? 'bg-success' : 'bg-danger'}">${entry.sentiment >= 0 ? '+' : ''}${entry.sentiment}</span>
+                            </div>
+                        </div>
+                    </a>
+                `).join('');
+            } else {
+                emptyEl.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching weather entries:', error);
+            loadingEl.classList.add('d-none');
+            emptyEl.classList.remove('d-none');
+        });
 }
 </script>
 {% endblock dashboard_js %}

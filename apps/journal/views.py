@@ -146,6 +146,9 @@ def entry_list(request):
     next_month = cal_month + 1 if cal_month < 12 else 1
     next_year = cal_year if cal_month < 12 else cal_year + 1
 
+    # Include related analysis and tags for the entries list
+    entries = entries.select_related('analysis').prefetch_related('tags')
+
     # Pagination
     paginator = Paginator(entries, 20)
     page = request.GET.get('page', 1)

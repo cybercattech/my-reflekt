@@ -54,6 +54,18 @@
         margin-bottom: 0.75rem;
     }
 
+    /* Entry Metadata Badges */
+    .entry-metadata {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .entry-metadata .badge {
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
     /* Insight Cards Grid */
     .insights-grid {
         display: grid;
@@ -1015,6 +1027,37 @@
                                     <p class="text-muted mb-1 small">{{ entry.entry_date|date:"l, F j, Y" }}</p>
                                     <p class="mb-1 small text-dark">{{ entry.preview }}</p>
                                     <small class="text-muted">{{ entry.word_count }} words</small>
+
+                                    <!-- Tags, Themes, Keywords, Mood -->
+                                    <div class="entry-metadata mt-2">
+                                        {% if entry.analysis and entry.analysis.detected_mood %}
+                                        <span class="badge rounded-pill me-1 mb-1" style="background: #e0f2fe; color: #0369a1;">
+                                            <i class="bi bi-emoji-smile me-1"></i>{{ entry.analysis.detected_mood }}
+                                        </span>
+                                        {% endif %}
+
+                                        {% for tag in entry.tags.all %}
+                                        <span class="badge rounded-pill me-1 mb-1" style="background: #f3e8ff; color: #7c3aed;">
+                                            <i class="bi bi-tag me-1"></i>{{ tag.name }}
+                                        </span>
+                                        {% endfor %}
+
+                                        {% if entry.analysis and entry.analysis.themes %}
+                                        {% for theme in entry.analysis.themes|slice:":3" %}
+                                        <span class="badge rounded-pill me-1 mb-1" style="background: #dcfce7; color: #15803d;">
+                                            {{ theme }}
+                                        </span>
+                                        {% endfor %}
+                                        {% endif %}
+
+                                        {% if entry.analysis and entry.analysis.keywords %}
+                                        {% for keyword in entry.analysis.keywords|slice:":3" %}
+                                        <span class="badge rounded-pill me-1 mb-1" style="background: #fef3c7; color: #b45309;">
+                                            {{ keyword }}
+                                        </span>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </div>
                                 </a>
                                 <button type="button" class="btn btn-sm btn-outline-danger delete-entry-btn"
                                         data-entry-id="{{ entry.pk }}"

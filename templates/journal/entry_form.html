@@ -98,6 +98,38 @@
         box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
 
+    /* Editor + Sidebar Layout */
+    .editor-layout {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+    }
+
+    .editor-column {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sidebar-column {
+        width: 280px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+
+    @media (max-width: 992px) {
+        .editor-layout {
+            flex-direction: column;
+        }
+        .sidebar-column {
+            width: 100%;
+            position: static;
+            max-height: none;
+        }
+    }
+
     /* Editor Container */
     .editor-container {
         background: white;
@@ -116,7 +148,7 @@
 
     .ql-editor {
         padding: 1.5rem;
-        min-height: calc(100vh - 400px);
+        min-height: 350px;
     }
 
     .ql-editor.ql-blank::before {
@@ -250,29 +282,28 @@
 
     /* Attachment Styles */
     .attachments-section {
-        margin-top: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        padding: 1rem;
+        margin-bottom: 1rem;
     }
 
-    .attachments-toggle {
+    .attachments-header {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: #6b7280;
+        color: #374151;
         font-size: 0.85rem;
-        cursor: pointer;
-        margin-bottom: 1rem;
-        transition: color 0.2s;
-    }
-
-    .attachments-toggle:hover {
-        color: #4f46e5;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
     }
 
     .upload-zone {
-        background: white;
+        background: #f9fafb;
         border: 2px dashed #e5e7eb;
-        border-radius: 12px;
-        padding: 2rem;
+        border-radius: 8px;
+        padding: 1rem;
         text-align: center;
         transition: all 0.2s;
         cursor: pointer;
@@ -285,9 +316,9 @@
     }
 
     .upload-zone i {
-        font-size: 2rem;
+        font-size: 1.5rem;
         color: #9ca3af;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.25rem;
     }
 
     .upload-zone.dragover i {
@@ -297,7 +328,7 @@
     .upload-zone p {
         margin: 0;
         color: #6b7280;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
     }
 
     .upload-zone .browse-link {
@@ -308,28 +339,28 @@
 
     .attachments-gallery {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-top: 0.75rem;
     }
 
     .attachment-item {
-        background: white;
-        border-radius: 8px;
+        background: #f9fafb;
+        border-radius: 6px;
         overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         position: relative;
     }
 
     .attachment-item img {
         width: 100%;
-        height: 120px;
+        height: 80px;
         object-fit: cover;
     }
 
     .attachment-item .file-icon {
         width: 100%;
-        height: 120px;
+        height: 80px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -337,7 +368,7 @@
     }
 
     .attachment-item .file-icon i {
-        font-size: 3rem;
+        font-size: 2rem;
         color: #6b7280;
     }
 
@@ -345,8 +376,8 @@
     .attachment-item .file-icon.video i { color: #ec4899; }
 
     .attachment-item .file-info {
-        padding: 0.5rem;
-        font-size: 0.75rem;
+        padding: 0.375rem;
+        font-size: 0.7rem;
     }
 
     .attachment-item .file-name {
@@ -394,17 +425,19 @@
 
     /* Captures Section */
     .captures-section {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid #e5e7eb;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        padding: 1rem;
     }
 
     .captures-header {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 0.875rem;
-        color: #6b7280;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #374151;
         margin-bottom: 0.75rem;
     }
 
@@ -417,12 +450,12 @@
     .capture-pill {
         display: inline-flex;
         align-items: center;
-        gap: 0.375rem;
-        padding: 0.375rem 0.75rem;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
         background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
         border: 1px solid #d1d5db;
         border-radius: 9999px;
-        font-size: 0.8125rem;
+        font-size: 0.75rem;
         color: #374151;
         transition: all 0.2s;
     }
@@ -432,11 +465,11 @@
     }
 
     .capture-pill i {
-        font-size: 0.875rem;
+        font-size: 0.75rem;
     }
 
     .capture-pill .capture-delete {
-        margin-left: 0.25rem;
+        margin-left: 0.125rem;
         color: #9ca3af;
         cursor: pointer;
         padding: 0 0.125rem;
@@ -825,81 +858,84 @@
                         </div>
                     </div>
 
-                    <!-- Editor Container -->
-                    <div class="editor-container" style="position: relative;">
-                        {% if editor_preference == 'rich_text' %}
-                        <!-- Quill Rich Text Editor -->
-                        <div id="quill-editor"></div>
-                        <textarea name="content" id="id_content" style="display:none;">{{ form.content.value|default:'' }}</textarea>
-                        {% else %}
-                        <!-- MyST Markdown Editor (EasyMDE) -->
-                        <textarea name="content" id="editor">{{ form.content.value|default:'' }}</textarea>
-                        {% endif %}
-                        <div class="word-count">
-                            <span id="wordCount">0</span> words
-                            <span class="ms-2 text-muted small">Type / for commands</span>
-                        </div>
-
-                        <!-- Slash Command Menu (positioned relative to editor) -->
-                        <div class="slash-command-menu" id="slashCommandMenu"></div>
-
-                        <!-- @ Mention Menu (for POV sharing) -->
-                        <div class="mention-menu" id="mentionMenu"></div>
-                    </div>
-
-                    <!-- Attachments Section -->
-                    <div class="attachments-section">
-                        <div class="attachments-toggle" data-bs-toggle="collapse" data-bs-target="#attachmentsPanel">
-                            <i class="bi bi-paperclip"></i>
-                            <span>Attachments</span>
-                            <span class="badge bg-secondary ms-2" id="attachmentCount">{% if entry %}{{ entry.attachments.count }}{% else %}0{% endif %}</span>
-                            <i class="bi bi-chevron-down ms-auto"></i>
-                        </div>
-
-                        <div class="collapse show" id="attachmentsPanel">
-                            <!-- Upload Zone -->
-                            <div class="upload-zone" id="uploadZone">
-                                <i class="bi bi-cloud-arrow-up d-block"></i>
-                                <p>Drag & drop files here or <span class="browse-link">browse</span></p>
-                                <p class="text-muted small mt-1">Audio & video up to 50MB</p>
-                                <p class="text-muted small"><i class="bi bi-info-circle me-1"></i>Tip: Paste or drop images directly in the editor above!</p>
-                                <input type="file" id="fileInput" multiple accept="image/*,audio/*,video/*" style="display:none;">
-                            </div>
-
-                            <!-- Upload Progress -->
-                            <div class="upload-progress d-none" id="uploadProgress">
-                                <div class="progress">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
-                                </div>
-                                <small class="text-muted" id="uploadStatus">Uploading...</small>
-                            </div>
-
-                            <!-- Attachments Gallery -->
-                            <div class="attachments-gallery" id="attachmentsGallery">
-                                {% if entry %}
-                                {% for attachment in entry.attachments.all %}
-                                <div class="attachment-item" data-id="{{ attachment.id }}">
-                                    {% if attachment.is_image %}
-                                    <img src="{{ attachment.file.url }}" alt="{{ attachment.file_name }}">
-                                    {% elif attachment.is_audio %}
-                                    <div class="file-icon audio">
-                                        <i class="bi bi-music-note-beamed"></i>
-                                    </div>
-                                    {% elif attachment.is_video %}
-                                    <div class="file-icon video">
-                                        <i class="bi bi-play-circle"></i>
-                                    </div>
-                                    {% endif %}
-                                    <div class="file-info">
-                                        <div class="file-name" title="{{ attachment.file_name }}">{{ attachment.file_name }}</div>
-                                        <div class="file-size">{{ attachment.size_display }}</div>
-                                    </div>
-                                    <button type="button" class="delete-btn" onclick="deleteAttachment({{ attachment.id }})">
-                                        <i class="bi bi-x"></i>
-                                    </button>
-                                </div>
-                                {% endfor %}
+                    <!-- Editor + Sidebar Layout -->
+                    <div class="editor-layout">
+                        <!-- Left Column: Editor -->
+                        <div class="editor-column">
+                            <div class="editor-container" style="position: relative;">
+                                {% if editor_preference == 'rich_text' %}
+                                <!-- Quill Rich Text Editor -->
+                                <div id="quill-editor"></div>
+                                <textarea name="content" id="id_content" style="display:none;">{{ form.content.value|default:'' }}</textarea>
+                                {% else %}
+                                <!-- MyST Markdown Editor (EasyMDE) -->
+                                <textarea name="content" id="editor">{{ form.content.value|default:'' }}</textarea>
                                 {% endif %}
+                                <div class="word-count">
+                                    <span id="wordCount">0</span> words
+                                    <span class="ms-2 text-muted small">Type / for commands</span>
+                                </div>
+
+                                <!-- Slash Command Menu (positioned relative to editor) -->
+                                <div class="slash-command-menu" id="slashCommandMenu"></div>
+
+                                <!-- @ Mention Menu (for POV sharing) -->
+                                <div class="mention-menu" id="mentionMenu"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Attachments & Captures -->
+                        <div class="sidebar-column">
+                            <!-- Attachments Section -->
+                            <div class="attachments-section">
+                                <div class="attachments-header">
+                                    <i class="bi bi-paperclip"></i>
+                                    <span>Attachments</span>
+                                    <span class="badge bg-secondary ms-auto" id="attachmentCount">{% if entry %}{{ entry.attachments.count }}{% else %}0{% endif %}</span>
+                                </div>
+
+                                <!-- Upload Zone -->
+                                <div class="upload-zone" id="uploadZone">
+                                    <i class="bi bi-cloud-arrow-up d-block"></i>
+                                    <p>Drop files or <span class="browse-link">browse</span></p>
+                                    <input type="file" id="fileInput" multiple accept="image/*,audio/*,video/*" style="display:none;">
+                                </div>
+
+                                <!-- Upload Progress -->
+                                <div class="upload-progress d-none" id="uploadProgress">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                    <small class="text-muted" id="uploadStatus">Uploading...</small>
+                                </div>
+
+                                <!-- Attachments Gallery -->
+                                <div class="attachments-gallery" id="attachmentsGallery">
+                                    {% if entry %}
+                                    {% for attachment in entry.attachments.all %}
+                                    <div class="attachment-item" data-id="{{ attachment.id }}">
+                                        {% if attachment.is_image %}
+                                        <img src="{{ attachment.file.url }}" alt="{{ attachment.file_name }}">
+                                        {% elif attachment.is_audio %}
+                                        <div class="file-icon audio">
+                                            <i class="bi bi-music-note-beamed"></i>
+                                        </div>
+                                        {% elif attachment.is_video %}
+                                        <div class="file-icon video">
+                                            <i class="bi bi-play-circle"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div class="file-info">
+                                            <div class="file-name" title="{{ attachment.file_name }}">{{ attachment.file_name }}</div>
+                                            <div class="file-size">{{ attachment.size_display }}</div>
+                                        </div>
+                                        <button type="button" class="delete-btn" onclick="deleteAttachment({{ attachment.id }})">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
                             </div>
 
                             <!-- Captures Section -->
@@ -907,7 +943,7 @@
                                 <div class="captures-header">
                                     <i class="bi bi-bookmark-star"></i>
                                     <span>Tracked Items</span>
-                                    <span class="badge bg-secondary ms-1" id="captureCount">{% if entry %}{{ entry.captures.count }}{% else %}0{% endif %}</span>
+                                    <span class="badge bg-secondary ms-auto" id="captureCount">{% if entry %}{{ entry.captures.count }}{% else %}0{% endif %}</span>
                                 </div>
                                 <div class="captures-list" id="capturesList">
                                     {% if entry %}
@@ -923,7 +959,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="captures-empty {% if entry and entry.captures.count > 0 %}d-none{% endif %}" id="capturesEmpty">
-                                    Use slash commands like /place, /travel, /workout to track items
+                                    <small class="text-muted">Use /place, /travel, /workout</small>
                                 </div>
                             </div>
                         </div>

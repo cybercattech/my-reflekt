@@ -88,6 +88,31 @@ def extract_hashtags(text):
     return unique_tags
 
 
+def process_inline_markdown(content):
+    """
+    Process inline markdown (bold, italic, links) within content.
+    Used for blocks that are processed before the main markdown conversion.
+    """
+    # Bold: **text** or __text__
+    content = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', content)
+    content = re.sub(r'__(.+?)__', r'<strong>\1</strong>', content)
+
+    # Italic: *text* or _text_
+    content = re.sub(r'\*([^*]+?)\*', r'<em>\1</em>', content)
+    content = re.sub(r'(?<![_\w])_([^_]+?)_(?![_\w])', r'<em>\1</em>', content)
+
+    # Strikethrough: ~~text~~
+    content = re.sub(r'~~(.+?)~~', r'<s>\1</s>', content)
+
+    # Inline code: `code`
+    content = re.sub(r'`([^`]+?)`', r'<code>\1</code>', content)
+
+    # Links: [text](url)
+    content = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', content)
+
+    return content
+
+
 def process_myst_directives(text):
     """
     Convert MyST-style directives to HTML admonitions.
@@ -99,7 +124,7 @@ def process_myst_directives(text):
 
     def replace_directive(match):
         directive_type = match.group(1).lower()
-        content = match.group(2).strip()
+        content = process_inline_markdown(match.group(2).strip())
 
         if directive_type in DIRECTIVE_STYLES:
             style, icon, title = DIRECTIVE_STYLES[directive_type]
@@ -128,7 +153,7 @@ def process_pov_blocks(text):
     """
     def replace_injected_pov(match):
         username = match.group(1)
-        content = match.group(2).strip()
+        content = process_inline_markdown(match.group(2).strip())
         return f'''<div class="admonition admonition-pov alert alert-pov">
 <div class="admonition-title"><i class="bi bi-chat-square-quote me-2"></i>@{username} shared</div>
 <div class="admonition-content">{content}</div>
@@ -149,7 +174,7 @@ def process_pov_blocks(text):
 
     def replace_author_pov(match):
         usernames_str = match.group(1).strip()
-        content = match.group(2).strip()
+        content = process_inline_markdown(match.group(2).strip())
         # Extract usernames (with or without @ prefix)
         usernames = re.findall(r'@?([\w]+)', usernames_str)
         recipients = ', '.join(f'@{u}' for u in usernames)
@@ -225,7 +250,7 @@ def process_wellness_blocks(text):
     dream_pattern = r'\{dream\}\s*(.*?)\s*\{/dream\}'
 
     def replace_dream(match):
-        content = match.group(1).strip()
+        content = process_inline_markdown(match.group(1).strip())
         return f'''<div class="admonition admonition-dream">
 <div class="admonition-title"><i class="bi bi-cloud-moon me-2"></i>Dream Journal</div>
 <div class="admonition-content">{content}</div>
@@ -237,7 +262,7 @@ def process_wellness_blocks(text):
     gratitude_pattern = r'\{gratitude\}\s*(.*?)\s*\{/gratitude\}'
 
     def replace_gratitude(match):
-        content = match.group(1).strip()
+        content = process_inline_markdown(match.group(1).strip())
         return f'''<div class="admonition admonition-gratitude">
 <div class="admonition-title"><i class="bi bi-heart me-2"></i>Gratitude</div>
 <div class="admonition-content">{content}</div>
