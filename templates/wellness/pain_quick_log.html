@@ -1,0 +1,354 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Log Pain{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .pain-log-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .pain-header {
+        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px 16px 0 0;
+        text-align: center;
+    }
+
+    .pain-form {
+        background: white;
+        border-radius: 0 0 16px 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 2rem;
+    }
+
+    /* Body Map */
+    .body-map {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .body-part {
+        aspect-ratio: 1;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #f9fafb;
+        padding: 0.5rem;
+    }
+
+    .body-part:hover {
+        border-color: #fca5a5;
+        background: #fef2f2;
+    }
+
+    .body-part.selected {
+        border-color: #ef4444;
+        background: #fef2f2;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+    }
+
+    .body-part i {
+        font-size: 1.5rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .body-part.selected i {
+        color: #ef4444;
+    }
+
+    .body-part span {
+        font-size: 0.7rem;
+        color: #6b7280;
+        text-align: center;
+    }
+
+    .body-part.selected span {
+        color: #ef4444;
+        font-weight: 600;
+    }
+
+    /* Intensity Slider */
+    .intensity-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .intensity-display {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .intensity-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ef4444;
+    }
+
+    .intensity-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        height: 8px;
+        -webkit-appearance: none;
+        background: linear-gradient(to right, #86efac 0%, #fbbf24 50%, #ef4444 100%);
+        border-radius: 4px;
+        outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        background: white;
+        border: 3px solid #ef4444;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* Options */
+    .option-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .option-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .option-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: white;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .option-btn:hover {
+        border-color: #fca5a5;
+        background: #fef2f2;
+    }
+
+    .option-btn.selected {
+        border-color: #ef4444;
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    /* Submit */
+    .submit-btn {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="pain-log-container">
+        <div class="pain-header">
+            <i class="bi bi-bandaid" style="font-size: 2.5rem;"></i>
+            <h2 class="mt-2 mb-1">Log Pain</h2>
+            <p class="mb-0 opacity-75">Track your discomfort for better insights</p>
+        </div>
+
+        <div class="pain-form">
+            <!-- Location Selection -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Where does it hurt?</label>
+                <div class="body-map">
+                    {% for loc, name in location_choices %}
+                    <div class="body-part" data-location="{{ loc }}" onclick="selectLocation('{{ loc }}')">
+                        <i class="bi bi-{% if loc == 'head' %}emoji-dizzy{% elif loc == 'neck' %}person{% elif loc == 'back' %}person-arms-up{% elif loc == 'chest' %}heart-pulse{% elif loc == 'arm' %}hand-index{% elif loc == 'leg' %}person-walking{% elif loc == 'tooth' %}emoji-grimace{% elif loc == 'stomach' %}activity{% elif loc == 'joint' %}link-45deg{% else %}bandaid{% endif %}"></i>
+                        <span>{{ name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Intensity Slider -->
+            <div class="intensity-section">
+                <label class="form-label fw-semibold">How intense?</label>
+                <div class="intensity-display">
+                    <span class="intensity-value" id="intensityValue">5</span>
+                    <span class="intensity-label" id="intensityLabel">Significant</span>
+                </div>
+                <input type="range" id="intensitySlider" min="1" max="10" value="5" oninput="updateIntensity(this.value)">
+                <div class="d-flex justify-content-between mt-1">
+                    <small class="text-muted">Mild</small>
+                    <small class="text-muted">Extreme</small>
+                </div>
+            </div>
+
+            <!-- Pain Type -->
+            <div class="option-group">
+                <label class="form-label fw-semibold">Type of pain (optional)</label>
+                <div class="option-buttons" id="painTypeButtons">
+                    {% for type, name in pain_type_choices %}
+                    <button type="button" class="option-btn" data-value="{{ type }}" onclick="selectOption('painType', '{{ type }}', this)">
+                        {{ name }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Duration -->
+            <div class="option-group">
+                <label class="form-label fw-semibold">Duration (optional)</label>
+                <div class="option-buttons" id="durationButtons">
+                    {% for dur, name in duration_choices %}
+                    <button type="button" class="option-btn" data-value="{{ dur }}" onclick="selectOption('duration', '{{ dur }}', this)">
+                        {{ name }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Time -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Time (optional)</label>
+                <input type="time" class="form-control" id="painTime" placeholder="Leave blank for now">
+                <small class="text-muted">Leave blank to use current time</small>
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Notes (optional)</label>
+                <textarea class="form-control" id="painNotes" rows="2" placeholder="Any additional details..."></textarea>
+            </div>
+
+            <!-- Submit -->
+            <button class="submit-btn" id="submitBtn" onclick="savePain()" disabled>
+                <i class="bi bi-check-lg me-2"></i>Log Pain
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block dashboard_js %}
+<script>
+let selectedLocation = null;
+let selectedPainType = '';
+let selectedDuration = '';
+
+const intensityLabels = {
+    1: 'Barely noticeable',
+    2: 'Mild',
+    3: 'Mild',
+    4: 'Moderate',
+    5: 'Significant',
+    6: 'Significant',
+    7: 'Severe',
+    8: 'Severe',
+    9: 'Extreme',
+    10: 'Extreme'
+};
+
+function selectLocation(loc) {
+    document.querySelectorAll('.body-part').forEach(el => el.classList.remove('selected'));
+    document.querySelector(`[data-location="${loc}"]`).classList.add('selected');
+    selectedLocation = loc;
+    updateSubmitButton();
+}
+
+function updateIntensity(value) {
+    document.getElementById('intensityValue').textContent = value;
+    document.getElementById('intensityLabel').textContent = intensityLabels[value];
+}
+
+function selectOption(type, value, btn) {
+    const container = btn.parentElement;
+    container.querySelectorAll('.option-btn').forEach(el => el.classList.remove('selected'));
+
+    if ((type === 'painType' && selectedPainType === value) ||
+        (type === 'duration' && selectedDuration === value)) {
+        // Deselect
+        if (type === 'painType') selectedPainType = '';
+        else selectedDuration = '';
+    } else {
+        btn.classList.add('selected');
+        if (type === 'painType') selectedPainType = value;
+        else selectedDuration = value;
+    }
+}
+
+function updateSubmitButton() {
+    document.getElementById('submitBtn').disabled = !selectedLocation;
+}
+
+function savePain() {
+    if (!selectedLocation) return;
+
+    const intensity = parseInt(document.getElementById('intensitySlider').value);
+    const notes = document.getElementById('painNotes').value;
+    const time = document.getElementById('painTime').value;
+
+    fetch('{% url "wellness:api_pain_log" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            location: selectedLocation,
+            intensity: intensity,
+            pain_type: selectedPainType,
+            duration: selectedDuration,
+            notes: notes,
+            time: time
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success and redirect
+            window.location.href = '{% url "wellness:pain" %}';
+        } else {
+            alert(data.error || 'Error saving pain log');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving pain log');
+    });
+}
+</script>
+{% endblock %}

@@ -2,8 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
-from encrypted_model_fields.fields import EncryptedTextField, EncryptedCharField
 from apps.analytics.services.mood import MOOD_EMOJIS
+from .fields import UserEncryptedTextField, UserEncryptedCharField
 
 
 class Entry(models.Model):
@@ -35,9 +35,9 @@ class Entry(models.Model):
         related_name='entries'
     )
 
-    # Content (Encrypted at rest for privacy)
-    title = EncryptedCharField(max_length=200, blank=True)
-    content = EncryptedTextField()
+    # Content (Encrypted at rest with per-user keys)
+    title = UserEncryptedCharField(max_length=200, blank=True)
+    content = UserEncryptedTextField()
     word_count = models.IntegerField(default=0)
 
     # User-provided metadata (optional - not forced)
@@ -236,6 +236,9 @@ class EntryCapture(models.Model):
         ('meal', 'Meal'),
         ('dream', 'Dream'),
         ('gratitude', 'Gratitude'),
+        ('pain', 'Pain'),
+        ('intimacy', 'Intimacy'),
+        ('cycle', 'Cycle'),
     ]
 
     entry = models.ForeignKey(
@@ -270,6 +273,9 @@ class EntryCapture(models.Model):
             'meal': 'bi-cup-hot',
             'dream': 'bi-cloud-moon',
             'gratitude': 'bi-heart',
+            'pain': 'bi-bandaid',
+            'intimacy': 'bi-flower1',
+            'cycle': 'bi-calendar-heart',
         }
         return icon_map.get(self.capture_type, 'bi-tag')
 
@@ -357,6 +363,33 @@ class EntryCapture(models.Model):
             if items:
                 return ', '.join(items[:3])
             return 'Gratitude'
+
+        elif self.capture_type == 'pain':
+            location = data.get('location', '').title()
+            intensity = data.get('intensity', 0)
+            pain_type = data.get('pain_type', '').title()
+            parts = []
+            if location:
+                parts.append(location)
+            if intensity:
+                parts.append(f"{intensity}/10")
+            if pain_type:
+                parts.append(pain_type)
+            return ' - '.join(parts) if parts else 'Pain logged'
+
+        elif self.capture_type == 'intimacy':
+            rating = data.get('rating')
+            if rating:
+                try:
+                    rating = int(rating)
+                    return '🍀 ' + '★' * rating
+                except (ValueError, TypeError):
+                    pass
+            return '🍀'
+
+        elif self.capture_type == 'cycle':
+            event_type = data.get('event_type', '').replace('_', ' ').title()
+            return event_type or 'Cycle event'
 
         return str(data)
 

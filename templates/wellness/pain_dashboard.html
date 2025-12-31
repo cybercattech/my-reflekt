@@ -1,0 +1,446 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Pain Tracking{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    /* Stats Grid */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .stat-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card.total {
+        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    }
+
+    .stat-card.average {
+        background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    }
+
+    .stat-card.common {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    }
+
+    .stat-card .stat-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .stat-card .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin: 0.5rem 0;
+    }
+
+    .stat-card .stat-sub {
+        font-size: 0.8rem;
+        opacity: 0.75;
+    }
+
+    /* Chart Cards */
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-card .card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .chart-card .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Location Breakdown */
+    .location-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .location-item:last-child {
+        border-bottom: none;
+    }
+
+    .location-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #fef2f2;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.25rem;
+    }
+
+    .location-info {
+        flex: 1;
+    }
+
+    .location-name {
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .location-stats {
+        font-size: 0.8rem;
+        color: #9ca3af;
+    }
+
+    .location-bar {
+        width: 80px;
+        height: 6px;
+        background: #f1f5f9;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .location-bar-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+        border-radius: 3px;
+    }
+
+    /* Day of Week */
+    .day-bars {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 120px;
+        padding-top: 1rem;
+    }
+
+    .day-bar-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+    }
+
+    .day-bar {
+        width: 30px;
+        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+        border-radius: 4px 4px 0 0;
+        min-height: 4px;
+    }
+
+    .day-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+    }
+
+    .day-count {
+        font-size: 0.7rem;
+        color: #9ca3af;
+        margin-top: 0.25rem;
+    }
+
+    /* Insights */
+    .insight-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+    }
+
+    .insight-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .insight-icon {
+        color: #f59e0b;
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+    }
+
+    .insight-text {
+        color: #4b5563;
+        font-size: 0.9rem;
+    }
+
+    /* Recent Logs Table */
+    .logs-table {
+        width: 100%;
+    }
+
+    .logs-table th {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        padding: 0.75rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .logs-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .intensity-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .intensity-badge.low {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .intensity-badge.medium {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .intensity-badge.high {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1"><i class="bi bi-bandaid me-2"></i>Pain Tracking</h1>
+            <p class="text-muted mb-0">Last {{ days }} days</p>
+        </div>
+        <a href="{% url 'wellness:pain_log' %}" class="btn btn-danger">
+            <i class="bi bi-plus-lg me-1"></i> Log Pain
+        </a>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card total">
+            <i class="bi bi-activity stat-icon"></i>
+            <div class="stat-label">Total Episodes</div>
+            <div class="stat-value">{{ total_episodes }}</div>
+            <div class="stat-sub">in the last {{ days }} days</div>
+        </div>
+
+        <div class="stat-card average">
+            <i class="bi bi-graph-up stat-icon"></i>
+            <div class="stat-label">Average Intensity</div>
+            <div class="stat-value">{{ avg_intensity }}/10</div>
+            <div class="stat-sub">
+                {% if avg_intensity <= 3 %}Mild{% elif avg_intensity <= 6 %}Moderate{% else %}Severe{% endif %}
+            </div>
+        </div>
+
+        <div class="stat-card common">
+            <i class="bi bi-pin-map stat-icon"></i>
+            <div class="stat-label">Most Common</div>
+            <div class="stat-value">
+                {% if by_location %}{{ by_location.0.display_name }}{% else %}--{% endif %}
+            </div>
+            <div class="stat-sub">
+                {% if by_location %}{{ by_location.0.count }} episodes{% else %}No data{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Location Breakdown -->
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <div class="card-header">
+                    <i class="bi bi-body-text me-2"></i>Pain by Location
+                </div>
+                <div class="card-body">
+                    {% if by_location %}
+                        {% with max_count=by_location.0.count %}
+                        {% for loc in by_location %}
+                        <div class="location-item">
+                            <div class="location-icon">
+                                <i class="bi bi-{% if loc.location == 'head' %}emoji-dizzy{% elif loc.location == 'neck' %}person{% elif loc.location == 'back' %}person-arms-up{% elif loc.location == 'chest' %}heart-pulse{% elif loc.location == 'arm' %}hand-index{% elif loc.location == 'leg' %}person-walking{% elif loc.location == 'tooth' %}emoji-grimace{% elif loc.location == 'stomach' %}activity{% elif loc.location == 'joint' %}link-45deg{% else %}bandaid{% endif %}"></i>
+                            </div>
+                            <div class="location-info">
+                                <div class="location-name">{{ loc.display_name }}</div>
+                                <div class="location-stats">{{ loc.count }} episodes · avg {{ loc.avg_intensity }}/10</div>
+                            </div>
+                            <div class="location-bar">
+                                <div class="location-bar-fill" style="width: {% widthratio loc.count max_count 100 %}%;"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endwith %}
+                    {% else %}
+                        <p class="text-muted text-center py-4">No pain data yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Day of Week -->
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <div class="card-header">
+                    <i class="bi bi-calendar3 me-2"></i>Pain by Day of Week
+                </div>
+                <div class="card-body">
+                    {% if by_day %}
+                    {% with max_day=by_day.0 %}
+                    {% for day in by_day %}
+                        {% if day.count > max_day.count %}
+                            {% with max_day=day %}{% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="day-bars">
+                        {% for day in by_day %}
+                        <div class="day-bar-container">
+                            <div class="day-bar" style="height: {% if day.count > 0 %}{% widthratio day.count 10 100 %}{% else %}4{% endif %}px;"></div>
+                            <div class="day-label">{{ day.short_day }}</div>
+                            <div class="day-count">{{ day.count }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endwith %}
+                    {% else %}
+                        <p class="text-muted text-center py-4">No pain data yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    {% if correlations.insights %}
+    <div class="chart-card">
+        <div class="card-header">
+            <i class="bi bi-lightbulb me-2"></i>Insights & Patterns
+        </div>
+        <div class="card-body">
+            {% for insight in correlations.insights %}
+            <div class="insight-item">
+                <i class="bi bi-lightbulb-fill insight-icon"></i>
+                <div class="insight-text">{{ insight }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Logs -->
+    <div class="chart-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-clock-history me-2"></i>Recent Pain Logs</span>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_logs %}
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Intensity</th>
+                        <th>Type</th>
+                        <th>Duration</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in recent_logs %}
+                    <tr>
+                        <td>
+                            <div>{{ log.logged_at|date:"M j" }}</div>
+                            <small class="text-muted">{{ log.logged_at|time:"g:i A" }}</small>
+                        </td>
+                        <td>
+                            <i class="{{ log.icon }} me-1 text-danger"></i>
+                            {{ log.location_display }}
+                        </td>
+                        <td>
+                            <span class="intensity-badge {% if log.intensity <= 3 %}low{% elif log.intensity <= 6 %}medium{% else %}high{% endif %}">
+                                {{ log.intensity }}/10
+                            </span>
+                        </td>
+                        <td>{{ log.get_pain_type_display|default:"-" }}</td>
+                        <td>{{ log.get_duration_display|default:"-" }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePain({{ log.pk }})" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-bandaid" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p class="mt-2 mb-0">No pain logs yet</p>
+                <a href="{% url 'wellness:pain_log' %}" class="btn btn-outline-danger mt-3">
+                    <i class="bi bi-plus-lg me-1"></i> Log Your First Pain
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block dashboard_js %}
+<script>
+function deletePain(id) {
+    if (!confirm('Delete this pain log?')) return;
+
+    fetch(`/wellness/api/pain/${id}/delete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% load static %}
+{% load subscription_tags %}
+{% load tz %}
+
+<!-- Dashboard Sidebar Navigation -->
+<aside class="dashboard-sidebar" id="dashboardSidebar">
+    <div class="sidebar-section">
+        <div class="sidebar-header">Analytics</div>
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav-item">
+                <a href="{% url 'analytics:dashboard' %}" class="sidebar-nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i>
+                    Overview
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                {% now "Y" as current_year %}
+                {% if user|user_is_premium %}
+                    <a href="{% url 'analytics:yearly' current_year %}" class="sidebar-nav-link {% if active_page == 'yearly' %}active{% endif %}">
+                        <i class="bi bi-calendar-check"></i>
+                        Year in Review
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-calendar-check"></i>
+                        Year in Review
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+        </ul>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-header">Captures</div>
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav-item">
+                {% if user|user_is_premium %}
+                    <a href="{% url 'analytics:captures' %}" class="sidebar-nav-link {% if active_page == 'captures' %}active{% endif %}">
+                        <i class="bi bi-collection"></i>
+                        All Captures
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-collection"></i>
+                        All Captures
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+            <li class="sidebar-nav-item">
+                {% if user|user_is_premium %}
+                    <a href="{% url 'analytics:books' %}" class="sidebar-nav-link {% if active_page == 'books' %}active{% endif %}">
+                        <i class="bi bi-book"></i>
+                        Books
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-book"></i>
+                        Books
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+            <li class="sidebar-nav-item">
+                {% if user|user_is_premium %}
+                    <a href="{% url 'analytics:media' %}" class="sidebar-nav-link {% if active_page == 'media' %}active{% endif %}">
+                        <i class="bi bi-film"></i>
+                        Movies & Shows
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-film"></i>
+                        Movies & Shows
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+            <li class="sidebar-nav-item">
+                {% if user|user_is_premium %}
+                    <a href="{% url 'analytics:people' %}" class="sidebar-nav-link {% if active_page == 'people' %}active{% endif %}">
+                        <i class="bi bi-people"></i>
+                        People
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-people"></i>
+                        People
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+            <li class="sidebar-nav-item">
+                {% if user|user_is_premium %}
+                    <a href="{% url 'analytics:fitness' %}" class="sidebar-nav-link {% if active_page == 'fitness' %}active{% endif %}">
+                        <i class="bi bi-activity"></i>
+                        Fitness
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-activity"></i>
+                        Fitness
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+            <li class="sidebar-nav-item">
+                {% if user|user_is_premium %}
+                    <a href="{% url 'analytics:travel' %}" class="sidebar-nav-link {% if active_page == 'travel' %}active{% endif %}">
+                        <i class="bi bi-geo-alt"></i>
+                        Travel & Places
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-geo-alt"></i>
+                        Travel & Places
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+            <li class="sidebar-nav-item">
+                {% if user|user_is_premium %}
+                    <a href="{% url 'wellness:dashboard' %}" class="sidebar-nav-link {% if active_page == 'wellness' %}active{% endif %}">
+                        <i class="bi bi-heart-pulse"></i>
+                        Wellness
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-heart-pulse"></i>
+                        Wellness
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+        </ul>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-header">Planning</div>
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav-item">
+                {% if user|user_is_premium %}
+                    <a href="{% url 'goals:goal_list' %}" class="sidebar-nav-link {% if active_page == 'goals' %}active{% endif %}">
+                        <i class="bi bi-bullseye"></i>
+                        Goals
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-bullseye"></i>
+                        Goals
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+            <li class="sidebar-nav-item">
+                {% if user|user_is_premium %}
+                    <a href="{% url 'habits:habit_list' %}" class="sidebar-nav-link {% if active_page == 'habits' %}active{% endif %}">
+                        <i class="bi bi-repeat"></i>
+                        Habits
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:upgrade' %}" class="sidebar-nav-link">
+                        <i class="bi bi-repeat"></i>
+                        Habits
+                        <span class="badge bg-warning text-dark">PRO</span>
+                    </a>
+                {% endif %}
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="{% url 'challenges:list' %}" class="sidebar-nav-link {% if active_page == 'challenges' %}active{% endif %}">
+                    <i class="bi bi-trophy"></i>
+                    Challenges
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-header">Quick Actions</div>
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav-item">
+                <a href="{% url 'journal:entry_create' %}" class="sidebar-nav-link">
+                    <i class="bi bi-plus-circle"></i>
+                    New Entry
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="{% url 'journal:entry_list' %}" class="sidebar-nav-link">
+                    <i class="bi bi-journal-text"></i>
+                    Journal
+                </a>
+            </li>
+        </ul>
+    </div>
+</aside>

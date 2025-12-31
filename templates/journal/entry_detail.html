@@ -5,33 +5,10 @@
 
 {% block title %}{{ entry.title|default:entry.entry_date }}{% endblock %}
 
+{% block body_class %}{% endblock %}
+
 {% block extra_css %}
-{% include 'journal/partials/sidebar_css.html' %}
 <style>
-    /* 3-Column Layout */
-    .journal-layout {
-        display: flex;
-        min-height: calc(100vh - 56px - 80px);
-        position: relative;
-    }
-
-    .main-content-area {
-        flex: 1;
-        padding: 1.5rem 2rem;
-        overflow-y: auto;
-        background: #f9fafb;
-        min-width: 0; /* Prevent flex item from overflowing */
-    }
-
-    @media (max-width: 768px) {
-        .journal-layout {
-            flex-direction: column;
-        }
-        .main-content-area {
-            padding: 1rem;
-        }
-    }
-
     /* Markdown Content Styling */
     .entry-content {
         font-size: 1.1rem;
@@ -764,12 +741,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="journal-layout">
-    <!-- Left Calendar Sidebar -->
-    {% include 'journal/partials/calendar_sidebar.html' %}
-
-    <!-- Main Content Area -->
-    <div class="main-content-area">
+<div class="container-fluid py-4">
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-start mb-4">
                     <div>
@@ -1018,10 +990,6 @@
                     </div>
                 </div>
                 {% endif %}
-    </div>
-
-    <!-- Right Insights Sidebar -->
-    {% include 'journal/partials/insights_sidebar.html' %}
 </div>
 
 <!-- Lightbox Overlay -->

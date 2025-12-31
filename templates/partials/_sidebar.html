@@ -1,0 +1,478 @@
+{% load static %}
+{% load subscription_tags %}
+{% load tz %}
+
+<!-- Unified Sidebar Navigation -->
+<aside class="app-sidebar" id="appSidebar">
+    <!-- Scrollable Content -->
+    <div class="sidebar-content">
+
+    {% if active_page == "overview" or active_page == "users" or active_page == "subscriptions" or active_page == "blog" or active_page == "emails" or active_page == "feedback" or active_page == "challenges" or active_page == "admin" %}
+    <!-- ==================== ADMIN MODE ==================== -->
+
+    <!-- Switch to User View -->
+    <div class="sidebar-section">
+        <a href="{% url 'journal:entry_list' %}" class="sidebar-section-toggle user-view-toggle" data-tooltip="User View">
+            <i class="bi bi-arrow-left-circle"></i>
+            <span>User View</span>
+        </a>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div class="sidebar-section">
+        <a href="{% url 'accounts:admin_panel' %}" class="sidebar-section-toggle {% if active_page == 'overview' or active_page == 'admin' %}active{% endif %}" data-tooltip="Dashboard">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a>
+    </div>
+
+    <!-- Users Section -->
+    <div class="sidebar-section">
+        <button class="sidebar-section-toggle active" data-section="admin-users" data-tooltip="Users">
+            <i class="bi bi-people"></i>
+            <span>Users</span>
+            <i class="bi bi-chevron-down toggle-icon"></i>
+        </button>
+        <div class="sidebar-section-content show" id="section-admin-users">
+            <a href="{% url 'accounts:admin_user_list' %}" class="sidebar-link {% if active_page == 'users' %}active{% endif %}" data-tooltip="All Users">
+                <span class="link-dot blue"></span>
+                <span>All Users</span>
+            </a>
+            <a href="{% url 'accounts:admin_create_user' %}" class="sidebar-link" data-tooltip="Create User">
+                <span class="link-dot green"></span>
+                <span>Create User</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Subscriptions Section -->
+    <div class="sidebar-section">
+        <a href="{% url 'accounts:subscription_dashboard' %}" class="sidebar-section-toggle {% if active_page == 'subscriptions' %}active{% endif %}" data-tooltip="Subscriptions">
+            <i class="bi bi-credit-card"></i>
+            <span>Subscriptions</span>
+        </a>
+    </div>
+
+    <!-- Content Section -->
+    <div class="sidebar-section">
+        <button class="sidebar-section-toggle" data-section="admin-content" data-tooltip="Content">
+            <i class="bi bi-file-text"></i>
+            <span>Content</span>
+            <i class="bi bi-chevron-right toggle-icon"></i>
+        </button>
+        <div class="sidebar-section-content" id="section-admin-content">
+            <a href="{% url 'blog:admin_list' %}" class="sidebar-link {% if active_page == 'blog' %}active{% endif %}" data-tooltip="Blog Posts">
+                <span class="link-dot purple"></span>
+                <span>Blog Posts</span>
+            </a>
+            <a href="{% url 'blog:admin_categories' %}" class="sidebar-link" data-tooltip="Categories">
+                <span class="link-dot orange"></span>
+                <span>Categories</span>
+            </a>
+            <a href="{% url 'accounts:admin_challenge_list' %}" class="sidebar-link {% if active_page == 'challenges' %}active{% endif %}" data-tooltip="Challenges">
+                <span class="link-dot green"></span>
+                <span>Challenges</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Communications Section -->
+    <div class="sidebar-section">
+        <button class="sidebar-section-toggle" data-section="admin-comms" data-tooltip="Communications">
+            <i class="bi bi-envelope"></i>
+            <span>Communications</span>
+            <i class="bi bi-chevron-right toggle-icon"></i>
+        </button>
+        <div class="sidebar-section-content" id="section-admin-comms">
+            <a href="{% url 'accounts:admin_email_templates' %}" class="sidebar-link {% if active_page == 'emails' %}active{% endif %}" data-tooltip="Email Templates">
+                <span class="link-dot blue"></span>
+                <span>Email Templates</span>
+            </a>
+            <a href="{% url 'accounts:admin_feedback_list' %}" class="sidebar-link {% if active_page == 'feedback' %}active{% endif %}" data-tooltip="Feedback">
+                <span class="link-dot orange"></span>
+                <span>Feedback</span>
+            </a>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- ==================== USER MODE ==================== -->
+        <!-- Dashboard Section -->
+        <div class="sidebar-section">
+            <button class="sidebar-section-toggle" data-section="dashboard" data-tooltip="Dashboard">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+                <i class="bi bi-chevron-right toggle-icon"></i>
+            </button>
+            <div class="sidebar-section-content" id="section-dashboard">
+                <a href="{% url 'analytics:dashboard' %}" class="sidebar-link {% if active_page == 'dashboard' %}active{% endif %}" data-tooltip="Overview">
+                    <span class="link-dot blue"></span>
+                    <span>Overview</span>
+                </a>
+                {% now "Y" as current_year %}
+                {% now "m" as current_month %}
+                {% if user|user_is_premium %}
+                <a href="{% url 'analytics:monthly' current_year current_month %}" class="sidebar-link {% if active_page == 'monthly' %}active{% endif %}" data-tooltip="Month in Review">
+                    <span class="link-dot green"></span>
+                    <span>Month in Review</span>
+                </a>
+                <a href="{% url 'analytics:yearly' current_year %}" class="sidebar-link {% if active_page == 'yearly' %}active{% endif %}" data-tooltip="Year in Review">
+                    <span class="link-dot purple"></span>
+                    <span>Year in Review</span>
+                </a>
+                {% else %}
+                <a href="{% url 'accounts:upgrade' %}" class="sidebar-link" data-tooltip="Month in Review">
+                    <span class="link-dot"></span>
+                    <span>Month in Review</span>
+                    <span class="badge bg-warning text-dark ms-auto">PRO</span>
+                </a>
+                <a href="{% url 'accounts:upgrade' %}" class="sidebar-link" data-tooltip="Year in Review">
+                    <span class="link-dot"></span>
+                    <span>Year in Review</span>
+                    <span class="badge bg-warning text-dark ms-auto">PRO</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Journal Section -->
+        <div class="sidebar-section">
+            <button class="sidebar-section-toggle active" data-section="journal" data-tooltip="Journal">
+                <i class="bi bi-book"></i>
+                <span>Journal</span>
+                <i class="bi bi-chevron-down toggle-icon"></i>
+            </button>
+            <div class="sidebar-section-content show" id="section-journal">
+                <a href="{% url 'journal:entry_list' %}" class="sidebar-link {% if active_page == 'insights' or active_page == 'journal' %}active{% endif %}" data-tooltip="Insights">
+                    <span class="link-dot blue"></span>
+                    <span>Insights</span>
+                </a>
+                <a href="{% url 'journal:entry_list' %}?show_all=1" class="sidebar-link {% if active_page == 'entries' %}active{% endif %}" data-tooltip="All Entries">
+                    <span class="link-dot"></span>
+                    <span>All Entries</span>
+                </a>
+                <a href="{% url 'journal:entry_create' %}" class="sidebar-link {% if active_page == 'new_entry' %}active{% endif %}" data-tooltip="New Entry">
+                    <span class="link-dot green"></span>
+                    <span>New Entry</span>
+                </a>
+                <a href="{% url 'journal:shared_povs_list' %}" class="sidebar-link {% if active_page == 'povs' %}active{% endif %}" data-tooltip="POVs">
+                    <span class="link-dot blue"></span>
+                    <span>POVs</span>
+                    <span class="badge bg-danger rounded-pill d-none ms-auto" id="sidebarPovBadge" style="font-size: 0.65rem;"></span>
+                </a>
+                <a href="{% url 'journal:import_entries' %}" class="sidebar-link {% if active_page == 'import' %}active{% endif %}" data-tooltip="Import">
+                    <span class="link-dot"></span>
+                    <span>Import</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Captures Section -->
+        <div class="sidebar-section">
+            <button class="sidebar-section-toggle" data-section="captures" data-tooltip="Captures">
+                <i class="bi bi-collection"></i>
+                <span>Captures</span>
+                <i class="bi bi-chevron-right toggle-icon"></i>
+            </button>
+            <div class="sidebar-section-content" id="section-captures">
+                {% if user|user_is_premium %}
+                <a href="{% url 'analytics:captures' %}" class="sidebar-link {% if active_page == 'captures' %}active{% endif %}" data-tooltip="All Captures">
+                    <span class="link-dot blue"></span>
+                    <span>All Captures</span>
+                </a>
+                <a href="{% url 'analytics:books' %}" class="sidebar-link {% if active_page == 'books' %}active{% endif %}" data-tooltip="Books">
+                    <span class="link-dot green"></span>
+                    <span>Books</span>
+                </a>
+                <a href="{% url 'analytics:media' %}" class="sidebar-link {% if active_page == 'media' %}active{% endif %}" data-tooltip="Movies & Shows">
+                    <span class="link-dot orange"></span>
+                    <span>Movies & Shows</span>
+                </a>
+                <a href="{% url 'analytics:people' %}" class="sidebar-link {% if active_page == 'people' %}active{% endif %}" data-tooltip="People">
+                    <span class="link-dot blue"></span>
+                    <span>People</span>
+                </a>
+                <a href="{% url 'analytics:fitness' %}" class="sidebar-link {% if active_page == 'fitness' %}active{% endif %}" data-tooltip="Fitness">
+                    <span class="link-dot red"></span>
+                    <span>Fitness</span>
+                </a>
+                <a href="{% url 'analytics:travel' %}" class="sidebar-link {% if active_page == 'travel' %}active{% endif %}" data-tooltip="Travel & Places">
+                    <span class="link-dot green"></span>
+                    <span>Travel & Places</span>
+                </a>
+                <a href="{% url 'analytics:wellness' %}" class="sidebar-link {% if active_page == 'wellness' %}active{% endif %}" data-tooltip="Dreams, Gratitude & Meals">
+                    <span class="link-dot purple"></span>
+                    <span>Lifestyle</span>
+                </a>
+                {% else %}
+                <a href="{% url 'accounts:upgrade' %}" class="sidebar-link" data-tooltip="All Captures">
+                    <span class="link-dot"></span>
+                    <span>All Captures</span>
+                    <span class="badge bg-warning text-dark ms-auto">PRO</span>
+                </a>
+                <a href="{% url 'accounts:upgrade' %}" class="sidebar-link" data-tooltip="Books">
+                    <span class="link-dot"></span>
+                    <span>Books</span>
+                    <span class="badge bg-warning text-dark ms-auto">PRO</span>
+                </a>
+                <a href="{% url 'accounts:upgrade' %}" class="sidebar-link" data-tooltip="Movies & Shows">
+                    <span class="link-dot"></span>
+                    <span>Movies & Shows</span>
+                    <span class="badge bg-warning text-dark ms-auto">PRO</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Wellness Section -->
+        <div class="sidebar-section">
+            <button class="sidebar-section-toggle" data-section="wellness" data-tooltip="Wellness">
+                <i class="bi bi-heart-pulse"></i>
+                <span>Wellness</span>
+                <i class="bi bi-chevron-right toggle-icon"></i>
+            </button>
+            <div class="sidebar-section-content" id="section-wellness">
+                {% if user|user_is_premium %}
+                <a href="{% url 'wellness:dashboard' %}" class="sidebar-link {% if active_page == 'wellness' %}active{% endif %}" data-tooltip="Overview">
+                    <span class="link-dot blue"></span>
+                    <span>Overview</span>
+                </a>
+                <a href="{% url 'wellness:pain' %}" class="sidebar-link {% if active_page == 'pain' %}active{% endif %}" data-tooltip="Pain Tracking">
+                    <span class="link-dot red"></span>
+                    <span>Pain Tracking</span>
+                </a>
+                <a href="{% url 'wellness:intimacy' %}" class="sidebar-link {% if active_page == 'intimacy' %}active{% endif %}" data-tooltip="Intimacy">
+                    <span class="link-dot purple"></span>
+                    <span>Intimacy</span>
+                </a>
+                {% if user.profile.enable_cycle_tracking %}
+                <a href="{% url 'wellness:cycle' %}" class="sidebar-link {% if active_page == 'cycle' %}active{% endif %}" data-tooltip="Cycle Tracking">
+                    <span class="link-dot orange"></span>
+                    <span>Cycle Tracking</span>
+                </a>
+                {% endif %}
+                {% else %}
+                <a href="{% url 'accounts:upgrade' %}" class="sidebar-link" data-tooltip="Wellness">
+                    <span class="link-dot"></span>
+                    <span>Wellness</span>
+                    <span class="badge bg-warning text-dark ms-auto">PRO</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Planning Section -->
+        <div class="sidebar-section">
+            <button class="sidebar-section-toggle" data-section="planning" data-tooltip="Planning">
+                <i class="bi bi-bullseye"></i>
+                <span>Planning</span>
+                <i class="bi bi-chevron-right toggle-icon"></i>
+            </button>
+            <div class="sidebar-section-content" id="section-planning">
+                {% if user|user_is_premium %}
+                <a href="{% url 'goals:goal_list' %}" class="sidebar-link {% if active_page == 'goals' %}active{% endif %}" data-tooltip="Goals">
+                    <span class="link-dot blue"></span>
+                    <span>Goals</span>
+                </a>
+                <a href="{% url 'habits:habit_list' %}" class="sidebar-link {% if active_page == 'habits' %}active{% endif %}" data-tooltip="Habits">
+                    <span class="link-dot orange"></span>
+                    <span>Habits</span>
+                </a>
+                {% else %}
+                <a href="{% url 'accounts:upgrade' %}" class="sidebar-link" data-tooltip="Goals">
+                    <span class="link-dot"></span>
+                    <span>Goals</span>
+                    <span class="badge bg-warning text-dark ms-auto">PRO</span>
+                </a>
+                <a href="{% url 'accounts:upgrade' %}" class="sidebar-link" data-tooltip="Habits">
+                    <span class="link-dot"></span>
+                    <span>Habits</span>
+                    <span class="badge bg-warning text-dark ms-auto">PRO</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'challenges:list' %}" class="sidebar-link {% if active_page == 'challenges' %}active{% endif %}" data-tooltip="Challenges">
+                    <span class="link-dot green"></span>
+                    <span>Challenges</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="sidebar-section">
+            <button class="sidebar-section-toggle" data-section="settings" data-tooltip="Settings">
+                <i class="bi bi-gear"></i>
+                <span>Settings</span>
+                <i class="bi bi-chevron-right toggle-icon"></i>
+            </button>
+            <div class="sidebar-section-content" id="section-settings">
+                <a href="{% url 'accounts:profile' %}" class="sidebar-link {% if active_page == 'profile' or active_page == 'settings' %}active{% endif %}" data-tooltip="Profile">
+                    <span class="link-dot blue"></span>
+                    <span>Profile</span>
+                </a>
+                <a href="{% url 'features' %}" class="sidebar-link {% if active_page == 'features' %}active{% endif %}" data-tooltip="How It Works">
+                    <span class="link-dot green"></span>
+                    <span>How It Works</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Admin Section (Staff Only) -->
+        {% if user.is_staff %}
+        <div class="sidebar-section admin-section">
+            <a href="{% url 'accounts:admin_panel' %}" class="sidebar-section-toggle admin-toggle" data-tooltip="Admin">
+                <i class="bi bi-shield-lock"></i>
+                <span>Admin</span>
+                <i class="bi bi-arrow-right toggle-icon"></i>
+            </a>
+        </div>
+        {% endif %}
+
+    {% endif %}
+    </div>
+
+    <!-- Collapse Toggle Button -->
+    <button class="sidebar-collapse-toggle" id="sidebarCollapseToggle" aria-label="Toggle sidebar width">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+</aside>
+
+<!-- Mobile Sidebar Toggle -->
+<button class="sidebar-mobile-toggle" id="sidebarMobileToggle" aria-label="Toggle sidebar">
+    <i class="bi bi-list"></i>
+</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Collapsible sections
+    document.querySelectorAll('.sidebar-section-toggle[data-section]').forEach(function(toggle) {
+        toggle.addEventListener('click', function() {
+            const section = this.dataset.section;
+            const content = document.getElementById('section-' + section);
+            if (!content) return;
+
+            const isActive = this.classList.contains('active');
+
+            // Toggle current section
+            if (isActive) {
+                this.classList.remove('active');
+                content.classList.remove('show');
+            } else {
+                this.classList.add('active');
+                content.classList.add('show');
+            }
+
+            // Save state to localStorage
+            const openSections = [];
+            document.querySelectorAll('.sidebar-section-toggle.active').forEach(function(t) {
+                if (t.dataset.section) openSections.push(t.dataset.section);
+            });
+            localStorage.setItem('sidebarOpenSections', JSON.stringify(openSections));
+        });
+    });
+
+    // Restore saved state
+    const savedSections = localStorage.getItem('sidebarOpenSections');
+    if (savedSections) {
+        const sections = JSON.parse(savedSections);
+        document.querySelectorAll('.sidebar-section-toggle[data-section]').forEach(function(toggle) {
+            const section = toggle.dataset.section;
+            const content = document.getElementById('section-' + section);
+            if (!content) return;
+
+            if (sections.includes(section)) {
+                toggle.classList.add('active');
+                content.classList.add('show');
+            } else {
+                toggle.classList.remove('active');
+                content.classList.remove('show');
+            }
+        });
+    }
+
+    // Auto-expand section containing active link
+    document.querySelectorAll('.sidebar-link.active').forEach(function(link) {
+        const content = link.closest('.sidebar-section-content');
+        if (content) {
+            content.classList.add('show');
+            const toggle = content.previousElementSibling;
+            if (toggle && toggle.classList.contains('sidebar-section-toggle')) {
+                toggle.classList.add('active');
+            }
+        }
+    });
+
+    // Mobile sidebar toggle
+    const sidebar = document.getElementById('appSidebar');
+    const mobileToggle = document.getElementById('sidebarMobileToggle');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    if (mobileToggle && sidebar) {
+        mobileToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            backdrop.classList.toggle('show');
+            this.innerHTML = sidebar.classList.contains('show')
+                ? '<i class="bi bi-x-lg"></i>'
+                : '<i class="bi bi-list"></i>';
+        });
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', function() {
+            sidebar.classList.remove('show');
+            backdrop.classList.remove('show');
+            mobileToggle.innerHTML = '<i class="bi bi-list"></i>';
+        });
+    }
+
+    // Close sidebar on link click (mobile)
+    document.querySelectorAll('.sidebar-link').forEach(function(link) {
+        link.addEventListener('click', function() {
+            if (window.innerWidth < 992) {
+                sidebar.classList.remove('show');
+                backdrop.classList.remove('show');
+                mobileToggle.innerHTML = '<i class="bi bi-list"></i>';
+            }
+        });
+    });
+
+    // Update POV badge in sidebar
+    function updateSidebarPovBadge() {
+        const badge = document.getElementById('sidebarPovBadge');
+        if (!badge) return;
+
+        fetch('{% url "journal:unread_povs_count" %}')
+            .then(r => r.json())
+            .then(data => {
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            })
+            .catch(() => {});
+    }
+    updateSidebarPovBadge();
+    setInterval(updateSidebarPovBadge, 60000);
+
+    // Sidebar collapse toggle
+    const collapseToggle = document.getElementById('sidebarCollapseToggle');
+    if (collapseToggle && sidebar) {
+        // Restore collapsed state
+        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (isCollapsed) {
+            sidebar.classList.add('collapsed');
+            document.body.classList.add('sidebar-collapsed');
+        }
+
+        collapseToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            document.body.classList.toggle('sidebar-collapsed');
+
+            // Save state
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        });
+    }
+});
+</script>

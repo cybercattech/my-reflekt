@@ -1,0 +1,245 @@
+/* ==========================================================================
+   GLOBAL LAYOUT STYLES
+   Sticky navbar, sticky footer, sidebar scrolling
+   ========================================================================== */
+
+/* Base layout - full viewport height with flex */
+html, body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main content fills available space */
+.main-content {
+    flex: 1 0 auto;
+}
+
+/* ==========================================================================
+   STICKY NAVBAR
+   ========================================================================== */
+.navbar.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.site-footer {
+    flex-shrink: 0;
+    margin-top: auto;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Hide footer on pages that opt out */
+body.no-footer .site-footer {
+    display: none !important;
+}
+
+/* ==========================================================================
+   SIDEBAR BASE STYLES
+   ========================================================================== */
+
+/* Left sidebar - fixed position with internal scrolling */
+.sidebar-fixed-left {
+    position: fixed;
+    top: 56px; /* Height of navbar */
+    left: 0;
+    bottom: 0;
+    width: 240px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #fff;
+    border-right: 1px solid #e9ecef;
+    z-index: 1010;
+}
+
+/* Right sidebar - fixed position with internal scrolling */
+.sidebar-fixed-right {
+    position: fixed;
+    top: 56px; /* Height of navbar */
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #fff;
+    border-left: 1px solid #e9ecef;
+    z-index: 1010;
+}
+
+/* Content area adjustments when sidebars are present */
+.has-sidebar-left {
+    margin-left: 240px;
+}
+
+.has-sidebar-right {
+    margin-right: 280px;
+}
+
+.has-both-sidebars {
+    margin-left: 240px;
+    margin-right: 280px;
+}
+
+/* ==========================================================================
+   SCROLLBAR STYLING FOR SIDEBARS
+   ========================================================================== */
+.sidebar-fixed-left::-webkit-scrollbar,
+.sidebar-fixed-right::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-fixed-left::-webkit-scrollbar-track,
+.sidebar-fixed-right::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-fixed-left::-webkit-scrollbar-thumb,
+.sidebar-fixed-right::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+.sidebar-fixed-left::-webkit-scrollbar-thumb:hover,
+.sidebar-fixed-right::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* ==========================================================================
+   RESPONSIVE ADJUSTMENTS
+   ========================================================================== */
+
+/* Large screens - full layout */
+@media (min-width: 1200px) {
+    .sidebar-fixed-left {
+        width: 240px;
+    }
+    .sidebar-fixed-right {
+        width: 280px;
+    }
+    .has-sidebar-left {
+        margin-left: 240px;
+    }
+    .has-sidebar-right {
+        margin-right: 280px;
+    }
+}
+
+/* Medium screens - narrower sidebars */
+@media (max-width: 1199px) and (min-width: 992px) {
+    .sidebar-fixed-left {
+        width: 220px;
+    }
+    .sidebar-fixed-right {
+        width: 260px;
+    }
+    .has-sidebar-left {
+        margin-left: 220px;
+    }
+    .has-sidebar-right {
+        margin-right: 260px;
+    }
+}
+
+/* Tablet - hide right sidebar, compact left */
+@media (max-width: 991px) and (min-width: 768px) {
+    .sidebar-fixed-left {
+        width: 200px;
+    }
+    .sidebar-fixed-right {
+        display: none;
+    }
+    .has-sidebar-left {
+        margin-left: 200px;
+    }
+    .has-sidebar-right,
+    .has-both-sidebars {
+        margin-right: 0;
+    }
+}
+
+/* Mobile - icon-only left sidebar or hidden */
+@media (max-width: 767px) {
+    .sidebar-fixed-left {
+        width: 60px;
+    }
+    .sidebar-fixed-left .sidebar-text {
+        display: none;
+    }
+    .sidebar-fixed-right {
+        display: none;
+    }
+    .has-sidebar-left {
+        margin-left: 60px;
+    }
+    .has-sidebar-right,
+    .has-both-sidebars {
+        margin-right: 0;
+    }
+}
+
+/* Very small screens - no sidebar */
+@media (max-width: 575px) {
+    .sidebar-fixed-left {
+        display: none;
+    }
+    .has-sidebar-left,
+    .has-both-sidebars {
+        margin-left: 0;
+    }
+}
+
+/* ==========================================================================
+   NEW ENTRY BUTTON - Fixed at Bottom Right
+   ========================================================================== */
+.new-entry-btn-container {
+    position: fixed;
+    bottom: 80px; /* Above footer */
+    right: 20px;
+    z-index: 1025;
+}
+
+.new-entry-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.new-entry-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.5);
+}
+
+/* Adjust for pages with right sidebar */
+.has-sidebar-right .new-entry-btn-container {
+    right: 300px;
+}
+
+@media (max-width: 991px) {
+    .has-sidebar-right .new-entry-btn-container {
+        right: 20px;
+    }
+}
+
+/* ==========================================================================
+   NAVBAR HEIGHT VARIABLE
+   ========================================================================== */
+:root {
+    --navbar-height: 56px;
+    --footer-height: 50px;
+    --sidebar-left-width: 240px;
+    --sidebar-right-width: 280px;
+}

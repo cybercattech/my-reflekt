@@ -1,0 +1,399 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Wellness{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    /* Wellness Stats Grid - Dynamic based on enabled features */
+    .wellness-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .wellness-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .wellness-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .wellness-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        color: white;
+    }
+
+    .wellness-card.pain {
+        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    }
+
+    .wellness-card.intimacy {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .wellness-card.cycle {
+        background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+    }
+
+    .wellness-card .card-icon {
+        font-size: 3rem;
+        opacity: 0.3;
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+
+    .wellness-card .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .wellness-card .card-stat {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .wellness-card .card-sub {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        margin-top: 0.5rem;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .quick-action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .quick-action-btn.pain {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .quick-action-btn.pain:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+    }
+
+    .quick-action-btn.intimacy {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+    }
+
+    .quick-action-btn.intimacy:hover {
+        background: #d1fae5;
+        border-color: #6ee7b7;
+    }
+
+    .quick-action-btn.cycle {
+        background: #fdf2f8;
+        color: #db2777;
+        border: 1px solid #fbcfe8;
+    }
+
+    .quick-action-btn.cycle:hover {
+        background: #fce7f3;
+        border-color: #f9a8d4;
+    }
+
+    /* Recent Activity */
+    .activity-list {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .activity-list .list-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.25rem;
+    }
+
+    .activity-icon.pain {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .activity-icon.intimacy {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .activity-icon.cycle {
+        background: #fdf2f8;
+        color: #db2777;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .activity-time {
+        font-size: 0.8rem;
+        color: #9ca3af;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0"><i class="bi bi-heart-pulse me-2"></i>Wellness</h1>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{% url 'wellness:pain_log' %}" class="quick-action-btn pain">
+            <i class="bi bi-bandaid"></i> Log Pain
+        </a>
+        {% if enable_intimacy %}
+        <button class="quick-action-btn intimacy" onclick="logIntimacy()">
+            <span style="font-size: 1.1rem;">🍀</span> Log Moment
+        </button>
+        {% endif %}
+        {% if enable_cycle %}
+        <a href="{% url 'wellness:cycle' %}" class="quick-action-btn cycle">
+            <i class="bi bi-calendar-heart"></i> Log Cycle
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="wellness-stats">
+        <a href="{% url 'wellness:pain' %}" class="wellness-card pain">
+            <i class="bi bi-bandaid card-icon"></i>
+            <div class="card-title">Pain Tracking</div>
+            <div class="card-stat">{{ pain_this_month }}</div>
+            <div class="card-sub">
+                episodes this month
+                {% if avg_pain_intensity %}· avg {{ avg_pain_intensity }}/10{% endif %}
+            </div>
+        </a>
+
+        {% if enable_intimacy %}
+        <a href="{% url 'wellness:intimacy' %}" class="wellness-card intimacy">
+            <span class="card-icon">🍀</span>
+            <div class="card-title">Special Moments</div>
+            <div class="card-stat">{{ intimacy_this_month }}</div>
+            <div class="card-sub">
+                this month
+                {% if last_intimacy %}· last {{ last_intimacy.logged_at|timesince }} ago{% endif %}
+            </div>
+        </a>
+        {% endif %}
+
+        {% if enable_cycle %}
+        <a href="{% url 'wellness:cycle' %}" class="wellness-card cycle">
+            <i class="bi bi-calendar-heart card-icon"></i>
+            <div class="card-title">Cycle Tracking</div>
+            <div class="card-stat">
+                {% if cycle_prediction %}{{ cycle_prediction.avg_cycle_length }}{% else %}--{% endif %}
+            </div>
+            <div class="card-sub">
+                {% if cycle_prediction %}
+                    day avg cycle · next {{ cycle_prediction.predicted_start|date:"M j" }}
+                {% else %}
+                    Start tracking to see predictions
+                {% endif %}
+            </div>
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="activity-list">
+                <div class="list-header">
+                    <i class="bi bi-clock-history me-2"></i>Recent Activity
+                </div>
+                {% if recent_pain %}
+                    {% for pain in recent_pain %}
+                    <div class="activity-item">
+                        <div class="activity-icon pain">
+                            <i class="{{ pain.icon }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">
+                                {{ pain.location_display }} pain ({{ pain.intensity }}/10)
+                            </div>
+                            <div class="activity-time">{{ pain.logged_at|timesince }} ago</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-heart-pulse" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mt-2 mb-0">No recent wellness logs</p>
+                        <p class="small">Start tracking to see your activity here</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-body">
+                    <h6 class="text-muted mb-3"><i class="bi bi-lightbulb me-2"></i>Insights</h6>
+                    <p class="text-muted small">
+                        Track your wellness data regularly to discover patterns and correlations
+                        between pain, mood, weather, and other factors.
+                    </p>
+                    <hr>
+                    <p class="small mb-0">
+                        <i class="bi bi-shield-lock me-2 text-success"></i>
+                        Your wellness data is private and encrypted.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if enable_intimacy %}
+<!-- Intimacy Quick Log Modal -->
+<div class="modal fade" id="intimacyModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white;">
+                <h5 class="modal-title"><span style="font-size: 1.25rem;">🍀</span> Log Moment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Rating (optional)</label>
+                    <div class="d-flex gap-2" id="intimacyRating">
+                        {% for i in "12345" %}
+                        <button type="button" class="btn btn-outline-success rating-btn" data-rating="{{ i }}">
+                            {{ i }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Notes (optional)</label>
+                    <textarea class="form-control" id="intimacyNotes" rows="2" placeholder="Private notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-success w-100" onclick="saveIntimacy()">
+                    <i class="bi bi-check-lg me-1"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+{% if enable_intimacy %}
+<script>
+let selectedIntimacyRating = null;
+
+function logIntimacy() {
+    selectedIntimacyRating = null;
+    document.querySelectorAll('#intimacyRating .rating-btn').forEach(btn => {
+        btn.classList.remove('active', 'btn-success');
+        btn.classList.add('btn-outline-success');
+    });
+    document.getElementById('intimacyNotes').value = '';
+    new bootstrap.Modal(document.getElementById('intimacyModal')).show();
+}
+
+document.querySelectorAll('#intimacyRating .rating-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('#intimacyRating .rating-btn').forEach(b => {
+            b.classList.remove('active', 'btn-success');
+            b.classList.add('btn-outline-success');
+        });
+        this.classList.remove('btn-outline-success');
+        this.classList.add('active', 'btn-success');
+        selectedIntimacyRating = parseInt(this.dataset.rating);
+    });
+});
+
+function saveIntimacy() {
+    const notes = document.getElementById('intimacyNotes').value;
+
+    fetch('{% url "wellness:api_intimacy_log" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            rating: selectedIntimacyRating,
+            notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('intimacyModal')).hide();
+            location.reload();
+        } else {
+            alert(data.error || 'Error saving');
+        }
+    });
+}
+</script>
+{% endif %}
+{% endblock %}

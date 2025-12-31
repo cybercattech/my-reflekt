@@ -1,0 +1,160 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Cycle Tracking{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1"><i class="bi bi-calendar-heart me-2"></i>Cycle Tracking</h1>
+            <p class="text-muted mb-0">
+                {% if selected_person %}{{ selected_person.name }}'s cycle{% else %}Your cycle{% endif %}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'wellness:cycle_calendar' %}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-calendar3 me-1"></i> Calendar
+            </a>
+            <a href="{% url 'wellness:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back
+            </a>
+        </div>
+    </div>
+
+    {% if family_members %}
+    <div class="mb-4">
+        <div class="btn-group" role="group">
+            <a href="{% url 'wellness:cycle' %}" class="btn {% if not selected_person %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                Me
+            </a>
+            {% for member in family_members %}
+            <a href="{% url 'wellness:cycle' %}?person={{ member.pk }}"
+               class="btn {% if selected_person.pk == member.pk %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                {{ member.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Prediction Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); color: white;">
+                <div class="card-body">
+                    <h6 class="opacity-75">Next Predicted Period</h6>
+                    {% if prediction %}
+                    <h2 class="mb-0">{{ prediction.predicted_start|date:"M j" }}</h2>
+                    <small class="opacity-75">
+                        Average cycle: {{ prediction.avg_cycle_length }} days
+                    </small>
+                    {% else %}
+                    <h4 class="mb-0">Not enough data</h4>
+                    <small class="opacity-75">Log 2+ period starts to see predictions</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Log -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Quick Log</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <select id="eventType" class="form-select">
+                                {% for code, name in event_choices %}
+                                <option value="{{ code }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="flowLevel" class="form-select">
+                                <option value="">Flow (optional)</option>
+                                {% for code, name in flow_choices %}
+                                <option value="{{ code }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" onclick="logCycleEvent()">
+                                <i class="bi bi-check-lg me-1"></i> Log
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Logs -->
+    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+        <div class="card-header bg-white border-0">
+            <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Logs</h6>
+        </div>
+        <div class="card-body p-0">
+            {% if logs %}
+            <table class="table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Event</th>
+                        <th>Flow</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.log_date|date:"M j, Y" }}</td>
+                        <td>{{ log.get_event_type_display }}</td>
+                        <td>{{ log.get_flow_level_display|default:"-" }}</td>
+                        <td class="text-muted">{{ log.notes|truncatewords:10|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-heart" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p class="mt-2 mb-0">No cycle logs yet</p>
+                <p class="small">Use the quick log above or /cycle command to start tracking</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block dashboard_js %}
+<script>
+function logCycleEvent() {
+    const eventType = document.getElementById('eventType').value;
+    const flowLevel = document.getElementById('flowLevel').value;
+
+    fetch('{% url "wellness:api_cycle_log" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            event_type: eventType,
+            flow_level: flowLevel,
+            {% if selected_person %}person_id: {{ selected_person.pk }},{% endif %}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Error logging event');
+        }
+    });
+}
+</script>
+{% endblock %}

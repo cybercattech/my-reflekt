@@ -501,6 +501,44 @@
                             Start each day with spiritual encouragement and guidance.
                         </div>
 
+                        <!-- Wellness Tracking -->
+                        <h6 class="text-muted mb-3"><i class="bi bi-heart-pulse me-1"></i>Wellness Tracking</h6>
+                        <div class="row mb-3">
+                            <label for="gender" class="col-sm-3 col-form-label">Gender</label>
+                            <div class="col-sm-6">
+                                <select name="gender" id="gender" class="form-select">
+                                    <option value="" {% if profile.gender == '' %}selected{% endif %}>Prefer not to say</option>
+                                    <option value="male" {% if profile.gender == 'male' %}selected{% endif %}>Male</option>
+                                    <option value="female" {% if profile.gender == 'female' %}selected{% endif %}>Female</option>
+                                    <option value="other" {% if profile.gender == 'other' %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-9 offset-sm-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="enable_intimacy_tracking"
+                                           id="enable_intimacy_tracking" value="1"
+                                           {% if profile.enable_intimacy_tracking %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_intimacy_tracking">
+                                        Enable special moments tracking <span class="ms-1">🍀</span>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="enable_cycle_tracking"
+                                           id="enable_cycle_tracking" value="1"
+                                           {% if profile.enable_cycle_tracking %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_cycle_tracking">
+                                        Enable menstrual cycle tracking
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-text mb-4">
+                            Track personal wellness metrics. Enable the features you want to use.
+                            Data is kept private and never shared.
+                        </div>
+
                         <!-- Moon Phase Note -->
                         <div class="alert alert-light mb-4">
                             <i class="bi bi-moon-stars me-2"></i>

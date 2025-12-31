@@ -1,17 +1,18 @@
 <!-- Sidebar CSS - Navigation sidebar styles -->
 <style>
-    /* Left Navigation Sidebar */
+    /* Left Navigation Sidebar - Fixed position with internal scrolling */
     .nav-sidebar-left {
+        position: fixed;
+        top: 56px; /* Navbar height */
+        left: 0;
+        bottom: 0;
         width: 220px;
-        min-width: 220px;
-        max-width: 220px;
         background: #ffffff;
         display: flex;
         flex-direction: column;
-        height: 100%;
         border-right: 1px solid #e5e7eb;
         box-shadow: 2px 0 8px rgba(0,0,0,0.03);
-        flex-shrink: 0;
+        z-index: 1010;
         overflow: hidden;
     }
 
@@ -162,17 +163,12 @@
     @media (max-width: 992px) {
         .nav-sidebar-left {
             width: 200px;
-            min-width: 200px;
-            max-width: 200px;
         }
     }
 
     @media (max-width: 768px) {
         .nav-sidebar-left {
             width: 60px;
-            min-width: 60px;
-            max-width: 60px;
-            height: 100%;
             border-right: 1px solid #e5e7eb;
         }
         .nav-header-bar {
@@ -245,8 +241,6 @@
     @media (max-width: 576px) {
         .nav-sidebar-left {
             width: 50px;
-            min-width: 50px;
-            max-width: 50px;
         }
         .nav-link-item {
             padding: 0.6rem;
@@ -257,19 +251,20 @@
     }
 
     /* ========================================
-       Right Insights Sidebar
+       Right Insights Sidebar - Fixed position
        ======================================== */
     .insights-sidebar-right {
+        position: fixed;
+        top: 56px; /* Navbar height */
+        right: 0;
+        bottom: 0;
         width: 280px;
-        min-width: 280px;
-        max-width: 280px;
         background: white;
         border-left: 1px solid #e5e7eb;
         display: flex;
         flex-direction: column;
-        height: 100%;
-        flex-shrink: 0;
         box-shadow: -2px 0 8px rgba(0,0,0,0.03);
+        z-index: 1010;
         overflow: hidden;
     }
 
@@ -423,6 +418,55 @@
     @media (max-width: 992px) {
         .insights-sidebar-right {
             display: none;
+        }
+    }
+
+    /* ========================================
+       Journal Layout - Main Content Area
+       Account for fixed sidebars
+       ======================================== */
+    .journal-layout {
+        min-height: calc(100vh - 56px);
+        position: relative;
+    }
+
+    .main-content-area {
+        margin-left: 220px; /* Left sidebar width */
+        margin-right: 280px; /* Right sidebar width */
+        padding: 1.5rem 2rem;
+        min-height: calc(100vh - 56px);
+        background: #f9fafb;
+        overflow-y: auto;
+    }
+
+    /* No right sidebar (entry list) */
+    .journal-layout.no-right-sidebar .main-content-area {
+        margin-right: 0;
+    }
+
+    @media (max-width: 1200px) {
+        .main-content-area {
+            margin-right: 240px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .main-content-area {
+            margin-left: 200px;
+            margin-right: 0; /* Right sidebar hidden */
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main-content-area {
+            margin-left: 60px;
+            padding: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .main-content-area {
+            margin-left: 50px;
         }
     }
 </style>

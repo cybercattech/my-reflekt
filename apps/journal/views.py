@@ -42,12 +42,26 @@ def entry_list(request):
     """List all journal entries for the current user."""
     entries = Entry.objects.filter(user=request.user)
 
-    # Search
+    # Search (in-memory for encrypted content)
     query = request.GET.get('q', '')
     if query:
-        entries = entries.filter(
-            Q(title__icontains=query) | Q(content__icontains=query)
-        )
+        # With per-user encryption, we need to search in memory
+        # Load all user entries and filter those matching the query
+        query_lower = query.lower()
+        matching_ids = []
+
+        # Get all entries for this user (content is decrypted via middleware)
+        for entry in Entry.objects.filter(user=request.user).only('id', 'title', 'content'):
+            # Check if query matches title or content
+            title = entry.title or ''
+            content = entry.content or ''
+
+            # Handle case where decryption fails (returns encrypted gibberish)
+            if query_lower in title.lower() or query_lower in content.lower():
+                matching_ids.append(entry.id)
+
+        # Filter entries to only those matching search
+        entries = entries.filter(id__in=matching_ids)
 
     # Filter by mood
     mood = request.GET.get('mood', '')
@@ -1398,13 +1412,79 @@ SLASH_COMMANDS = [
         'fields': [],
         'special': 'habit_picker',
     },
+    {
+        'command': '/pain',
+        'name': 'Pain Log',
+        'icon': 'bi-bandaid',
+        'description': 'Track pain or discomfort',
+        'special': 'capture_form',
+        'captureType': 'pain',
+        'fields': [
+            {'name': 'location', 'label': 'Location', 'type': 'select', 'required': True,
+             'options': [('head', 'Head'), ('neck', 'Neck'), ('back', 'Back'), ('chest', 'Chest'),
+                        ('arm', 'Arm'), ('leg', 'Leg'), ('tooth', 'Tooth'), ('stomach', 'Stomach'),
+                        ('joint', 'Joint'), ('other', 'Other')]},
+            {'name': 'time', 'label': 'Time (optional)', 'type': 'time', 'required': False,
+             'placeholder': 'Leave blank for now'},
+            {'name': 'intensity', 'label': 'Intensity (1-10)', 'type': 'range', 'required': True,
+             'min': 1, 'max': 10, 'default': 5},
+            {'name': 'pain_type', 'label': 'Type', 'type': 'select', 'required': False,
+             'options': [('', '-- Select --'), ('sharp', 'Sharp'), ('dull', 'Dull'),
+                        ('throbbing', 'Throbbing'), ('burning', 'Burning'),
+                        ('aching', 'Aching'), ('stabbing', 'Stabbing')]},
+            {'name': 'duration', 'label': 'Duration', 'type': 'select', 'required': False,
+             'options': [('', '-- Select --'), ('brief', 'Brief (minutes)'), ('hours', 'Hours'),
+                        ('all_day', 'All Day'), ('ongoing', 'Ongoing')]},
+        ],
+    },
+    {
+        'command': '/clover',
+        'name': 'Clover',
+        'icon': '🍀',
+        'description': 'Log a special moment',
+        'is_emoji_icon': True,
+        'special': 'capture_form',
+        'captureType': 'intimacy',
+        'fields': [
+            {'name': 'rating', 'label': 'Rating (optional)', 'type': 'rating', 'required': False},
+            {'name': 'notes', 'label': 'Notes (optional)', 'type': 'textarea', 'required': False, 'placeholder': 'Any notes...'},
+        ],
+    },
+    {
+        'command': '/cycle',
+        'name': 'Cycle',
+        'icon': 'bi-calendar-heart',
+        'description': 'Track cycle or symptoms',
+        'special': 'capture_form',
+        'captureType': 'cycle',
+        'fields': [
+            {'name': 'event_type', 'label': 'Event', 'type': 'select', 'required': True,
+             'options': [('period_start', 'Period Started'), ('period_end', 'Period Ended'),
+                        ('symptom', 'Symptom Only'), ('note', 'Note')]},
+            {'name': 'flow_level', 'label': 'Flow (if applicable)', 'type': 'select', 'required': False,
+             'options': [('', '-- Select --'), ('light', 'Light'), ('medium', 'Medium'), ('heavy', 'Heavy')]},
+        ],
+    },
 ]
 
 
 @login_required
 def get_slash_commands(request):
-    """Return all available slash commands."""
-    return JsonResponse({'commands': SLASH_COMMANDS})
+    """Return all available slash commands, filtered by user settings."""
+    commands = list(SLASH_COMMANDS)  # Create a copy
+
+    # Filter wellness commands based on user profile settings
+    profile = request.user.profile
+
+    # Remove /clover if intimacy tracking is disabled
+    if not profile.enable_intimacy_tracking:
+        commands = [cmd for cmd in commands if cmd['command'] != '/clover']
+
+    # Remove /cycle if cycle tracking is disabled
+    if not profile.enable_cycle_tracking:
+        commands = [cmd for cmd in commands if cmd['command'] != '/cycle']
+
+    return JsonResponse({'commands': commands})
 
 
 @login_required
@@ -1454,6 +1534,76 @@ def save_capture(request):
             capture_data['duration'] = int(capture_data['duration'])
         except (ValueError, TypeError):
             capture_data['duration'] = 0
+
+    # Handle wellness captures - also create corresponding wellness models
+    try:
+        if capture_type == 'pain':
+            from apps.wellness.models import PainLog
+            from datetime import datetime, time as dt_time
+            try:
+                capture_data['intensity'] = int(capture_data.get('intensity', 5))
+            except (ValueError, TypeError):
+                capture_data['intensity'] = 5
+            # Use user-provided time or default to current time
+            user_time = capture_data.get('time')
+            if user_time:
+                try:
+                    # Parse time string (HH:MM format)
+                    hours, minutes = map(int, user_time.split(':'))
+                    pain_time = dt_time(hours, minutes)
+                except (ValueError, TypeError):
+                    pain_time = datetime.now().time()
+            else:
+                pain_time = datetime.now().time()
+            # Convert date to datetime for logged_at field
+            logged_datetime = datetime.combine(entry.entry_date, pain_time)
+            logged_datetime = timezone.make_aware(logged_datetime) if timezone.is_naive(logged_datetime) else logged_datetime
+            PainLog.objects.create(
+                user=request.user,
+                entry=entry,
+                logged_at=logged_datetime,
+                location=capture_data.get('location', 'other'),
+                intensity=capture_data['intensity'],
+                pain_type=capture_data.get('pain_type', ''),
+                duration=capture_data.get('duration', ''),
+            )
+
+        elif capture_type == 'intimacy':
+            from apps.wellness.models import IntimacyLog
+            from datetime import datetime
+            from django.utils import timezone
+            rating = capture_data.get('rating')
+            if rating:
+                try:
+                    rating = int(rating)
+                except (ValueError, TypeError):
+                    rating = None
+            # Use entry date for logged_at, not current time
+            logged_datetime = datetime.combine(entry.entry_date, datetime.now().time())
+            logged_datetime = timezone.make_aware(logged_datetime) if timezone.is_naive(logged_datetime) else logged_datetime
+            IntimacyLog.objects.create(
+                user=request.user,
+                entry=entry,
+                logged_at=logged_datetime,
+                rating=rating,
+                notes=capture_data.get('notes', ''),
+            )
+
+        elif capture_type == 'cycle':
+            from apps.wellness.models import CycleLog
+            CycleLog.objects.create(
+                user=request.user,
+                entry=entry,
+                log_date=entry.entry_date,
+                event_type=capture_data.get('event_type', 'note'),
+                flow_level=capture_data.get('flow_level', ''),
+                symptoms=capture_data.get('symptoms', []),
+                notes=capture_data.get('notes', ''),
+            )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error creating wellness log for {capture_type}: {e}")
+        return JsonResponse({'error': f'Failed to create wellness log: {str(e)}'}, status=500)
 
     # Create the capture
     capture = EntryCapture.objects.create(

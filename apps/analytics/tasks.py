@@ -15,6 +15,9 @@ def analyze_entry(entry_id: int):
 
     Called automatically when an entry is saved.
     Creates/updates the EntryAnalysis record.
+
+    Note: With per-user encryption, this task needs access to the encryption key
+    from cache. If the key is not available, analysis will fail gracefully.
     """
     from apps.journal.models import Entry
     from apps.analytics.models import EntryAnalysis
@@ -28,89 +31,115 @@ def analyze_entry(entry_id: int):
     from apps.analytics.services.moon import calculate_moon_phase
     from apps.analytics.services.weather import get_weather_data
     from apps.analytics.services.horoscope import get_zodiac_sign
+    from apps.journal.services.encryption import (
+        UserEncryptionService,
+        set_current_encryption_key,
+        clear_current_encryption_key,
+    )
 
     try:
         entry = Entry.objects.select_related('user__profile').get(id=entry_id)
     except Entry.DoesNotExist:
         return f"Entry {entry_id} not found"
 
-    # Run analysis
-    sentiment_score = get_sentiment_score(entry.content)
-    sentiment_label = get_sentiment_label(sentiment_score)
-    detected_mood, confidence, _ = classify_mood(entry.content)
-    themes = extract_themes(entry.content)
-    keywords = extract_keywords(entry.content)
+    # Get encryption key from cache (set during login)
+    service = UserEncryptionService(entry.user)
+    cached_key = service.get_cached_key()
 
-    # Generate simple summary (first 150 chars for now)
-    summary = entry.content[:150] + '...' if len(entry.content) > 150 else entry.content
+    if cached_key:
+        set_current_encryption_key(cached_key)
 
-    # Calculate moon phase for entry date
-    moon_phase, moon_illumination = calculate_moon_phase(entry.entry_date)
+    try:
+        content = entry.content
 
-    # Fetch weather using entry location first, then fall back to profile location
-    weather_condition = ''
-    weather_description = ''
-    weather_location = ''
-    temperature = None
-    humidity = None
-    weather_icon = ''
+        # Check if content was successfully decrypted
+        # If no key available, content will be encrypted gibberish
+        if not cached_key or content.startswith('gAAAAA'):
+            # Content is still encrypted - skip analysis
+            clear_current_encryption_key()
+            return f"Entry {entry_id}: encryption key not available, skipping analysis"
 
-    profile = entry.user.profile
+        # Run analysis
+        sentiment_score = get_sentiment_score(content)
+        sentiment_label = get_sentiment_label(sentiment_score)
+        detected_mood, confidence, _ = classify_mood(content)
+        themes = extract_themes(content)
+        keywords = extract_keywords(content)
 
-    # Determine which location to use (entry location takes priority)
-    city = entry.city or profile.city
-    country_code = entry.country_code or profile.country_code or 'US'
+        # Generate simple summary (first 150 chars for now)
+        summary = content[:150] + '...' if len(content) > 150 else content
 
-    if city:
-        weather_data = get_weather_data(city, country_code)
-        if weather_data:
-            weather_condition = weather_data.get('condition', '')
-            weather_description = weather_data.get('description', '')
-            temperature = weather_data.get('temperature')
-            humidity = weather_data.get('humidity')
-            weather_icon = weather_data.get('icon_code', '')
-            weather_location = f"{city}, {country_code}"
+        # Calculate moon phase for entry date
+        moon_phase, moon_illumination = calculate_moon_phase(entry.entry_date)
 
-    # Get zodiac sign if user has birthday and horoscope enabled
-    zodiac_sign = ''
-    if profile.horoscope_enabled and profile.birthday:
-        zodiac_sign = get_zodiac_sign(profile.birthday) or ''
+        # Fetch weather using entry location first, then fall back to profile location
+        weather_condition = ''
+        weather_description = ''
+        weather_location = ''
+        temperature = None
+        humidity = None
+        weather_icon = ''
 
-    # Create or update analysis
-    with transaction.atomic():
-        analysis, created = EntryAnalysis.objects.update_or_create(
-            entry=entry,
-            defaults={
-                'sentiment_score': sentiment_score,
-                'sentiment_label': sentiment_label,
-                'detected_mood': detected_mood,
-                'mood_confidence': confidence,
-                'keywords': keywords,
-                'themes': themes,
-                'summary': summary,
-                # Moon phase data
-                'moon_phase': moon_phase,
-                'moon_illumination': moon_illumination,
-                # Weather data
-                'weather_location': weather_location,
-                'weather_condition': weather_condition,
-                'weather_description': weather_description,
-                'temperature': temperature,
-                'humidity': humidity,
-                'weather_icon': weather_icon,
-                # Zodiac data
-                'zodiac_sign': zodiac_sign,
-            }
-        )
+        profile = entry.user.profile
 
-        # Mark entry as analyzed
-        entry.is_analyzed = True
-        entry.save(update_fields=['is_analyzed'])
+        # Determine which location to use (entry location takes priority)
+        city = entry.city or profile.city
+        country_code = entry.country_code or profile.country_code or 'US'
 
-    # Update monthly snapshot
-    update_monthly_snapshot.delay(entry.user_id, entry.entry_date.year, entry.entry_date.month)
+        if city:
+            weather_data = get_weather_data(city, country_code)
+            if weather_data:
+                weather_condition = weather_data.get('condition', '')
+                weather_description = weather_data.get('description', '')
+                temperature = weather_data.get('temperature')
+                humidity = weather_data.get('humidity')
+                weather_icon = weather_data.get('icon_code', '')
+                weather_location = f"{city}, {country_code}"
 
-    return f"Analyzed entry {entry_id}: {detected_mood} ({sentiment_score:.2f})"
+        # Get zodiac sign if user has birthday and horoscope enabled
+        zodiac_sign = ''
+        if profile.horoscope_enabled and profile.birthday:
+            zodiac_sign = get_zodiac_sign(profile.birthday) or ''
+
+        # Create or update analysis
+        with transaction.atomic():
+            analysis, created = EntryAnalysis.objects.update_or_create(
+                entry=entry,
+                defaults={
+                    'sentiment_score': sentiment_score,
+                    'sentiment_label': sentiment_label,
+                    'detected_mood': detected_mood,
+                    'mood_confidence': confidence,
+                    'keywords': keywords,
+                    'themes': themes,
+                    'summary': summary,
+                    # Moon phase data
+                    'moon_phase': moon_phase,
+                    'moon_illumination': moon_illumination,
+                    # Weather data
+                    'weather_location': weather_location,
+                    'weather_condition': weather_condition,
+                    'weather_description': weather_description,
+                    'temperature': temperature,
+                    'humidity': humidity,
+                    'weather_icon': weather_icon,
+                    # Zodiac data
+                    'zodiac_sign': zodiac_sign,
+                }
+            )
+
+            # Mark entry as analyzed
+            entry.is_analyzed = True
+            entry.save(update_fields=['is_analyzed'])
+
+        # Update monthly snapshot
+        update_monthly_snapshot.delay(entry.user_id, entry.entry_date.year, entry.entry_date.month)
+
+        return f"Analyzed entry {entry_id}: {detected_mood} ({sentiment_score:.2f})"
+
+    finally:
+        # Always clear the encryption key from thread-local
+        clear_current_encryption_key()
 
 
 @shared_task

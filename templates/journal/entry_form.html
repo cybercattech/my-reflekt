@@ -2,8 +2,9 @@
 
 {% block title %}{% if is_new %}New Entry{% else %}Edit Entry{% endif %}{% endblock %}
 
+{% block body_class %}{% endblock %}
+
 {% block extra_css %}
-{% include 'journal/partials/sidebar_css.html' %}
 <style>
     /* Spin animation for location button */
     @keyframes spin {
@@ -12,29 +13,6 @@
     }
     .spin {
         animation: spin 1s linear infinite;
-    }
-
-    /* 3-Column Layout */
-    .journal-layout {
-        display: flex;
-        min-height: calc(100vh - 56px - 80px);
-        position: relative;
-    }
-
-    .main-content-area {
-        flex: 1;
-        padding: 1.5rem 2rem;
-        overflow-y: auto;
-        background: #f9fafb;
-    }
-
-    @media (max-width: 768px) {
-        .journal-layout {
-            flex-direction: column;
-        }
-        .main-content-area {
-            padding: 1rem;
-        }
     }
 
     /* Title Input */
@@ -98,44 +76,38 @@
         box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
 
-    /* Editor + Sidebar Layout */
+    /* Editor + Sidebar Layout - Stacked, fills viewport */
     .editor-layout {
         display: flex;
-        gap: 1.5rem;
-        align-items: flex-start;
+        flex-direction: column;
+        height: calc(100vh - 180px); /* Fills viewport minus header/title */
+        gap: 0.75rem;
     }
 
     .editor-column {
         flex: 1;
-        min-width: 0;
+        min-height: 0; /* Important for flex children to shrink */
+        display: flex;
+        flex-direction: column;
     }
 
     .sidebar-column {
-        width: 280px;
         flex-shrink: 0;
-        position: sticky;
-        top: 1rem;
-        max-height: calc(100vh - 100px);
-        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
     }
 
-    @media (max-width: 992px) {
-        .editor-layout {
-            flex-direction: column;
-        }
-        .sidebar-column {
-            width: 100%;
-            position: static;
-            max-height: none;
-        }
-    }
-
-    /* Editor Container */
+    /* Editor Container - Fills available space */
     .editor-container {
         background: white;
         border-radius: 12px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
     }
 
     /* Quill Customization */
@@ -144,11 +116,13 @@
         font-size: 1.125rem;
         line-height: 1.8;
         border: none !important;
+        flex: 1;
+        overflow-y: auto;
     }
 
     .ql-editor {
         padding: 1.5rem;
-        min-height: 350px;
+        min-height: 100%;
     }
 
     .ql-editor.ql-blank::before {
@@ -189,6 +163,10 @@
     /* EasyMDE Customization - Full Height */
     .EasyMDEContainer {
         border: none !important;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        height: 100%;
     }
 
     .EasyMDEContainer .CodeMirror {
@@ -197,13 +175,13 @@
         font-size: 1rem;
         line-height: 1.7;
         padding: 1rem;
-        min-height: calc(100vh - 350px);
-        height: auto !important;
+        flex: 1;
+        height: 100% !important;
         background: transparent;
     }
 
     .EasyMDEContainer .CodeMirror-scroll {
-        min-height: calc(100vh - 350px);
+        min-height: 100%;
     }
 
     .EasyMDEContainer .editor-toolbar {
@@ -280,13 +258,15 @@
         color: #22c55e;
     }
 
-    /* Attachment Styles */
+    /* Attachment Styles - Full width drop zone */
     .attachments-section {
         background: white;
         border-radius: 12px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        padding: 1rem;
-        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
     }
 
     .attachments-header {
@@ -294,19 +274,24 @@
         align-items: center;
         gap: 0.5rem;
         color: #374151;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 600;
-        margin-bottom: 0.75rem;
     }
 
     .upload-zone {
         background: #f9fafb;
         border: 2px dashed #e5e7eb;
         border-radius: 8px;
-        padding: 1rem;
+        padding: 1.5rem 2rem;
         text-align: center;
         transition: all 0.2s;
         cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
     }
 
     .upload-zone:hover,
@@ -318,7 +303,6 @@
     .upload-zone i {
         font-size: 1.5rem;
         color: #9ca3af;
-        margin-bottom: 0.25rem;
     }
 
     .upload-zone.dragover i {
@@ -328,7 +312,7 @@
     .upload-zone p {
         margin: 0;
         color: #6b7280;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 
     .upload-zone .browse-link {
@@ -338,10 +322,9 @@
     }
 
     .attachments-gallery {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        display: flex;
         gap: 0.5rem;
-        margin-top: 0.75rem;
+        flex-wrap: wrap;
     }
 
     .attachment-item {
@@ -423,28 +406,33 @@
         border-radius: 2px;
     }
 
-    /* Captures Section */
+    /* Captures Section - Compact horizontal */
     .captures-section {
         background: white;
         border-radius: 12px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        padding: 1rem;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
     }
 
     .captures-header {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 600;
         color: #374151;
-        margin-bottom: 0.75rem;
+        flex-shrink: 0;
     }
 
     .captures-list {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
+        flex: 1;
     }
 
     .capture-pill {
@@ -489,8 +477,9 @@
 
     .captures-empty {
         color: #9ca3af;
-        font-size: 0.8125rem;
+        font-size: 0.75rem;
         font-style: italic;
+        flex-shrink: 0;
     }
 
     /* Responsive */
@@ -694,12 +683,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="journal-layout">
-    <!-- Left Calendar Sidebar -->
-    {% include 'journal/partials/calendar_sidebar.html' %}
-
-    <!-- Main Content Area -->
-    <div class="main-content-area">
+<div class="container-fluid py-4">
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-flex align-items-center gap-2">
@@ -884,14 +868,39 @@
                             </div>
                         </div>
 
-                        <!-- Right Column: Attachments & Captures -->
+                        <!-- Bottom Row: Tracked Items & Attachments -->
                         <div class="sidebar-column">
+                            <!-- Captures Section (Tracked Items) -->
+                            <div class="captures-section" id="capturesSection">
+                                <div class="captures-header">
+                                    <i class="bi bi-bookmark-star"></i>
+                                    <span>Tracked Items</span>
+                                    <span class="badge bg-secondary ms-1" id="captureCount">{% if entry %}{{ entry.captures.count }}{% else %}0{% endif %}</span>
+                                </div>
+                                <div class="captures-list" id="capturesList">
+                                    {% if entry %}
+                                    {% for capture in entry.captures.all %}
+                                    <div class="capture-pill {{ capture.capture_type }}" data-id="{{ capture.id }}">
+                                        <i class="bi {{ capture.icon }}"></i>
+                                        <span>{{ capture.display_text }}</span>
+                                        <span class="capture-delete" onclick="deleteCapture({{ capture.id }})" title="Remove">
+                                            <i class="bi bi-x"></i>
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="captures-empty {% if entry and entry.captures.count > 0 %}d-none{% endif %}" id="capturesEmpty">
+                                    <small class="text-muted">Use /place, /travel, /workout</small>
+                                </div>
+                            </div>
+
                             <!-- Attachments Section -->
                             <div class="attachments-section">
                                 <div class="attachments-header">
                                     <i class="bi bi-paperclip"></i>
                                     <span>Attachments</span>
-                                    <span class="badge bg-secondary ms-auto" id="attachmentCount">{% if entry %}{{ entry.attachments.count }}{% else %}0{% endif %}</span>
+                                    <span class="badge bg-secondary ms-1" id="attachmentCount">{% if entry %}{{ entry.attachments.count }}{% else %}0{% endif %}</span>
                                 </div>
 
                                 <!-- Upload Zone -->
@@ -899,14 +908,6 @@
                                     <i class="bi bi-cloud-arrow-up d-block"></i>
                                     <p>Drop files or <span class="browse-link">browse</span></p>
                                     <input type="file" id="fileInput" multiple accept="image/*,audio/*,video/*" style="display:none;">
-                                </div>
-
-                                <!-- Upload Progress -->
-                                <div class="upload-progress d-none" id="uploadProgress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
-                                    </div>
-                                    <small class="text-muted" id="uploadStatus">Uploading...</small>
                                 </div>
 
                                 <!-- Attachments Gallery -->
@@ -936,39 +937,18 @@
                                     {% endfor %}
                                     {% endif %}
                                 </div>
-                            </div>
 
-                            <!-- Captures Section -->
-                            <div class="captures-section" id="capturesSection">
-                                <div class="captures-header">
-                                    <i class="bi bi-bookmark-star"></i>
-                                    <span>Tracked Items</span>
-                                    <span class="badge bg-secondary ms-auto" id="captureCount">{% if entry %}{{ entry.captures.count }}{% else %}0{% endif %}</span>
-                                </div>
-                                <div class="captures-list" id="capturesList">
-                                    {% if entry %}
-                                    {% for capture in entry.captures.all %}
-                                    <div class="capture-pill {{ capture.capture_type }}" data-id="{{ capture.id }}">
-                                        <i class="bi {{ capture.icon }}"></i>
-                                        <span>{{ capture.display_text }}</span>
-                                        <span class="capture-delete" onclick="deleteCapture({{ capture.id }})" title="Remove">
-                                            <i class="bi bi-x"></i>
-                                        </span>
+                                <!-- Upload Progress -->
+                                <div class="upload-progress d-none" id="uploadProgress">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
                                     </div>
-                                    {% endfor %}
-                                    {% endif %}
-                                </div>
-                                <div class="captures-empty {% if entry and entry.captures.count > 0 %}d-none{% endif %}" id="capturesEmpty">
-                                    <small class="text-muted">Use /place, /travel, /workout</small>
+                                    <small class="text-muted" id="uploadStatus">Uploading...</small>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
-    </div>
-
-    <!-- Right Insights Sidebar -->
-    {% include 'journal/partials/insights_sidebar.html' %}
 </div>
 
 <!-- Quick Picker Modal (simplified slash commands) -->
@@ -1321,20 +1301,62 @@ document.addEventListener('DOMContentLoaded', function() {
     // SLASH COMMANDS
     // =================================================================
 
-    // Slash command configuration
-    const slashCommands = [
-        { command: '/person', name: 'Person', icon: 'bi-person', description: 'Tag a person', special: 'quick_picker', pickerType: 'person' },
-        { command: '/book', name: 'Book', icon: 'bi-book', description: 'Log a book you\'re reading', special: 'quick_picker', pickerType: 'book' },
-        { command: '/watched', name: 'Watched', icon: 'bi-film', description: 'Log a movie or show', special: 'capture_form', captureType: 'watched' },
-        { command: '/travel', name: 'Travel', icon: 'bi-geo-alt', description: 'Log a trip or journey', special: 'capture_form', captureType: 'travel' },
-        { command: '/workout', name: 'Workout', icon: 'bi-heart-pulse', description: 'Log exercise', special: 'capture_form', captureType: 'workout' },
-        { command: '/place', name: 'Place', icon: 'bi-pin-map', description: 'Log where you are', special: 'capture_form', captureType: 'place' },
-        { command: '/meal', name: 'Meal', icon: 'bi-cup-hot', description: 'Log what you ate', special: 'capture_form', captureType: 'meal' },
-        { command: '/dream', name: 'Dream', icon: 'bi-cloud-moon', description: 'Start a dream journal entry', special: 'block_insert', blockType: 'dream', hashtag: 'dream' },
-        { command: '/gratitude', name: 'Gratitude', icon: 'bi-heart', description: 'Write what you\'re grateful for', special: 'block_insert', blockType: 'gratitude', hashtag: 'gratitude' },
-        { command: '/goal', name: 'Goal', icon: 'bi-bullseye', description: 'Link to a goal', special: 'goal_picker' },
-        { command: '/habit', name: 'Habit', icon: 'bi-repeat', description: 'Link to a habit & create check-in', special: 'habit_picker' },
-    ];
+    // Slash command configuration - loaded from server (filtered by user settings)
+    let slashCommands = [];
+
+    // Fetch slash commands from server (filtered based on user's wellness settings)
+    async function loadSlashCommands() {
+        try {
+            const response = await fetch('/journal/api/slash-commands/');
+            const data = await response.json();
+            slashCommands = data.commands.map(cmd => {
+                // Map server format to client format
+                const mapped = {
+                    command: cmd.command,
+                    name: cmd.name,
+                    icon: cmd.icon,
+                    description: cmd.description,
+                    is_emoji_icon: cmd.is_emoji_icon || false,
+                };
+
+                // Handle special types
+                if (cmd.special === 'capture_form') {
+                    mapped.special = 'capture_form';
+                    mapped.captureType = cmd.captureType;
+                } else if (cmd.special === 'goal_picker') {
+                    mapped.special = 'goal_picker';
+                } else if (cmd.special === 'habit_picker') {
+                    mapped.special = 'habit_picker';
+                } else if (cmd.command === '/person') {
+                    mapped.special = 'quick_picker';
+                    mapped.pickerType = 'person';
+                } else if (cmd.command === '/book') {
+                    mapped.special = 'quick_picker';
+                    mapped.pickerType = 'book';
+                } else if (cmd.command === '/dream') {
+                    mapped.special = 'block_insert';
+                    mapped.blockType = 'dream';
+                    mapped.hashtag = 'dream';
+                } else if (cmd.command === '/gratitude') {
+                    mapped.special = 'block_insert';
+                    mapped.blockType = 'gratitude';
+                    mapped.hashtag = 'gratitude';
+                }
+
+                return mapped;
+            });
+        } catch (error) {
+            console.error('Error loading slash commands:', error);
+            // Fallback to basic commands if API fails
+            slashCommands = [
+                { command: '/person', name: 'Person', icon: 'bi-person', description: 'Tag a person', special: 'quick_picker', pickerType: 'person' },
+                { command: '/book', name: 'Book', icon: 'bi-book', description: 'Log a book you\'re reading', special: 'quick_picker', pickerType: 'book' },
+            ];
+        }
+    }
+
+    // Load commands on page load
+    loadSlashCommands();
 
     const slashMenu = document.getElementById('slashCommandMenu');
     const quickPickerModal = new bootstrap.Modal(document.getElementById('quickPickerModal'));
@@ -1382,10 +1404,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         selectedCommandIndex = 0;
-        slashMenu.innerHTML = filtered.map((cmd, idx) => `
+        slashMenu.innerHTML = filtered.map((cmd, idx) => {
+            // Handle emoji icons vs Bootstrap icons
+            const iconHtml = cmd.is_emoji_icon
+                ? `<span style="font-size: 1.25rem;">${cmd.icon}</span>`
+                : `<i class="bi ${cmd.icon}"></i>`;
+
+            return `
             <div class="slash-command-item ${idx === 0 ? 'selected' : ''}" data-command="${cmd.command}">
                 <div class="slash-command-icon">
-                    <i class="bi ${cmd.icon}"></i>
+                    ${iconHtml}
                 </div>
                 <div class="slash-command-info">
                     <div class="slash-command-name">${cmd.name}</div>
@@ -1393,7 +1421,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="slash-command-shortcut">${cmd.command}</div>
             </div>
-        `).join('');
+        `}).join('');
 
         // Add click handlers
         slashMenu.querySelectorAll('.slash-command-item').forEach((item, idx) => {
@@ -1762,6 +1790,30 @@ document.addEventListener('DOMContentLoaded', function() {
             { name: 'item2', label: 'Also grateful for...', type: 'text', required: false },
             { name: 'item3', label: 'And grateful for...', type: 'text', required: false },
         ],
+        pain: [
+            { name: 'location', label: 'Location', type: 'select', required: true,
+              options: [['head', 'Head'], ['neck', 'Neck'], ['back', 'Back'], ['chest', 'Chest'],
+                       ['arm', 'Arm'], ['leg', 'Leg'], ['tooth', 'Tooth'], ['stomach', 'Stomach'],
+                       ['joint', 'Joint'], ['other', 'Other']] },
+            { name: 'intensity', label: 'Intensity (1-10)', type: 'range', required: true, min: 1, max: 10, defaultVal: 5 },
+            { name: 'pain_type', label: 'Type', type: 'select', required: false,
+              options: [['', '-- Select --'], ['sharp', 'Sharp'], ['dull', 'Dull'],
+                       ['throbbing', 'Throbbing'], ['burning', 'Burning'],
+                       ['aching', 'Aching'], ['stabbing', 'Stabbing']] },
+            { name: 'duration', label: 'Duration', type: 'select', required: false,
+              options: [['', '-- Select --'], ['brief', 'Brief (minutes)'], ['hours', 'Hours'],
+                       ['all_day', 'All Day'], ['ongoing', 'Ongoing']] },
+        ],
+        intimacy: [
+            { name: 'rating', label: 'Rating (optional)', type: 'rating', required: false },
+        ],
+        cycle: [
+            { name: 'event_type', label: 'Event', type: 'select', required: true,
+              options: [['period_start', 'Period Started'], ['period_end', 'Period Ended'],
+                       ['symptom', 'Symptom Only'], ['note', 'Note']] },
+            { name: 'flow_level', label: 'Flow (if applicable)', type: 'select', required: false,
+              options: [['', '-- Select --'], ['light', 'Light'], ['medium', 'Medium'], ['heavy', 'Heavy']] },
+        ],
     };
 
     const captureFormModal = new bootstrap.Modal(document.getElementById('captureFormModal'));
@@ -1772,7 +1824,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const fields = captureFormFields[cmd.captureType] || [];
 
         document.getElementById('captureFormTitle').textContent = cmd.name;
-        document.getElementById('captureFormIcon').className = `bi ${cmd.icon} me-2`;
+        const iconEl = document.getElementById('captureFormIcon');
+        if (cmd.is_emoji_icon) {
+            iconEl.className = 'me-2';
+            iconEl.textContent = cmd.icon;
+        } else {
+            iconEl.className = `bi ${cmd.icon} me-2`;
+            iconEl.textContent = '';
+        }
 
         const fieldsContainer = document.getElementById('captureFormFields');
 
@@ -1804,6 +1863,27 @@ document.addEventListener('DOMContentLoaded', function() {
                             <input type="hidden" name="${field.name}" value="">
                         </div>
                     `;
+                } else if (field.type === 'range') {
+                    const min = field.min || 1;
+                    const max = field.max || 10;
+                    const defaultVal = field.defaultVal || Math.round((min + max) / 2);
+                    inputHtml = `
+                        <div class="range-input d-flex align-items-center gap-2">
+                            <span class="text-muted small">${min}</span>
+                            <input type="range" class="form-range flex-grow-1" name="${field.name}"
+                                   min="${min}" max="${max}" value="${defaultVal}"
+                                   oninput="this.nextElementSibling.textContent = this.value"
+                                   ${field.required ? 'required' : ''}>
+                            <span class="badge bg-primary range-value">${defaultVal}</span>
+                            <span class="text-muted small">${max}</span>
+                        </div>
+                    `;
+                } else if (field.type === 'time') {
+                    inputHtml = `<input type="time" class="form-control form-control-sm" name="${field.name}"
+                                        ${field.required ? 'required' : ''}>`;
+                } else if (field.type === 'textarea') {
+                    inputHtml = `<textarea class="form-control form-control-sm" name="${field.name}" rows="2"
+                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}"></textarea>`;
                 }
 
                 return `

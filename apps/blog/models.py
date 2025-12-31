@@ -87,9 +87,28 @@ class Post(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        # Auto-generate slug
-        if not self.slug:
-            base_slug = slugify(self.title)
+        # Auto-generate or update slug based on title
+        title_slug = slugify(self.title) if self.title else ''
+
+        # Generate slug if:
+        # 1. No slug exists yet
+        # 2. Slug starts with 'untitled' and title has changed to something meaningful
+        # 3. This is a new post (no pk yet)
+        should_update_slug = (
+            not self.slug or
+            (self.slug.startswith('untitled') and title_slug and not title_slug.startswith('untitled')) or
+            not self.pk
+        )
+
+        if should_update_slug:
+            # Use title slug, or 'untitled' with timestamp if title is empty
+            if title_slug:
+                base_slug = title_slug
+            else:
+                # Use timestamp for unique untitled slugs
+                from datetime import datetime
+                base_slug = f"untitled-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
             slug = base_slug
             counter = 1
             while Post.objects.filter(slug=slug).exclude(pk=self.pk).exists():

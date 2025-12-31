@@ -1,0 +1,49 @@
+<!-- Floating New Entry Button - Fixed at bottom right -->
+<div class="new-entry-fab-container">
+    <a href="{% url 'journal:entry_create' %}" class="new-entry-fab btn btn-primary" title="New Entry">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+</div>
+
+<style>
+.new-entry-fab-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1025;
+}
+
+.new-entry-fab {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+}
+
+.new-entry-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.5);
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+/* Adjust position when right sidebar is visible */
+@media (min-width: 993px) {
+    .has-right-sidebar .new-entry-fab-container {
+        right: 304px; /* 280px sidebar + 24px margin */
+    }
+}
+
+/* Move above mobile toggle button on mobile */
+@media (max-width: 991px) {
+    .new-entry-fab-container {
+        bottom: 80px; /* Above the sidebar toggle button */
+    }
+}
+</style>

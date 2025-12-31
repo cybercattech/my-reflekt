@@ -2,78 +2,10 @@
 
 {% block title %}{{ title }} - Admin{% endblock %}
 
+{% block body_class %}{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-2 d-md-block bg-dark sidebar py-3" style="min-height: calc(100vh - 56px);">
-            <div class="position-sticky">
-                <h6 class="sidebar-heading px-3 text-muted text-uppercase">
-                    Admin Panel
-                </h6>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link text-white {% if active_page == 'overview' %}active bg-secondary rounded{% endif %}" href="{% url 'accounts:admin_panel' %}">
-                            <i class="bi bi-speedometer2 me-2"></i>Overview
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white {% if active_page == 'users' %}active bg-secondary rounded{% endif %}" href="{% url 'accounts:admin_user_list' %}">
-                            <i class="bi bi-people me-2"></i>Users
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white {% if active_page == 'subscriptions' %}active bg-secondary rounded{% endif %}" href="{% url 'accounts:subscription_dashboard' %}">
-                            <i class="bi bi-credit-card me-2"></i>Subscriptions
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white {% if active_page == 'blog' %}active bg-secondary rounded{% endif %}" href="{% url 'blog:admin_list' %}">
-                            <i class="bi bi-newspaper me-2"></i>Blog
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white {% if active_page == 'emails' %}active bg-secondary rounded{% endif %}" href="{% url 'accounts:admin_email_templates' %}">
-                            <i class="bi bi-envelope me-2"></i>Emails
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white {% if active_page == 'feedback' %}active bg-secondary rounded{% endif %}" href="{% url 'accounts:admin_feedback_list' %}">
-                            <i class="bi bi-chat-dots me-2"></i>Feedback
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white {% if active_page == 'challenges' %}active bg-secondary rounded{% endif %}" href="{% url 'accounts:admin_challenge_list' %}">
-                            <i class="bi bi-trophy me-2"></i>Challenges
-                        </a>
-                    </li>
-                </ul>
-
-                <hr class="text-white-50 my-3">
-
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link text-white-50" href="{% url 'home' %}">
-                            <i class="bi bi-arrow-left me-2"></i>Back to Site
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
-            {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
-            {% endif %}
-
-            {% block admin_content %}{% endblock %}
-        </main>
-    </div>
+<div class="container-fluid py-4">
+    {% block admin_content %}{% endblock %}
 </div>
 {% endblock %}

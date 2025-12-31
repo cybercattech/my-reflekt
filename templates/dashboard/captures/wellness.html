@@ -1,159 +1,10 @@
 {% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
 
-{% block title %}Wellness Dashboard{% endblock %}
+{% block title %}Lifestyle - Dreams, Gratitude & Meals{% endblock %}
 
 {% block dashboard_css %}
-<style>
-    /* Modern Stats Cards */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .stat-card {
-        border-radius: 16px;
-        padding: 1.5rem;
-        color: #1f2937;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .stat-card.dreams {
-        background: linear-gradient(135deg, #C3EEFA 0%, #7dd3fc 100%);
-    }
-
-    .stat-card.gratitude {
-        background: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%);
-    }
-
-    .stat-card.meals {
-        background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
-    }
-
-    .stat-card .stat-label {
-        font-size: 0.85rem;
-        opacity: 0.75;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-card .stat-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        line-height: 1;
-    }
-
-    .stat-card .stat-sub {
-        font-size: 0.8rem;
-        opacity: 0.65;
-        margin-top: 0.25rem;
-    }
-
-    .stat-card .stat-icon {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        font-size: 2rem;
-        opacity: 0.3;
-    }
-
-    /* Modern Chart Card */
-    .chart-card {
-        background: white;
-        border-radius: 16px;
-        border: none;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        overflow: hidden;
-    }
-
-    .chart-card .card-header {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border-bottom: 1px solid #e2e8f0;
-        padding: 1rem 1.25rem;
-        font-weight: 600;
-        color: #374151;
-    }
-
-    .chart-card .card-body {
-        padding: 1.25rem;
-    }
-
-    /* Modern List Card */
-    .list-card {
-        background: white;
-        border-radius: 16px;
-        border: none;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        overflow: hidden;
-    }
-
-    .list-card .card-header {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border-bottom: 1px solid #e2e8f0;
-        padding: 1rem 1.25rem;
-        font-weight: 600;
-        color: #374151;
-    }
-
-    .list-card.dreams .card-header {
-        background: linear-gradient(135deg, #C3EEFA 0%, #7dd3fc 100%);
-        color: #0c4a6e;
-    }
-
-    .list-card.gratitude .card-header {
-        background: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%);
-        color: #831843;
-    }
-
-    .list-card.meals .card-header {
-        background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
-        color: #78350f;
-    }
-
-    .list-card .list-group-item {
-        border-left: none;
-        border-right: none;
-    }
-
-    .list-card .list-group-item:first-child {
-        border-top: none;
-    }
-
-    .entry-preview {
-        max-height: 80px;
-        overflow: hidden;
-        position: relative;
-    }
-    .entry-preview::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 30px;
-        background: linear-gradient(transparent, white);
-    }
-    .dream-badge {
-        background: linear-gradient(135deg, #C3EEFA 0%, #7dd3fc 100%);
-        color: #0c4a6e;
-    }
-    .gratitude-badge {
-        background: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%);
-        color: #831843;
-    }
-    .meal-badge {
-        background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
-        color: #78350f;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
+<link href="{% static 'css/pages/lifestyle.css' %}" rel="stylesheet">
 {% endblock dashboard_css %}
 
 {% block dashboard_content %}
@@ -164,10 +15,10 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-2">
                     <li class="breadcrumb-item"><a href="{% url 'analytics:captures' %}">Captures</a></li>
-                    <li class="breadcrumb-item active">Wellness</li>
+                    <li class="breadcrumb-item active">Lifestyle</li>
                 </ol>
             </nav>
-            <h1><i class="bi bi-heart-pulse me-2"></i>Wellness</h1>
+            <h1><i class="bi bi-stars me-2"></i>Lifestyle</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <label for="yearSelect" class="form-label mb-0 text-muted">Year:</label>

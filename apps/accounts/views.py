@@ -108,6 +108,11 @@ def profile_update(request):
             # Handle devotion toggle
             profile.devotion_enabled = request.POST.get('devotion_enabled') == '1'
 
+            # Handle wellness settings
+            profile.gender = request.POST.get('gender', '')
+            profile.enable_intimacy_tracking = request.POST.get('enable_intimacy_tracking') == '1'
+            profile.enable_cycle_tracking = request.POST.get('enable_cycle_tracking') == '1'
+
             profile.save()
             messages.success(request, 'Insights settings updated successfully.')
             return redirect('accounts:profile')

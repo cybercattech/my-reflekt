@@ -103,6 +103,51 @@ class Profile(models.Model):
     # Spiritual Reflection settings
     devotion_enabled = models.BooleanField(default=False, help_text="Enable daily Christian devotions")
 
+    # Wellness settings
+    GENDER_CHOICES = [
+        ('', 'Prefer not to say'),
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+    ]
+    gender = models.CharField(
+        max_length=10,
+        choices=GENDER_CHOICES,
+        blank=True,
+        default='',
+        help_text="Gender for wellness feature customization"
+    )
+    enable_intimacy_tracking = models.BooleanField(
+        default=False,
+        help_text="Enable special moments (🍀) tracking"
+    )
+    enable_cycle_tracking = models.BooleanField(
+        default=False,
+        help_text="Enable menstrual cycle tracking"
+    )
+
+    # Per-User Encryption
+    encryption_salt = models.BinaryField(
+        max_length=32,
+        null=True,
+        blank=True,
+        help_text="Per-user salt for encryption key derivation"
+    )
+    encryption_version = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="0=global key, 1=per-user key"
+    )
+    key_derivation_iterations = models.PositiveIntegerField(
+        default=600000,
+        help_text="PBKDF2 iterations for key derivation"
+    )
+    recovery_key_hash = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="SHA-256 hash of recovery key for password reset"
+    )
+
     # Stats (denormalized for quick access)
     total_entries = models.IntegerField(default=0)
     current_streak = models.IntegerField(default=0)

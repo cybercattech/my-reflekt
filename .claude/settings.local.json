@@ -31,7 +31,9 @@
       "Bash(git checkout:*)",
       "Bash(git add:*)",
       "Bash(DJANGO_SETTINGS_MODULE=config.settings.development .venv/bin/python:*)",
-      "Bash(.venv/bin/python manage.py shell:*)"
+      "Bash(.venv/bin/python manage.py shell:*)",
+      "Bash(.venv/bin/python:*)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.development python:*)"
     ]
   }
 }
