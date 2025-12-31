@@ -1,3 +1,5 @@
+NO INLINE CSS IN HTML TEMPLATES. FIND THE CORRECT CSS FILE AND COMBINE WITH THE CSS THE WEBSITE ALREADY HAS.
+
 # Reflekt Project Standards
 
 This document outlines the coding standards, conventions, and patterns for the Reflekt journaling application. **Always consult this document before making changes.**

@@ -204,6 +204,10 @@ class YearlyReview(models.Model):
         default=dict,
         help_text="Sentiment score per theme"
     )
+    theme_entry_counts = models.JSONField(
+        default=dict,
+        help_text="Number of entries per theme"
+    )
 
     # Highlights and lowlights (list of entry summaries)
     highlights = models.JSONField(

@@ -67,10 +67,12 @@ def generate_yearly_review_sync(user_id: int, year: int) -> str:
     for e in entries:
         if hasattr(e, 'analysis'):
             all_themes.extend(e.analysis.themes or [])
-    top_themes = [theme for theme, _ in Counter(all_themes).most_common(10)]
+    theme_counts = Counter(all_themes)
+    top_themes = [theme for theme, _ in theme_counts.most_common(10)]
 
-    # Theme sentiments
+    # Theme sentiments and entry counts for top 5 themes
     theme_sentiments = {}
+    theme_entry_counts = {}
     for theme in top_themes[:5]:
         theme_entries = [
             e for e in entries
@@ -80,6 +82,7 @@ def generate_yearly_review_sync(user_id: int, year: int) -> str:
             theme_sentiments[theme] = sum(
                 e.analysis.sentiment_score for e in theme_entries
             ) / len(theme_entries)
+            theme_entry_counts[theme] = len(theme_entries)
 
     # Highlights (top 10 by sentiment)
     sorted_by_sentiment = sorted(
@@ -137,6 +140,7 @@ def generate_yearly_review_sync(user_id: int, year: int) -> str:
             'monthly_trend': monthly_trend,
             'top_themes': top_themes,
             'theme_sentiments': theme_sentiments,
+            'theme_entry_counts': theme_entry_counts,
             'highlights': highlights,
             'lowlights': lowlights,
             'insights': insights,

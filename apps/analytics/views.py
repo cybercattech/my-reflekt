@@ -366,6 +366,12 @@ def monthly_view(request, year, month):
         entry_date__month=month
     ).select_related('analysis').order_by('entry_date')
 
+    # Get all years where user has entries for year selector
+    available_years = Entry.objects.filter(user=user).dates(
+        'entry_date', 'year', order='DESC'
+    )
+    available_years = [d.year for d in available_years]
+
     # Build calendar data
     import calendar
     cal = calendar.Calendar()
@@ -373,6 +379,30 @@ def monthly_view(request, year, month):
 
     # Map entries to days
     entry_map = {e.entry_date.day: e for e in entries}
+
+    # Calculate average sentiment per day of week (0=Monday, 6=Sunday)
+    from collections import defaultdict
+    weekday_sentiments = defaultdict(list)
+    for entry in entries:
+        if hasattr(entry, 'analysis') and entry.analysis:
+            # Python weekday: 0=Monday, but we want 0=Sunday for display
+            weekday = (entry.entry_date.weekday() + 1) % 7  # Convert to 0=Sunday
+            weekday_sentiments[weekday].append(entry.analysis.sentiment_score)
+
+    # Calculate averages for each day of week
+    weekday_averages = {}
+    day_names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    weekday_list = []
+    for day in range(7):  # 0=Sun, 1=Mon, ..., 6=Sat
+        if weekday_sentiments[day]:
+            avg = sum(weekday_sentiments[day]) / len(weekday_sentiments[day])
+            weekday_averages[day] = round(avg, 2)
+        else:
+            weekday_averages[day] = None
+        weekday_list.append({
+            'name': day_names[day],
+            'avg': weekday_averages[day]
+        })
 
     return render(request, 'dashboard/monthly.html', {
         'snapshot': snapshot,
@@ -383,6 +413,9 @@ def monthly_view(request, year, month):
         'month': month,
         'month_name': calendar.month_name[month],
         'current_year': year,
+        'available_years': available_years,
+        'weekday_averages': weekday_averages,
+        'weekday_list': weekday_list,
         'active_page': 'monthly',
     })
 
@@ -436,10 +469,25 @@ def yearly_view(request, year):
         # Serialize monthly_trend for JavaScript
         monthly_trend_json = json.dumps(review.monthly_trend) if review and review.monthly_trend else '[]'
 
+    # Prepare theme data for radar chart (top 5 themes with entry counts)
+    theme_radar_json = '[]'
+    if review and review.top_themes:
+        theme_entry_counts = review.theme_entry_counts or {}
+        theme_sentiments = review.theme_sentiments or {}
+        theme_radar_data = []
+        for theme in review.top_themes[:5]:
+            theme_radar_data.append({
+                'theme': theme,
+                'count': theme_entry_counts.get(theme, 0),
+                'sentiment': theme_sentiments.get(theme, 0),
+            })
+        theme_radar_json = json.dumps(theme_radar_data)
+
     return render(request, 'dashboard/yearly.html', {
         'review': review,
         'monthly_snapshots': monthly_snapshots,
         'monthly_trend_json': monthly_trend_json,
+        'theme_radar_json': theme_radar_json,
         'year': year,
         'current_year': year,
         'available_years': available_years,

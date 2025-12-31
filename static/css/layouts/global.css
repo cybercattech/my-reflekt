@@ -235,11 +235,32 @@ body.no-footer .site-footer {
 }
 
 /* ==========================================================================
-   NAVBAR HEIGHT VARIABLE
+   CSS VARIABLES
    ========================================================================== */
 :root {
     --navbar-height: 56px;
     --footer-height: 50px;
     --sidebar-left-width: 240px;
     --sidebar-right-width: 280px;
+
+    /* Mood Colors - Standardized across the site */
+    --mood-ecstatic: #22c55e;
+    --mood-ecstatic-light: #4ade80;
+    --mood-ecstatic-gradient: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+
+    --mood-happy: #f59e0b;
+    --mood-happy-light: #fbbf24;
+    --mood-happy-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+
+    --mood-neutral: #6b7280;
+    --mood-neutral-light: #9ca3af;
+    --mood-neutral-gradient: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+
+    --mood-sad: #3b82f6;
+    --mood-sad-light: #60a5fa;
+    --mood-sad-gradient: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+
+    --mood-angry: #dc2626;
+    --mood-angry-light: #ef4444;
+    --mood-angry-gradient: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
 }

@@ -474,5 +474,17 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
         });
     }
+
+    // Hover to expand collapsed sidebar
+    if (sidebar) {
+        sidebar.onmouseenter = function() {
+            if (this.classList.contains('collapsed')) {
+                this.classList.add('hover-expanded');
+            }
+        };
+        sidebar.onmouseleave = function() {
+            this.classList.remove('hover-expanded');
+        };
+    }
 });
 </script>

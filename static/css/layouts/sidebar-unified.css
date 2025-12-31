@@ -23,6 +23,15 @@
     width: 60px;
 }
 
+/* Smooth transitions for inner elements during hover expand */
+.app-sidebar .sidebar-section-toggle span,
+.app-sidebar .sidebar-link span,
+.app-sidebar .toggle-icon,
+.app-sidebar .sidebar-link .badge,
+.app-sidebar .sidebar-link .link-dot {
+    transition: opacity 0.15s ease;
+}
+
 .app-sidebar.collapsed .sidebar-section-toggle span,
 .app-sidebar.collapsed .sidebar-link span,
 .app-sidebar.collapsed .toggle-icon,
@@ -52,6 +61,60 @@
 
 .app-sidebar.collapsed .sidebar-section-content {
     padding-left: 0;
+}
+
+/* ==========================================================================
+   HOVER TO EXPAND - When collapsed, expand on hover
+   Uses .hover-expanded class added by JavaScript for reliability
+   ========================================================================== */
+.app-sidebar.collapsed.hover-expanded {
+    width: 260px !important;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+}
+
+.app-sidebar.collapsed.hover-expanded .sidebar-content {
+    overflow-x: visible !important;
+}
+
+.app-sidebar.collapsed.hover-expanded .sidebar-section-toggle span,
+.app-sidebar.collapsed.hover-expanded .sidebar-link span,
+.app-sidebar.collapsed.hover-expanded .toggle-icon,
+.app-sidebar.collapsed.hover-expanded .sidebar-link .badge {
+    display: inline !important;
+}
+
+.app-sidebar.collapsed.hover-expanded .sidebar-section-toggle {
+    justify-content: flex-start !important;
+    padding: 0.75rem 1.25rem !important;
+}
+
+.app-sidebar.collapsed.hover-expanded .sidebar-section-toggle i:first-child {
+    margin-right: 0.75rem !important;
+    font-size: 1.1rem !important;
+}
+
+.app-sidebar.collapsed.hover-expanded .sidebar-link {
+    justify-content: flex-start !important;
+    padding: 0.5rem 1.25rem !important;
+    margin: 2px 0.5rem 2px 0 !important;
+    gap: 0.75rem !important;
+}
+
+.app-sidebar.collapsed.hover-expanded .sidebar-link .link-dot {
+    display: block !important;
+}
+
+.app-sidebar.collapsed.hover-expanded .sidebar-section-content {
+    padding-left: 1rem !important;
+}
+
+/* Hide tooltips when expanded on hover */
+.app-sidebar.collapsed.hover-expanded .sidebar-section-toggle::after,
+.app-sidebar.collapsed.hover-expanded .sidebar-link::after {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
 }
 
 /* Collapse Toggle Button */
