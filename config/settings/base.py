@@ -183,6 +183,7 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3  # Link expires after 3 days
 ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = 180  # 3 minutes between resend requests
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True  # Auto-login after verification
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Reflekt] '  # Email subject prefix
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/dashboard/'  # Redirect after email verification
 
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'

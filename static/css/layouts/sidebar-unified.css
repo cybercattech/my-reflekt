@@ -61,6 +61,8 @@
 
 .app-sidebar.collapsed .sidebar-section-content {
     padding-left: 0;
+    max-height: 0 !important;
+    display: none;
 }
 
 /* ==========================================================================
@@ -107,6 +109,11 @@
 
 .app-sidebar.collapsed.hover-expanded .sidebar-section-content {
     padding-left: 1rem !important;
+    display: block !important;
+}
+
+.app-sidebar.collapsed.hover-expanded .sidebar-section-content.show {
+    max-height: 500px !important;
 }
 
 /* Hide tooltips when expanded on hover */
@@ -183,7 +190,9 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0.75rem 0;
+    padding: 0.75rem 0 4rem 0; /* Extra bottom padding for collapse button */
+    /* Ensure scrolling works - calculate height minus toggle button area */
+    max-height: calc(100vh - 56px - 60px); /* viewport - navbar - collapse button area */
 }
 
 .sidebar-content::-webkit-scrollbar {

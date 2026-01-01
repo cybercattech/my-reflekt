@@ -873,7 +873,7 @@ def family_management(request):
     # Get family members
     family_members = FamilyMember.get_active_members(request.user)
     member_count = family_members.count()
-    max_members = 5  # Maximum family members (configurable)
+    max_members = 4  # Maximum family members (configurable)
 
     return render(request, 'accounts/family_management.html', {
         'family_members': family_members,
@@ -954,7 +954,7 @@ def add_family_member(request):
         admin=request.user,
         status__in=['active', 'pending']
     ).exclude(member=request.user).count()
-    max_members = 5
+    max_members = 4
 
     if current_count >= max_members:
         return JsonResponse({'success': False, 'error': f'Family plan limit reached ({max_members} members max)'}, status=400)

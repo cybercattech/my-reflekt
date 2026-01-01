@@ -466,14 +466,62 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isCollapsed) {
             sidebar.classList.add('collapsed');
             document.body.classList.add('sidebar-collapsed');
+            // Close all sections when starting collapsed
+            closeAllSections();
         }
 
         collapseToggle.addEventListener('click', function() {
+            const wasCollapsed = sidebar.classList.contains('collapsed');
             sidebar.classList.toggle('collapsed');
             document.body.classList.toggle('sidebar-collapsed');
 
-            // Save state
+            if (!wasCollapsed) {
+                // Collapsing: save current open sections and close all
+                const openSections = [];
+                document.querySelectorAll('.sidebar-section-toggle.active[data-section]').forEach(function(t) {
+                    openSections.push(t.dataset.section);
+                });
+                localStorage.setItem('sidebarSectionsBeforeCollapse', JSON.stringify(openSections));
+                closeAllSections();
+            } else {
+                // Expanding: restore previously open sections
+                const savedSections = localStorage.getItem('sidebarSectionsBeforeCollapse');
+                if (savedSections) {
+                    const sections = JSON.parse(savedSections);
+                    sections.forEach(function(section) {
+                        const toggle = document.querySelector('[data-section="' + section + '"]');
+                        const content = document.getElementById('section-' + section);
+                        if (toggle && content) {
+                            toggle.classList.add('active');
+                            content.classList.add('show');
+                        }
+                    });
+                }
+                // Also ensure active page section is open
+                document.querySelectorAll('.sidebar-link.active').forEach(function(link) {
+                    const content = link.closest('.sidebar-section-content');
+                    if (content) {
+                        content.classList.add('show');
+                        const toggle = content.previousElementSibling;
+                        if (toggle && toggle.classList.contains('sidebar-section-toggle')) {
+                            toggle.classList.add('active');
+                        }
+                    }
+                });
+            }
+
+            // Save collapsed state
             localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        });
+    }
+
+    // Helper function to close all sections
+    function closeAllSections() {
+        document.querySelectorAll('.sidebar-section-toggle[data-section]').forEach(function(toggle) {
+            toggle.classList.remove('active');
+        });
+        document.querySelectorAll('.sidebar-section-content').forEach(function(content) {
+            content.classList.remove('show');
         });
     }
 
@@ -482,10 +530,38 @@ document.addEventListener('DOMContentLoaded', function() {
         sidebar.onmouseenter = function() {
             if (this.classList.contains('collapsed')) {
                 this.classList.add('hover-expanded');
+                // Restore sections when hovering
+                const savedSections = localStorage.getItem('sidebarSectionsBeforeCollapse');
+                if (savedSections) {
+                    const sections = JSON.parse(savedSections);
+                    sections.forEach(function(section) {
+                        const toggle = document.querySelector('[data-section="' + section + '"]');
+                        const content = document.getElementById('section-' + section);
+                        if (toggle && content) {
+                            toggle.classList.add('active');
+                            content.classList.add('show');
+                        }
+                    });
+                }
+                // Also ensure active page section is open
+                document.querySelectorAll('.sidebar-link.active').forEach(function(link) {
+                    const content = link.closest('.sidebar-section-content');
+                    if (content) {
+                        content.classList.add('show');
+                        const toggle = content.previousElementSibling;
+                        if (toggle && toggle.classList.contains('sidebar-section-toggle')) {
+                            toggle.classList.add('active');
+                        }
+                    }
+                });
             }
         };
         sidebar.onmouseleave = function() {
-            this.classList.remove('hover-expanded');
+            if (this.classList.contains('collapsed')) {
+                this.classList.remove('hover-expanded');
+                // Close sections again when mouse leaves
+                closeAllSections();
+            }
         };
     }
 });

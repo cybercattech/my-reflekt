@@ -66,6 +66,34 @@
                             {% endif %}
                         </div>
 
+                        <!-- Username Field -->
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text">@</span>
+                                <input type="text"
+                                       name="username"
+                                       id="id_username"
+                                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                                       placeholder="your_username"
+                                       value="{{ form.username.value|default:'' }}"
+                                       pattern="[a-zA-Z0-9_]+"
+                                       minlength="3"
+                                       maxlength="30"
+                                       required>
+                            </div>
+                            {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.username.errors }}
+                            </div>
+                            {% else %}
+                            <div class="form-text small">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Letters, numbers, and underscores only. Friends can find you by @username.
+                            </div>
+                            {% endif %}
+                        </div>
+
                         <!-- Password Field -->
                         <div class="mb-3">
                             <label for="id_password1" class="form-label">Password</label>

@@ -9,7 +9,28 @@ from django.utils import timezone
 
 
 class CustomSignupForm(SignupForm):
-    """Custom signup form with terms and privacy acceptance."""
+    """Custom signup form with username, terms and privacy acceptance."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add username field after email
+        self.fields['username'] = forms.CharField(
+            required=True,
+            min_length=3,
+            max_length=30,
+            label='Username',
+            widget=forms.TextInput(attrs={
+                'placeholder': 'your_username',
+                'pattern': '[a-zA-Z0-9_]+',
+                'class': 'form-control',
+            }),
+            help_text='Your unique @username for friends to find you. Letters, numbers, and underscores only.',
+            error_messages={'required': 'Username is required.'}
+        )
+        # Reorder fields to put username after email
+        field_order = ['email', 'username', 'password1', 'password2', 'terms_accepted', 'privacy_accepted']
+        self.order_fields(field_order)
+
     terms_accepted = forms.BooleanField(
         required=True,
         label='',
@@ -21,11 +42,33 @@ class CustomSignupForm(SignupForm):
         error_messages={'required': 'You must accept the Privacy Policy to create an account.'}
     )
 
+    def clean_username(self):
+        """Validate username is unique and properly formatted."""
+        from .models import Profile
+        import re
+
+        username = self.cleaned_data.get('username', '').strip().lower()
+
+        if not username:
+            raise forms.ValidationError('Username is required.')
+
+        if len(username) < 3:
+            raise forms.ValidationError('Username must be at least 3 characters.')
+
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            raise forms.ValidationError('Username can only contain letters, numbers, and underscores.')
+
+        if Profile.objects.filter(username=username).exists():
+            raise forms.ValidationError('This username is already taken.')
+
+        return username
+
     def save(self, request):
         user = super().save(request)
 
-        # Store terms acceptance in user profile
+        # Store terms acceptance and username in user profile
         profile = user.profile
+        profile.username = self.cleaned_data.get('username').lower()
         profile.terms_accepted = self.cleaned_data.get('terms_accepted')
         profile.privacy_accepted = self.cleaned_data.get('privacy_accepted')
         profile.terms_accepted_at = timezone.now()
@@ -97,9 +140,16 @@ class AccountAdapter(DefaultAccountAdapter):
         messages.info(request, 'Complete your payment to unlock premium features!')
         return reverse('accounts:process_plan_selection')
 
-    def get_email_confirmation_redirect_url(self, request):
+    def get_email_verification_redirect_url(self, email_address):
         """
-        Redirect user after email confirmation to the dashboard/overview.
+        Redirect user after email verification to the dashboard.
+        Note: New allauth API uses email_address instead of request.
         """
-        messages.success(request, '✅ Email verified! Welcome to Reflekt.')
         return reverse('analytics:dashboard')
+
+    def get_login_redirect_url(self, request):
+        """
+        Redirect user after login to the dashboard.
+        """
+        return reverse('analytics:dashboard')
+

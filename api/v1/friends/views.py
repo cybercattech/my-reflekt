@@ -154,6 +154,14 @@ class SendFriendRequestView(APIView):
             message=message
         )
 
+        # Send friend request notification email
+        try:
+            from apps.accounts.tasks import send_friend_request_email
+            send_friend_request_email.delay(friend_request.id)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Could not queue friend request email: {e}")
+
         return Response(
             FriendRequestSerializer(friend_request).data,
             status=status.HTTP_201_CREATED
@@ -326,7 +334,13 @@ class SendInvitationView(APIView):
             message=serializer.validated_data.get('message', '')
         )
 
-        # TODO: Send invitation email
+        # Send invitation email
+        try:
+            from apps.accounts.tasks import send_invitation_email
+            send_invitation_email.delay(invitation.id)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Could not queue invitation email: {e}")
 
         return Response(
             InvitationSerializer(invitation).data,
