@@ -222,9 +222,9 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Floating New Entry Button (authenticated users only) -->
+    <!-- Floating Feedback Button (authenticated users only) -->
     {% if user.is_authenticated %}
-    {% include "partials/_new_entry_button.html" %}
+    {% include "partials/_feedback_button.html" %}
     {% endif %}
 
     <!-- Footer (from partial) -->

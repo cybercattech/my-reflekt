@@ -256,6 +256,56 @@
                 </form>
 </div>
 
+<!-- Draft Restore Modal -->
+<div class="modal fade" id="draftRestoreModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="bi bi-clock-history text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="mb-2">Restore Draft?</h5>
+                <p class="text-muted small mb-4" id="draftRestoreMessage">
+                    You have an unsaved draft from a previous session.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" id="draftDiscardBtn">
+                        <i class="bi bi-trash me-1"></i>Discard
+                    </button>
+                    <button type="button" class="btn btn-primary rounded-pill px-3" id="draftRestoreBtn">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unsaved Changes Modal -->
+<div class="modal fade" id="unsavedChangesModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="mb-2">Unsaved Changes</h5>
+                <p class="text-muted small mb-4">
+                    You have unsaved changes. Are you sure you want to leave?
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" id="unsavedStayBtn">
+                        <i class="bi bi-pencil me-1"></i>Keep Editing
+                    </button>
+                    <button type="button" class="btn btn-danger rounded-pill px-3" id="unsavedLeaveBtn">
+                        <i class="bi bi-box-arrow-right me-1"></i>Leave
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Quick Picker Modal (simplified slash commands) -->
 <div class="modal fade" id="quickPickerModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -2198,39 +2248,152 @@ document.addEventListener('DOMContentLoaded', function() {
 
     {% endif %}
 
-    // Restore from local storage if newer
+    // Track if there are unsaved changes
+    let hasUnsavedChanges = false;
+    let pendingNavigation = null;
+
+    // Draft restore modal elements
+    const draftRestoreModal = new bootstrap.Modal(document.getElementById('draftRestoreModal'));
+    const draftRestoreMessage = document.getElementById('draftRestoreMessage');
+    const draftRestoreBtn = document.getElementById('draftRestoreBtn');
+    const draftDiscardBtn = document.getElementById('draftDiscardBtn');
+
+    // Unsaved changes modal elements
+    const unsavedChangesModal = new bootstrap.Modal(document.getElementById('unsavedChangesModal'));
+    const unsavedStayBtn = document.getElementById('unsavedStayBtn');
+    const unsavedLeaveBtn = document.getElementById('unsavedLeaveBtn');
+
+    // Restore from local storage if newer than saved version
     const key = 'reflekt-entry-{% if entry %}{{ entry.pk }}{% else %}new{% endif %}';
     const saved = localStorage.getItem(key);
+
+    function restoreDraft(data) {
+        document.getElementById('id_title').value = data.title || document.getElementById('id_title').value;
+        {% if editor_preference == 'rich_text' %}
+        quill.root.innerHTML = data.content;
+        document.getElementById('id_content').value = data.content;
+        updateWordCount(quill.getText());
+        {% else %}
+        easyMDE.value(data.content);
+        updateWordCount(data.content);
+        {% endif %}
+    }
+
     if (saved) {
         try {
             const data = JSON.parse(saved);
-            // Only restore if less than 24 hours old and user confirms
+            // Only restore if less than 24 hours old
             if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
                 {% if is_new %}
-                // For new entries, auto-restore
+                // For new entries, restore if there's content
                 if (data.content && data.content.trim()) {
-                    if (confirm('Restore your unsaved draft?')) {
-                        document.getElementById('id_title').value = data.title || '';
-                        {% if editor_preference == 'rich_text' %}
-                        quill.root.innerHTML = data.content;
-                        document.getElementById('id_content').value = data.content;
-                        updateWordCount(quill.getText());
-                        {% else %}
-                        easyMDE.value(data.content);
-                        updateWordCount(data.content);
-                        {% endif %}
-                    }
+                    // Format timestamp for display
+                    const savedTime = new Date(data.timestamp);
+                    const timeAgo = getTimeAgo(savedTime);
+                    draftRestoreMessage.textContent = `You have an unsaved draft from ${timeAgo}.`;
+
+                    // Show custom modal
+                    draftRestoreModal.show();
+
+                    // Store data for restore/discard handlers
+                    draftRestoreBtn.onclick = function() {
+                        restoreDraft(data);
+                        draftRestoreModal.hide();
+                    };
+
+                    draftDiscardBtn.onclick = function() {
+                        localStorage.removeItem(key);
+                        draftRestoreModal.hide();
+                    };
+                }
+                {% else %}
+                // For existing entries, check if draft is newer than what's loaded
+                const currentContent = {% if editor_preference == 'rich_text' %}quill.root.innerHTML{% else %}easyMDE.value(){% endif %};
+                if (data.content && data.content.trim() && data.content !== currentContent) {
+                    const savedTime = new Date(data.timestamp);
+                    const timeAgo = getTimeAgo(savedTime);
+                    draftRestoreMessage.textContent = `You have unsaved changes from ${timeAgo}.`;
+
+                    draftRestoreModal.show();
+
+                    draftRestoreBtn.onclick = function() {
+                        restoreDraft(data);
+                        draftRestoreModal.hide();
+                    };
+
+                    draftDiscardBtn.onclick = function() {
+                        localStorage.removeItem(key);
+                        draftRestoreModal.hide();
+                    };
                 }
                 {% endif %}
+            } else {
+                // Draft is too old, clear it
+                localStorage.removeItem(key);
             }
         } catch (e) {
-            console.log('Could not restore draft');
+            console.log('Could not restore draft:', e);
         }
     }
 
+    // Helper function to format time ago
+    function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        if (seconds < 60) return 'just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        return 'yesterday';
+    }
+
+    // Update the autoSave function to track unsaved changes
+    const originalAutoSave = autoSave;
+    autoSave = function(content) {
+        hasUnsavedChanges = true;
+        originalAutoSave(content);
+    };
+
     // Clear local storage on successful save
     document.getElementById('entry-form').addEventListener('submit', function() {
+        hasUnsavedChanges = false;
         localStorage.removeItem(key);
+    });
+
+    // Intercept navigation links when there are unsaved changes
+    document.querySelectorAll('a[href]').forEach(link => {
+        // Skip links that open in new tabs or are javascript/anchor links
+        if (link.target === '_blank' || link.href.startsWith('javascript:') || link.href.startsWith('#')) return;
+
+        link.addEventListener('click', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                pendingNavigation = this.href;
+                unsavedChangesModal.show();
+            }
+        });
+    });
+
+    // Handle unsaved changes modal buttons
+    unsavedStayBtn.addEventListener('click', function() {
+        pendingNavigation = null;
+        unsavedChangesModal.hide();
+    });
+
+    unsavedLeaveBtn.addEventListener('click', function() {
+        hasUnsavedChanges = false; // Prevent beforeunload
+        if (pendingNavigation) {
+            window.location.href = pendingNavigation;
+        }
+    });
+
+    // Still use beforeunload for browser refresh/close (can't prevent with custom modal)
+    window.addEventListener('beforeunload', function(e) {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
     });
 
     // Attachment upload handling

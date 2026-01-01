@@ -1,0 +1,134 @@
+<!-- Floating Feedback Button - Fixed at bottom right -->
+<div class="feedback-fab-container">
+    <button type="button" class="feedback-fab btn" data-bs-toggle="modal" data-bs-target="#feedbackModal" title="Send Feedback">
+        <i class="bi bi-chat-heart"></i>
+    </button>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="feedbackModalLabel">
+                    <i class="bi bi-chat-heart me-2 text-primary"></i>Send Feedback
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="feedbackForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">What type of feedback?</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <input type="radio" class="btn-check" name="feedback_type" id="typeSuggestion" value="idea" checked>
+                            <label class="btn btn-outline-primary rounded-pill" for="typeSuggestion">
+                                <i class="bi bi-lightbulb me-1"></i>Suggestion
+                            </label>
+
+                            <input type="radio" class="btn-check" name="feedback_type" id="typeBug" value="bug">
+                            <label class="btn btn-outline-danger rounded-pill" for="typeBug">
+                                <i class="bi bi-bug me-1"></i>Bug Report
+                            </label>
+
+                            <input type="radio" class="btn-check" name="feedback_type" id="typeOther" value="other">
+                            <label class="btn btn-outline-secondary rounded-pill" for="typeOther">
+                                <i class="bi bi-three-dots me-1"></i>Other
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="feedbackSubject" class="form-label fw-medium">Subject</label>
+                        <input type="text" class="form-control" id="feedbackSubject" name="subject"
+                               placeholder="Brief summary of your feedback" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="feedbackMessage" class="form-label fw-medium">Details</label>
+                        <textarea class="form-control" id="feedbackMessage" name="message" rows="4"
+                                  placeholder="Tell us more..." required></textarea>
+                    </div>
+                </form>
+
+                <!-- Success/Error Messages -->
+                <div id="feedbackAlert" class="alert d-none" role="alert"></div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="submitFeedbackBtn" class="btn btn-primary rounded-pill px-4">
+                    <i class="bi bi-send me-1"></i>Send Feedback
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('feedbackForm');
+    const submitBtn = document.getElementById('submitFeedbackBtn');
+    const alertDiv = document.getElementById('feedbackAlert');
+    const modal = document.getElementById('feedbackModal');
+
+    submitBtn.addEventListener('click', async function() {
+        const subject = document.getElementById('feedbackSubject').value.trim();
+        const message = document.getElementById('feedbackMessage').value.trim();
+        const feedbackType = document.querySelector('input[name="feedback_type"]:checked').value;
+
+        if (!subject || !message) {
+            showAlert('Please fill in all required fields.', 'danger');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending...';
+
+        try {
+            const response = await fetch('{% url "accounts:submit_feedback" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    feedback_type: feedbackType,
+                    subject: subject,
+                    message: message,
+                    page_url: window.location.href
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('Thank you for your feedback! We appreciate it.', 'success');
+                form.reset();
+                // Close modal after 2 seconds
+                setTimeout(() => {
+                    bootstrap.Modal.getInstance(modal).hide();
+                    alertDiv.classList.add('d-none');
+                }, 2000);
+            } else {
+                showAlert(data.error || 'Something went wrong. Please try again.', 'danger');
+            }
+        } catch (error) {
+            showAlert('Network error. Please check your connection and try again.', 'danger');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-send me-1"></i>Send Feedback';
+        }
+    });
+
+    // Reset form when modal is closed
+    modal.addEventListener('hidden.bs.modal', function() {
+        form.reset();
+        alertDiv.classList.add('d-none');
+    });
+
+    function showAlert(message, type) {
+        alertDiv.textContent = message;
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.classList.remove('d-none');
+    }
+});
+</script>
