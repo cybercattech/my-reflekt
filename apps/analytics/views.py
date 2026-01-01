@@ -26,6 +26,13 @@ def dashboard(request):
     now = timezone.now()
     current_year = now.year
 
+    # Ensure user has a profile (safety check for edge cases)
+    from apps.accounts.models import Profile
+    try:
+        _ = user.profile
+    except Profile.DoesNotExist:
+        Profile.objects.create(user=user)
+
     # Get current month snapshot
     current_snapshot = MonthlySnapshot.objects.filter(
         user=user,
