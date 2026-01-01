@@ -131,7 +131,7 @@ body.no-scroll .alert {
     overflow: hidden;
 }
 
-/* Editor column takes remaining space after sidebar */
+/* Editor column takes remaining space */
 .editor-column {
     flex: 1;
     min-height: 0;
@@ -140,24 +140,17 @@ body.no-scroll .alert {
     overflow: hidden;
 }
 
-/* Sidebar column - stacked, doesn't shrink */
-.sidebar-column {
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
 /* Editor container fills editor column */
 .editor-container {
     background: white;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    position: relative;
 }
 
 /* Spin animation for location button */
@@ -306,6 +299,25 @@ body.no-scroll .alert {
     border-color: #e5e7eb;
 }
 
+/* POV toolbar button - uses Bootstrap Icons */
+.EasyMDEContainer .editor-toolbar button[title="Share POV with a friend"] {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+}
+
+.EasyMDEContainer .editor-toolbar button[title="Share POV with a friend"]:hover {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #4f46e5;
+}
+
+.EasyMDEContainer .editor-toolbar button[title="Share POV with a friend"] .bi-people::before {
+    font-size: 1rem;
+}
+
 /* Reduce header sizes in EasyMDE editor */
 .EasyMDEContainer .cm-header-1 {
     font-size: 1.4rem;
@@ -335,16 +347,268 @@ body.no-scroll .alert {
 }
 
 /* =====================================================
-   WORD COUNT & SAVE STATUS
+   COMBINED BOTTOM BAR (Word Count + Tracked Items + Attachments)
    ===================================================== */
 
-.word-count {
-    text-align: right;
-    font-size: 0.8rem;
-    color: #9ca3af;
-    padding: 0.75rem 1rem;
+.editor-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
     border-top: 1px solid #f3f4f6;
     flex-shrink: 0;
+    background: #fafafa;
+    gap: 1rem;
+}
+
+.bottom-bar-left {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.bottom-bar-center {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.bottom-bar-right {
+    flex-shrink: 0;
+}
+
+.word-count-inline {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+/* Tracked Items Inline */
+.tracked-items-inline {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.captures-list-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.25rem 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.captures-list-inline::-webkit-scrollbar {
+    display: none;
+}
+
+.capture-pill-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    color: #374151;
+    white-space: nowrap;
+    transition: all 0.15s;
+    cursor: default;
+}
+
+.capture-pill-sm:hover {
+    background: #e5e7eb;
+}
+
+.capture-pill-sm i {
+    font-size: 0.7rem;
+}
+
+.capture-pill-sm .capture-text {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.capture-pill-sm .capture-delete {
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0 0.125rem;
+    margin-left: 0.125rem;
+}
+
+.capture-pill-sm .capture-delete:hover {
+    color: #ef4444;
+}
+
+/* Capture pill color variants (small) */
+.capture-pill-sm.travel { border-color: #3b82f6; background: #eff6ff; }
+.capture-pill-sm.place { border-color: #10b981; background: #ecfdf5; }
+.capture-pill-sm.workout { border-color: #ef4444; background: #fef2f2; }
+.capture-pill-sm.watched { border-color: #8b5cf6; background: #f5f3ff; }
+.capture-pill-sm.meal { border-color: #f59e0b; background: #fffbeb; }
+.capture-pill-sm.dream { border-color: #6366f1; background: #eef2ff; }
+.capture-pill-sm.gratitude { border-color: #ec4899; background: #fdf2f8; }
+.capture-pill-sm.pain { border-color: #dc2626; background: #fef2f2; }
+.capture-pill-sm.intimacy { border-color: #be185d; background: #fdf2f8; }
+.capture-pill-sm.cycle { border-color: #f97316; background: #fff7ed; }
+
+/* Attachment Button */
+.btn-attachment {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.35rem 0.6rem;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-attachment:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+.btn-attachment i {
+    font-size: 1rem;
+}
+
+/* Attachment Panel (Dropdown) */
+.attachment-panel {
+    position: fixed;
+    bottom: 60px;
+    right: 2rem;
+    width: 320px;
+    max-height: 350px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.attachment-panel.show {
+    display: flex;
+}
+
+.attachment-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #374151;
+}
+
+.upload-zone-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.upload-zone-compact:hover {
+    background: #f3f4f6;
+}
+
+.upload-zone-compact.dragover {
+    background: #eef2ff;
+    border-color: #4f46e5;
+}
+
+.upload-zone-compact i {
+    color: #9ca3af;
+}
+
+.upload-zone-compact .browse-link {
+    color: #4f46e5;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.attachments-gallery-compact {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+    max-height: 200px;
+}
+
+.attachment-item-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    background: #f9fafb;
+    margin-bottom: 0.5rem;
+}
+
+.attachment-item-compact:last-child {
+    margin-bottom: 0;
+}
+
+.attachment-item-compact img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.attachment-item-compact .file-icon-sm {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5e7eb;
+    border-radius: 4px;
+}
+
+.attachment-item-compact .file-icon-sm i {
+    font-size: 1.25rem;
+    color: #6b7280;
+}
+
+.attachment-item-compact .file-icon-sm.audio i { color: #8b5cf6; }
+.attachment-item-compact .file-icon-sm.video i { color: #ec4899; }
+
+.attachment-item-compact .file-name-compact {
+    flex: 1;
+    font-size: 0.8rem;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.attachment-item-compact .delete-btn-sm {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+.attachment-item-compact .delete-btn-sm:hover {
+    color: #ef4444;
+    background: #fef2f2;
 }
 
 .save-status {
@@ -666,8 +930,8 @@ body.no-scroll .alert {
    ===================================================== */
 
 .slash-command-menu {
-    position: absolute;
-    z-index: 1000;
+    position: fixed;
+    z-index: 9999;
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);

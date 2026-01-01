@@ -68,6 +68,22 @@ def entry_list(request):
     if mood:
         entries = entries.filter(mood=mood)
 
+    # Filter by date range (start_date and end_date)
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    if start_date:
+        try:
+            start_date_obj = date.fromisoformat(start_date)
+            entries = entries.filter(entry_date__gte=start_date_obj)
+        except ValueError:
+            start_date = ''
+    if end_date:
+        try:
+            end_date_obj = date.fromisoformat(end_date)
+            entries = entries.filter(entry_date__lte=end_date_obj)
+        except ValueError:
+            end_date = ''
+
     # Filter by capture type (for sidebar navigation)
     filter_type = request.GET.get('type', '')
     if filter_type:
@@ -502,6 +518,8 @@ def entry_list(request):
         'entries': entries,
         'query': query,
         'mood': mood,
+        'start_date': start_date,
+        'end_date': end_date,
         'filter_type': filter_type,
         'selected_date': selected_date,
         'filter_date': filter_date,
@@ -542,6 +560,113 @@ def entry_list(request):
         'map_locations': map_locations,
         'total_places': total_places,
         'highest_badge': highest_badge,
+    })
+
+
+@login_required
+def yearly_calendar(request, year=None):
+    """Display a yearly calendar view showing all entries for the year."""
+    today = date.today()
+
+    # Default to current year if not specified
+    if year is None:
+        year = today.year
+
+    # Get all years that have entries for the year selector
+    years_with_entries = Entry.objects.filter(user=request.user).annotate(
+        entry_year=ExtractYear('entry_date')
+    ).values_list('entry_year', flat=True).distinct().order_by('-entry_year')
+    available_years = list(years_with_entries)
+
+    # Ensure current year is in the list even if no entries
+    if today.year not in available_years:
+        available_years.insert(0, today.year)
+
+    # Get all entry dates, word counts, analyzed moods, and PKs for the selected year
+    # Use analysis__detected_mood for AI-analyzed mood instead of user-selected mood
+    entries_data = Entry.objects.filter(
+        user=request.user,
+        entry_date__year=year
+    ).select_related('analysis').values('entry_date', 'word_count', 'pk', 'analysis__detected_mood')
+
+    # Build dicts of date -> word_count, date -> pk, and date -> mood
+    entry_word_counts = {}
+    entry_pks = {}
+    entry_moods = {}
+    for e in entries_data:
+        entry_word_counts[e['entry_date']] = e['word_count'] or 0
+        entry_pks[e['entry_date']] = e['pk']
+        entry_moods[e['entry_date']] = e['analysis__detected_mood'] or ''
+
+    entry_dates = set(entry_word_counts.keys())
+
+    # Calculate max word count for heatmap scaling
+    max_word_count = max(entry_word_counts.values()) if entry_word_counts else 1
+
+    # Build calendar data for all 12 months
+    cal = calendar.Calendar(firstweekday=6)  # Sunday start
+    months_data = []
+
+    for month in range(1, 13):
+        month_data = {
+            'month': month,
+            'month_name': calendar.month_abbr[month],
+            'month_full': calendar.month_name[month],
+            'weeks': []
+        }
+
+        for week in cal.monthdatescalendar(year, month):
+            week_data = []
+            for day in week:
+                has_entry = day in entry_dates
+                word_count = entry_word_counts.get(day, 0)
+                entry_pk = entry_pks.get(day)
+                mood = entry_moods.get(day, '')
+                # Calculate heat level (0-4) for heatmap based on ratio to max
+                if word_count == 0:
+                    heat_level = 0
+                else:
+                    ratio = word_count / max_word_count
+                    if ratio <= 0.25:
+                        heat_level = 1
+                    elif ratio <= 0.50:
+                        heat_level = 2
+                    elif ratio <= 0.75:
+                        heat_level = 3
+                    else:
+                        heat_level = 4
+                week_data.append({
+                    'date': day,
+                    'day': day.day,
+                    'in_month': day.month == month,
+                    'is_today': day == today,
+                    'has_entry': has_entry,
+                    'word_count': word_count,
+                    'heat_level': heat_level,
+                    'entry_pk': entry_pk,
+                    'mood': mood,
+                })
+            month_data['weeks'].append(week_data)
+
+        months_data.append(month_data)
+
+    # Calculate stats for the year
+    entries_count = len(entry_dates)
+
+    # Calculate the total word count for the year
+    total_words = Entry.objects.filter(
+        user=request.user,
+        entry_date__year=year
+    ).aggregate(total=Sum('word_count'))['total'] or 0
+
+    return render(request, 'journal/yearly_calendar.html', {
+        'year': year,
+        'available_years': available_years,
+        'months_data': months_data,
+        'entries_count': entries_count,
+        'total_words': total_words,
+        'today': today,
+        'active_page': 'calendar',
     })
 
 
@@ -719,6 +844,14 @@ def entry_create(request):
         # Check if there's a prompt to pre-fill
         prompt = request.GET.get('prompt', '')
         initial_data = {}
+
+        # Pre-fill entry date if provided
+        prefill_date = request.GET.get('date', '')
+        if prefill_date:
+            try:
+                initial_data['entry_date'] = date.fromisoformat(prefill_date)
+            except ValueError:
+                pass
 
         # Pre-fill with challenge prompt if available
         if challenge_prompt:
@@ -1292,6 +1425,8 @@ SLASH_COMMANDS = [
         'name': 'Book',
         'icon': 'bi-book',
         'description': 'Log a book you\'re reading',
+        'special': 'hybrid_picker',
+        'captureType': 'book',
         'fields': [
             {'name': 'title', 'label': 'Title', 'type': 'text', 'required': True},
             {'name': 'author', 'label': 'Author', 'type': 'text', 'required': False},
@@ -1306,10 +1441,14 @@ SLASH_COMMANDS = [
         'name': 'Watched',
         'icon': 'bi-film',
         'description': 'Log a movie or show',
+        'special': 'hybrid_picker',
+        'captureType': 'watched',
         'fields': [
             {'name': 'title', 'label': 'Title', 'type': 'text', 'required': True},
             {'name': 'type', 'label': 'Type', 'type': 'select', 'required': False,
              'options': [('movie', 'Movie'), ('show', 'TV Show'), ('documentary', 'Documentary')]},
+            {'name': 'season', 'label': 'Season', 'type': 'number', 'required': False},
+            {'name': 'episode', 'label': 'Episode', 'type': 'number', 'required': False},
             {'name': 'rating', 'label': 'Rating', 'type': 'rating', 'required': False},
         ],
     },
@@ -1318,6 +1457,8 @@ SLASH_COMMANDS = [
         'name': 'Travel',
         'icon': 'bi-geo-alt',
         'description': 'Log a trip or journey',
+        'special': 'capture_form',
+        'captureType': 'travel',
         'fields': [
             {'name': 'mode', 'label': 'Mode', 'type': 'select', 'required': True,
              'options': [('car', 'Car'), ('plane', 'Plane'), ('train', 'Train'),
@@ -1331,6 +1472,8 @@ SLASH_COMMANDS = [
         'name': 'Workout',
         'icon': 'bi-heart-pulse',
         'description': 'Log exercise',
+        'special': 'capture_form',
+        'captureType': 'workout',
         'fields': [
             {'name': 'type', 'label': 'Type', 'type': 'select', 'required': True,
              'options': [('run', 'Running'), ('walk', 'Walking'), ('gym', 'Gym'),
@@ -1346,6 +1489,8 @@ SLASH_COMMANDS = [
         'name': 'Person',
         'icon': 'bi-person',
         'description': 'Log who you spent time with',
+        'special': 'capture_form',
+        'captureType': 'person',
         'fields': [
             {'name': 'name', 'label': 'Name', 'type': 'text', 'required': True},
             {'name': 'context', 'label': 'Context', 'type': 'text', 'required': False,
@@ -1357,6 +1502,8 @@ SLASH_COMMANDS = [
         'name': 'Place',
         'icon': 'bi-pin-map',
         'description': 'Log where you are',
+        'special': 'capture_form',
+        'captureType': 'place',
         'fields': [
             {'name': 'name', 'label': 'Name', 'type': 'text', 'required': True},
             {'name': 'type', 'label': 'Type', 'type': 'select', 'required': False,
@@ -1370,6 +1517,8 @@ SLASH_COMMANDS = [
         'name': 'Meal',
         'icon': 'bi-cup-hot',
         'description': 'Log what you ate',
+        'special': 'capture_form',
+        'captureType': 'meal',
         'fields': [
             {'name': 'meal', 'label': 'Meal', 'type': 'select', 'required': True,
              'options': [('breakfast', 'Breakfast'), ('lunch', 'Lunch'),
@@ -1383,18 +1532,35 @@ SLASH_COMMANDS = [
         'name': 'Dream',
         'icon': 'bi-cloud-moon',
         'description': 'Flag as dream journal',
-        'fields': [],
+        'special': 'capture_form',
+        'captureType': 'dream',
+        'fields': [
+            {'name': 'description', 'label': 'Dream description (optional)', 'type': 'textarea', 'required': False,
+             'placeholder': 'Brief summary of the dream...'},
+        ],
     },
     {
         'command': '/gratitude',
         'name': 'Gratitude',
         'icon': 'bi-heart',
         'description': 'Log things you\'re grateful for',
+        'special': 'capture_form',
+        'captureType': 'gratitude',
         'fields': [
             {'name': 'item1', 'label': 'Grateful for...', 'type': 'text', 'required': True},
             {'name': 'item2', 'label': 'Also grateful for...', 'type': 'text', 'required': False},
             {'name': 'item3', 'label': 'And grateful for...', 'type': 'text', 'required': False},
         ],
+    },
+    {
+        'command': '/pov',
+        'name': 'POV Share',
+        'icon': 'bi-people',
+        'description': 'Mark section to share with a friend',
+        'special': 'block_insert',
+        'blockType': 'pov',
+        'hashtag': 'pov',
+        'fields': [],
     },
     {
         'command': '/goal',
@@ -1485,6 +1651,67 @@ def get_slash_commands(request):
         commands = [cmd for cmd in commands if cmd['command'] != '/cycle']
 
     return JsonResponse({'commands': commands})
+
+
+@login_required
+def get_active_captures(request):
+    """Get active/ongoing captures like books being read or shows being watched."""
+    capture_type = request.GET.get('type', '')
+
+    if capture_type == 'book':
+        # Get books with status 'reading' from recent captures
+        captures = EntryCapture.objects.filter(
+            entry__user=request.user,
+            capture_type='book',
+            data__status='reading'
+        ).order_by('-created_at')
+
+        # Deduplicate by title (get most recent entry for each book)
+        seen_titles = set()
+        items = []
+        for capture in captures:
+            title = capture.data.get('title', '').lower()
+            if title and title not in seen_titles:
+                seen_titles.add(title)
+                items.append({
+                    'id': capture.id,
+                    'title': capture.data.get('title', ''),
+                    'author': capture.data.get('author', ''),
+                    'page': capture.data.get('page', ''),
+                    'data': capture.data,
+                })
+                if len(items) >= 10:
+                    break
+
+        return JsonResponse({'items': items})
+
+    elif capture_type == 'watched':
+        # Get TV shows (not movies) that might have multiple episodes
+        captures = EntryCapture.objects.filter(
+            entry__user=request.user,
+            capture_type='watched',
+            data__type='show'
+        ).order_by('-created_at')
+
+        # Deduplicate by title
+        seen_titles = set()
+        items = []
+        for capture in captures:
+            title = capture.data.get('title', '').lower()
+            if title and title not in seen_titles:
+                seen_titles.add(title)
+                items.append({
+                    'id': capture.id,
+                    'title': capture.data.get('title', ''),
+                    'type': capture.data.get('type', 'show'),
+                    'data': capture.data,
+                })
+                if len(items) >= 10:
+                    break
+
+        return JsonResponse({'items': items})
+
+    return JsonResponse({'items': []})
 
 
 @login_required

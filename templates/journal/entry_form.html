@@ -156,9 +156,8 @@
                         </div>
                     </div>
 
-                    <!-- Editor + Sidebar Layout -->
+                    <!-- Editor Layout -->
                     <div class="editor-layout">
-                        <!-- Left Column: Editor -->
                         <div class="editor-column">
                             <div class="editor-container" style="position: relative;">
                                 {% if editor_preference == 'rich_text' %}
@@ -169,9 +168,40 @@
                                 <!-- MyST Markdown Editor (EasyMDE) -->
                                 <textarea name="content" id="editor">{{ form.content.value|default:'' }}</textarea>
                                 {% endif %}
-                                <div class="word-count">
-                                    <span id="wordCount">0</span> words
-                                    <span class="ms-2 text-muted small">Type / for commands</span>
+
+                                <!-- Combined Bottom Bar: Word Count + Tracked Items + Attachments -->
+                                <div class="editor-bottom-bar">
+                                    <div class="bottom-bar-left">
+                                        <span class="word-count-inline">
+                                            <span id="wordCount">0</span> words
+                                        </span>
+                                        <span class="text-muted small ms-2 d-none d-sm-inline">Type / for commands</span>
+                                    </div>
+                                    <div class="bottom-bar-center">
+                                        <!-- Tracked Items (inline) -->
+                                        <div class="tracked-items-inline" id="capturesSection">
+                                            <div class="captures-list-inline" id="capturesList">
+                                                {% if entry %}
+                                                {% for capture in entry.captures.all %}
+                                                <div class="capture-pill-sm {{ capture.capture_type }}" data-id="{{ capture.id }}" title="{{ capture.display_text }}">
+                                                    <i class="bi {{ capture.icon }}"></i>
+                                                    <span class="capture-text">{{ capture.display_text }}</span>
+                                                    <span class="capture-delete" onclick="event.stopPropagation(); deleteCapture({{ capture.id }})" title="Remove">
+                                                        <i class="bi bi-x"></i>
+                                                    </span>
+                                                </div>
+                                                {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="bottom-bar-right">
+                                        <!-- Attachment Button -->
+                                        <button type="button" class="btn-attachment" id="attachmentBtn" title="Add attachments">
+                                            <i class="bi bi-paperclip"></i>
+                                            <span class="badge bg-primary rounded-pill ms-1 {% if not entry or entry.attachments.count == 0 %}d-none{% endif %}" id="attachmentCount">{% if entry %}{{ entry.attachments.count }}{% else %}0{% endif %}</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Slash Command Menu (positioned relative to editor) -->
@@ -181,85 +211,46 @@
                                 <div class="mention-menu" id="mentionMenu"></div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Bottom Row: Tracked Items & Attachments -->
-                        <div class="sidebar-column">
-                            <!-- Captures Section (Tracked Items) -->
-                            <div class="captures-section" id="capturesSection">
-                                <div class="captures-header">
-                                    <i class="bi bi-bookmark-star"></i>
-                                    <span>Tracked Items</span>
-                                    <span class="badge bg-secondary ms-1" id="captureCount">{% if entry %}{{ entry.captures.count }}{% else %}0{% endif %}</span>
-                                </div>
-                                <div class="captures-list" id="capturesList">
-                                    {% if entry %}
-                                    {% for capture in entry.captures.all %}
-                                    <div class="capture-pill {{ capture.capture_type }}" data-id="{{ capture.id }}">
-                                        <i class="bi {{ capture.icon }}"></i>
-                                        <span>{{ capture.display_text }}</span>
-                                        <span class="capture-delete" onclick="deleteCapture({{ capture.id }})" title="Remove">
-                                            <i class="bi bi-x"></i>
-                                        </span>
-                                    </div>
-                                    {% endfor %}
-                                    {% endif %}
-                                </div>
-                                <div class="captures-empty {% if entry and entry.captures.count > 0 %}d-none{% endif %}" id="capturesEmpty">
-                                    <small class="text-muted">Use /place, /travel, /workout</small>
-                                </div>
+                    <!-- Hidden capture count for JS -->
+                    <input type="hidden" id="captureCountValue" value="{% if entry %}{{ entry.captures.count }}{% else %}0{% endif %}">
+
+                    <!-- Attachment Dropdown Panel (hidden by default) -->
+                    <div class="attachment-panel" id="attachmentPanel">
+                        <div class="attachment-panel-header">
+                            <span><i class="bi bi-paperclip me-1"></i>Attachments</span>
+                            <button type="button" class="btn-close btn-close-sm" id="closeAttachmentPanel"></button>
+                        </div>
+                        <div class="upload-zone-compact" id="uploadZone">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <span>Drop files or <span class="browse-link">browse</span></span>
+                            <input type="file" id="fileInput" multiple accept="image/*,audio/*,video/*" style="display:none;">
+                        </div>
+                        <div class="attachments-gallery-compact" id="attachmentsGallery">
+                            {% if entry %}
+                            {% for attachment in entry.attachments.all %}
+                            <div class="attachment-item-compact" data-id="{{ attachment.id }}">
+                                {% if attachment.is_image %}
+                                <img src="{{ attachment.file.url }}" alt="{{ attachment.file_name }}">
+                                {% elif attachment.is_audio %}
+                                <div class="file-icon-sm audio"><i class="bi bi-music-note-beamed"></i></div>
+                                {% elif attachment.is_video %}
+                                <div class="file-icon-sm video"><i class="bi bi-play-circle"></i></div>
+                                {% endif %}
+                                <span class="file-name-compact" title="{{ attachment.file_name }}">{{ attachment.file_name }}</span>
+                                <button type="button" class="delete-btn-sm" onclick="deleteAttachment({{ attachment.id }})">
+                                    <i class="bi bi-x"></i>
+                                </button>
                             </div>
-
-                            <!-- Attachments Section -->
-                            <div class="attachments-section">
-                                <div class="attachments-header">
-                                    <i class="bi bi-paperclip"></i>
-                                    <span>Attachments</span>
-                                    <span class="badge bg-secondary ms-1" id="attachmentCount">{% if entry %}{{ entry.attachments.count }}{% else %}0{% endif %}</span>
-                                </div>
-
-                                <!-- Upload Zone -->
-                                <div class="upload-zone" id="uploadZone">
-                                    <i class="bi bi-cloud-arrow-up d-block"></i>
-                                    <p>Drop files or <span class="browse-link">browse</span></p>
-                                    <input type="file" id="fileInput" multiple accept="image/*,audio/*,video/*" style="display:none;">
-                                </div>
-
-                                <!-- Attachments Gallery -->
-                                <div class="attachments-gallery" id="attachmentsGallery">
-                                    {% if entry %}
-                                    {% for attachment in entry.attachments.all %}
-                                    <div class="attachment-item" data-id="{{ attachment.id }}">
-                                        {% if attachment.is_image %}
-                                        <img src="{{ attachment.file.url }}" alt="{{ attachment.file_name }}">
-                                        {% elif attachment.is_audio %}
-                                        <div class="file-icon audio">
-                                            <i class="bi bi-music-note-beamed"></i>
-                                        </div>
-                                        {% elif attachment.is_video %}
-                                        <div class="file-icon video">
-                                            <i class="bi bi-play-circle"></i>
-                                        </div>
-                                        {% endif %}
-                                        <div class="file-info">
-                                            <div class="file-name" title="{{ attachment.file_name }}">{{ attachment.file_name }}</div>
-                                            <div class="file-size">{{ attachment.size_display }}</div>
-                                        </div>
-                                        <button type="button" class="delete-btn" onclick="deleteAttachment({{ attachment.id }})">
-                                            <i class="bi bi-x"></i>
-                                        </button>
-                                    </div>
-                                    {% endfor %}
-                                    {% endif %}
-                                </div>
-
-                                <!-- Upload Progress -->
-                                <div class="upload-progress d-none" id="uploadProgress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
-                                    </div>
-                                    <small class="text-muted" id="uploadStatus">Uploading...</small>
-                                </div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="upload-progress d-none" id="uploadProgress">
+                            <div class="progress" style="height: 3px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
                             </div>
+                            <small class="text-muted" id="uploadStatus">Uploading...</small>
                         </div>
                     </div>
                 </form>
@@ -333,6 +324,102 @@
         </div>
     </div>
 </div>
+
+<!-- Hybrid Picker Modal (for books, shows with existing items) -->
+<div class="modal fade" id="hybridPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title mb-0" id="hybridPickerTitle">Select</h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="hybridPickerList" class="hybrid-picker-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- POV Share Modal -->
+<div class="modal fade" id="povModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2 bg-primary bg-opacity-10">
+                <h6 class="modal-title d-flex align-items-center mb-0">
+                    <i class="bi bi-people me-2 text-primary"></i>
+                    Share a POV
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <p class="text-muted small mb-3">Share a personal perspective with a friend. They'll see your message in their POV inbox.</p>
+
+                <!-- Friend Selector -->
+                <div class="mb-3">
+                    <label class="form-label small fw-medium">Share with</label>
+                    <select class="form-select" id="povFriendSelect">
+                        <option value="">Select a friend...</option>
+                    </select>
+                </div>
+
+                <!-- POV Message -->
+                <div class="mb-3">
+                    <label class="form-label small fw-medium">Your message</label>
+                    <textarea class="form-control" id="povMessage" rows="4"
+                              placeholder="Write your POV here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" id="povSubmitBtn">
+                    <i class="bi bi-send me-1"></i>Add to Entry
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hybrid-picker-list {
+    max-height: 350px;
+    overflow-y: auto;
+}
+.hybrid-picker-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.15s;
+}
+.hybrid-picker-item:hover {
+    background: #f9fafb;
+}
+.hybrid-picker-item:last-child {
+    border-bottom: none;
+}
+.hybrid-picker-item.create-new {
+    background: #f0fdf4;
+}
+.hybrid-picker-item.create-new:hover {
+    background: #dcfce7;
+}
+.hybrid-picker-divider {
+    padding: 0.5rem 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+    background: #f9fafb;
+    border-bottom: 1px solid #f3f4f6;
+}
+.picker-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
 
 {% endblock %}
 
@@ -466,6 +553,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     {% else %}
     // Initialize EasyMDE for MyST Markdown
+    // Placeholder for POV modal function (defined later after friends list is available)
+    let openPovModal = function() {};
+
+    // Custom POV toolbar button
+    const povToolbarButton = {
+        name: 'pov',
+        action: function(editor) {
+            openPovModal();
+        },
+        className: 'bi bi-people',
+        title: 'Share POV with a friend'
+    };
+
     const easyMDE = new EasyMDE({
         element: document.getElementById('editor'),
         spellChecker: false,
@@ -480,6 +580,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'quote', 'unordered-list', 'ordered-list', '|',
             'link', 'image', 'code', '|',
             'preview', 'side-by-side', 'fullscreen', '|',
+            povToolbarButton, '|',
             'guide'
         ],
         status: false,
@@ -579,12 +680,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // =================================================================
     // SLASH COMMANDS
     // =================================================================
+    console.log('[DEBUG] Slash commands section initialized');
 
     // Slash command configuration - loaded from server (filtered by user settings)
     let slashCommands = [];
 
     // Fetch slash commands from server (filtered based on user's wellness settings)
     async function loadSlashCommands() {
+        console.log('[DEBUG] loadSlashCommands called');
         try {
             const response = await fetch('/journal/api/slash-commands/');
             const data = await response.json();
@@ -606,24 +709,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     mapped.special = 'goal_picker';
                 } else if (cmd.special === 'habit_picker') {
                     mapped.special = 'habit_picker';
-                } else if (cmd.command === '/person') {
-                    mapped.special = 'quick_picker';
-                    mapped.pickerType = 'person';
-                } else if (cmd.command === '/book') {
-                    mapped.special = 'quick_picker';
-                    mapped.pickerType = 'book';
-                } else if (cmd.command === '/dream') {
+                } else if (cmd.special === 'hybrid_picker') {
+                    mapped.special = 'hybrid_picker';
+                    mapped.captureType = cmd.captureType;
+                } else if (cmd.special === 'block_insert') {
                     mapped.special = 'block_insert';
-                    mapped.blockType = 'dream';
-                    mapped.hashtag = 'dream';
-                } else if (cmd.command === '/gratitude') {
-                    mapped.special = 'block_insert';
-                    mapped.blockType = 'gratitude';
-                    mapped.hashtag = 'gratitude';
+                    mapped.blockType = cmd.blockType;
+                    mapped.hashtag = cmd.hashtag;
                 }
 
                 return mapped;
             });
+            console.log('Loaded slash commands:', slashCommands);
         } catch (error) {
             console.error('Error loading slash commands:', error);
             // Fallback to basic commands if API fails
@@ -638,8 +735,21 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSlashCommands();
 
     const slashMenu = document.getElementById('slashCommandMenu');
-    const quickPickerModal = new bootstrap.Modal(document.getElementById('quickPickerModal'));
-    const goalHabitPickerModal = new bootstrap.Modal(document.getElementById('goalHabitPickerModal'));
+    console.log('[DEBUG] slashMenu element:', slashMenu);
+
+    // Initialize modals with error handling
+    let quickPickerModal, goalHabitPickerModal;
+    try {
+        const quickPickerEl = document.getElementById('quickPickerModal');
+        const goalHabitPickerEl = document.getElementById('goalHabitPickerModal');
+        console.log('[DEBUG] Modal elements:', quickPickerEl, goalHabitPickerEl);
+        quickPickerModal = new bootstrap.Modal(quickPickerEl);
+        goalHabitPickerModal = new bootstrap.Modal(goalHabitPickerEl);
+        console.log('[DEBUG] Modals initialized successfully');
+    } catch (e) {
+        console.error('[DEBUG] Error initializing modals:', e);
+    }
+
     let selectedCommandIndex = 0;
     let currentCommand = null;
     let slashStartPos = null;
@@ -672,12 +782,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Build menu items
     function renderSlashMenu(filter = '') {
+        console.log('[DEBUG] renderSlashMenu called, filter:', filter, 'total commands:', slashCommands.length);
         const filtered = filter
             ? slashCommands.filter(c => c.command.toLowerCase().includes(filter.toLowerCase()) ||
                                         c.name.toLowerCase().includes(filter.toLowerCase()))
             : slashCommands;
 
+        console.log('[DEBUG] Filtered commands count:', filtered.length);
         if (filtered.length === 0) {
+            console.log('[DEBUG] No commands to show, hiding menu');
             slashMenu.classList.remove('show');
             return;
         }
@@ -713,31 +826,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         slashMenu.classList.add('show');
+        console.log('[DEBUG] Menu should now be visible, classList:', slashMenu.classList.toString());
     }
 
-    // Position the menu at cursor
+    // Position the menu at cursor (using viewport/page coordinates for fixed positioning)
     function positionMenu(cm) {
         const cursor = cm.getCursor();
-        const coords = cm.cursorCoords(cursor, 'local');
-        const editorRect = cm.getWrapperElement().getBoundingClientRect();
-        const containerRect = document.querySelector('.editor-container').getBoundingClientRect();
+        // Use 'page' coordinates for fixed positioning
+        const coords = cm.cursorCoords(cursor, 'page');
 
-        slashMenu.style.left = (coords.left + 10) + 'px';
+        slashMenu.style.left = coords.left + 'px';
         slashMenu.style.top = (coords.bottom + 5) + 'px';
+        console.log('[DEBUG] Menu positioned at left:', slashMenu.style.left, 'top:', slashMenu.style.top);
     }
 
     // Listen for "/" typing
+    console.log('[DEBUG] Registering slash command change listener');
     easyMDE.codemirror.on('change', function(cm, change) {
         if (change.origin === '+input' && change.text[0] === '/') {
+            console.log('[DEBUG] Slash detected, slashCommands count:', slashCommands.length);
             // Check if "/" is at start of line or after whitespace
             const cursor = cm.getCursor();
             const line = cm.getLine(cursor.line);
             const charBefore = line[cursor.ch - 2];
 
             if (cursor.ch === 1 || !charBefore || /\s/.test(charBefore)) {
+                console.log('[DEBUG] Showing menu at position:', cursor);
                 slashStartPos = { line: cursor.line, ch: cursor.ch - 1 };
                 renderSlashMenu();
                 positionMenu(cm);
+            } else {
+                console.log('[DEBUG] Slash not at valid position, charBefore:', charBefore);
             }
         } else if (slashMenu.classList.contains('show')) {
             // Filter commands as user types
@@ -805,6 +924,8 @@ document.addEventListener('DOMContentLoaded', function() {
         hideMenu();
 
         // Handle special commands
+        console.log('selectCommand:', cmd.command, 'special:', cmd.special, cmd);
+
         if (cmd.special === 'quick_picker') {
             showQuickPicker(cmd.pickerType);
         } else if (cmd.special === 'goal_picker') {
@@ -814,21 +935,128 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (cmd.special === 'capture_form') {
             showCaptureForm(cmd);
         } else if (cmd.special === 'block_insert') {
+            console.log('Calling insertBlock with:', cmd.blockType, cmd.hashtag);
             insertBlock(cmd);
+        } else if (cmd.special === 'hybrid_picker') {
+            console.log('Calling showHybridPicker');
+            showHybridPicker(cmd);
+        } else {
+            console.log('No handler for special type:', cmd.special);
         }
     }
+
+    // =================================================================
+    // HYBRID PICKER (for books, shows - show existing + add new option)
+    // =================================================================
+
+    let currentHybridCommand = null;
+
+    async function showHybridPicker(cmd) {
+        currentHybridCommand = cmd;
+        const captureType = cmd.captureType;
+
+        console.log('showHybridPicker called for:', captureType, cmd);
+
+        // Fetch active items
+        try {
+            const response = await fetch(`/journal/api/active-captures/?type=${captureType}`);
+            const data = await response.json();
+            console.log('Active captures response:', data);
+
+            const modalEl = document.getElementById('hybridPickerModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            const list = document.getElementById('hybridPickerList');
+            const title = document.getElementById('hybridPickerTitle');
+
+            title.textContent = `Select ${cmd.name}`;
+
+            let html = '';
+
+            // Add "Create New" option first
+            html += `
+                <div class="hybrid-picker-item create-new" onclick="showCaptureFormFromHybrid()">
+                    <div class="d-flex align-items-center">
+                        <div class="picker-icon bg-primary text-white me-3">
+                            <i class="bi bi-plus-lg"></i>
+                        </div>
+                        <div>
+                            <div class="fw-medium">Add New ${cmd.name}</div>
+                            <small class="text-muted">Create a new entry</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add existing items
+            if (data.items && data.items.length > 0) {
+                html += '<div class="hybrid-picker-divider">Currently Active</div>';
+                data.items.forEach(item => {
+                    const subtitle = captureType === 'book'
+                        ? (item.author ? `by ${item.author}` : '') + (item.page ? ` • Page ${item.page}` : '')
+                        : (item.type === 'show' ? 'TV Show' : item.type || '');
+
+                    // Use data attribute and event delegation to avoid JSON in onclick
+                    const escapedItem = JSON.stringify(item).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+                    html += `
+                        <div class="hybrid-picker-item" data-item="${escapedItem}">
+                            <div class="d-flex align-items-center">
+                                <div class="picker-icon bg-light me-3">
+                                    <i class="bi ${cmd.icon}"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-medium">${item.title}</div>
+                                    ${subtitle ? `<small class="text-muted">${subtitle}</small>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            list.innerHTML = html;
+
+            // Add click handlers for items with data-item attribute
+            list.querySelectorAll('.hybrid-picker-item[data-item]').forEach(el => {
+                el.addEventListener('click', () => {
+                    const itemData = JSON.parse(el.dataset.item.replace(/&#39;/g, "'").replace(/&quot;/g, '"'));
+                    selectHybridItem(itemData);
+                });
+            });
+
+            modal.show();
+        } catch (err) {
+            console.error('Failed to fetch active captures:', err);
+            // Fall back to just showing the capture form
+            showCaptureForm(cmd);
+        }
+    }
+
+    window.showCaptureFormFromHybrid = function() {
+        bootstrap.Modal.getInstance(document.getElementById('hybridPickerModal')).hide();
+        showCaptureForm(currentHybridCommand);
+    };
+
+    function selectHybridItem(item) {
+        bootstrap.Modal.getInstance(document.getElementById('hybridPickerModal')).hide();
+
+        // Pre-fill the capture form with existing item data
+        const cmd = currentHybridCommand;
+        showCaptureForm(cmd, item.data);
+    };
 
     // =================================================================
     // BLOCK INSERT (for dream, gratitude blocks)
     // =================================================================
 
     function insertBlock(cmd) {
+        console.log('insertBlock called with:', cmd);
         const cm = easyMDE.codemirror;
         const cursor = cm.getCursor();
 
         // Create the block with hashtag
         const blockType = cmd.blockType;
         const hashtag = cmd.hashtag ? ` #${cmd.hashtag}` : '';
+        console.log('blockType:', blockType, 'hashtag:', hashtag);
 
         // Insert block syntax with cursor positioned inside
         const blockStart = `{${blockType}}\n`;
@@ -1029,10 +1257,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Field definitions for each capture type (matches backend SLASH_COMMANDS)
     const captureFormFields = {
+        book: [
+            { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Book title' },
+            { name: 'author', label: 'Author', type: 'text', required: false, placeholder: 'Author name' },
+            { name: 'status', label: 'Status', type: 'select', required: false,
+              options: [['reading', 'Reading'], ['finished', 'Finished'], ['abandoned', 'Abandoned']] },
+            { name: 'page', label: 'Page/Chapter', type: 'number', required: false, placeholder: 'Current page' },
+            { name: 'rating', label: 'Rating', type: 'rating', required: false },
+        ],
         watched: [
             { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Movie or show name' },
             { name: 'type', label: 'Type', type: 'select', required: false,
               options: [['movie', 'Movie'], ['show', 'TV Show'], ['documentary', 'Documentary']] },
+            { name: 'season', label: 'Season', type: 'number', required: false, placeholder: 'Season #' },
+            { name: 'episode', label: 'Episode', type: 'number', required: false, placeholder: 'Episode #' },
             { name: 'rating', label: 'Rating', type: 'rating', required: false },
         ],
         travel: [
@@ -1051,6 +1289,10 @@ document.addEventListener('DOMContentLoaded', function() {
             { name: 'intensity', label: 'Intensity', type: 'select', required: false,
               options: [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']] },
         ],
+        person: [
+            { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Person\'s name' },
+            { name: 'context', label: 'Context', type: 'text', required: false, placeholder: 'e.g., lunch, meeting, call' },
+        ],
         place: [
             { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Place name' },
             { name: 'type', label: 'Type', type: 'select', required: false,
@@ -1063,7 +1305,9 @@ document.addEventListener('DOMContentLoaded', function() {
               options: [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snack', 'Snack']] },
             { name: 'what', label: 'What', type: 'text', required: true, placeholder: 'What did you eat?' },
         ],
-        dream: [],  // No fields, just a flag
+        dream: [
+            { name: 'description', label: 'Dream description (optional)', type: 'textarea', required: false, placeholder: 'Brief summary of the dream...' },
+        ],
         gratitude: [
             { name: 'item1', label: 'Grateful for...', type: 'text', required: true, placeholder: 'Something you\'re grateful for' },
             { name: 'item2', label: 'Also grateful for...', type: 'text', required: false },
@@ -1098,7 +1342,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const captureFormModal = new bootstrap.Modal(document.getElementById('captureFormModal'));
     let currentCaptureType = null;
 
-    function showCaptureForm(cmd) {
+    function showCaptureForm(cmd, prefillData = null) {
         currentCaptureType = cmd.captureType;
         const fields = captureFormFields[cmd.captureType] || [];
 
@@ -1120,17 +1364,22 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             fieldsContainer.innerHTML = fields.map(field => {
                 let inputHtml = '';
+                const prefillValue = prefillData ? (prefillData[field.name] || '') : '';
 
                 if (field.type === 'text') {
                     inputHtml = `<input type="text" class="form-control form-control-sm" name="${field.name}"
-                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}">`;
+                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}"
+                                        value="${prefillValue}">`;
                 } else if (field.type === 'number') {
                     inputHtml = `<input type="number" class="form-control form-control-sm" name="${field.name}"
-                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" min="0">`;
+                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" min="0"
+                                        value="${prefillValue}">`;
                 } else if (field.type === 'select') {
-                    const optionsHtml = field.options.map(([val, label]) => `<option value="${val}">${label}</option>`).join('');
+                    const optionsHtml = field.options.map(([val, label]) =>
+                        `<option value="${val}" ${prefillValue === val ? 'selected' : ''}>${label}</option>`
+                    ).join('');
                     inputHtml = `<select class="form-select form-select-sm" name="${field.name}" ${field.required ? 'required' : ''}>
-                                    <option value="">Select...</option>
+                                    <option value="" ${!prefillValue ? 'selected' : ''}>Select...</option>
                                     ${optionsHtml}
                                  </select>`;
                 } else if (field.type === 'rating') {
@@ -1272,29 +1521,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add a capture to the visual list
     function addCaptureToList(capture) {
         const list = document.getElementById('capturesList');
-        const empty = document.getElementById('capturesEmpty');
-        const countBadge = document.getElementById('captureCount');
 
-        // Hide empty message
-        empty.classList.add('d-none');
-
-        // Create the pill element
+        // Create the pill element with compact styling
         const pill = document.createElement('div');
-        pill.className = `capture-pill ${capture.type}`;
+        pill.className = `capture-pill-sm ${capture.type}`;
         pill.dataset.id = capture.id;
+        pill.title = capture.display_text;
         pill.innerHTML = `
             <i class="bi ${capture.icon}"></i>
-            <span>${capture.display_text}</span>
-            <span class="capture-delete" onclick="deleteCapture(${capture.id})" title="Remove">
+            <span class="capture-text">${capture.display_text}</span>
+            <span class="capture-delete" onclick="event.stopPropagation(); deleteCapture(${capture.id})" title="Remove">
                 <i class="bi bi-x"></i>
             </span>
         `;
 
         list.appendChild(pill);
-
-        // Update count
-        const currentCount = parseInt(countBadge.textContent) || 0;
-        countBadge.textContent = currentCount + 1;
     }
 
     // Delete a capture
@@ -1311,20 +1552,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (response.ok) {
-                // Remove from visual list
-                const pill = document.querySelector(`.capture-pill[data-id="${captureId}"]`);
+                // Remove from visual list (check both old and new class names)
+                const pill = document.querySelector(`.capture-pill-sm[data-id="${captureId}"]`) ||
+                             document.querySelector(`.capture-pill[data-id="${captureId}"]`);
                 if (pill) pill.remove();
-
-                // Update count
-                const countBadge = document.getElementById('captureCount');
-                const currentCount = parseInt(countBadge.textContent) || 0;
-                countBadge.textContent = Math.max(0, currentCount - 1);
-
-                // Show empty message if no captures left
-                const list = document.getElementById('capturesList');
-                if (list.children.length === 0) {
-                    document.getElementById('capturesEmpty').classList.remove('d-none');
-                }
             } else {
                 alert('Failed to delete capture');
             }
@@ -1903,6 +2134,68 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // =================================================================
+    // POV SHARE (toolbar button)
+    // =================================================================
+    const povModal = new bootstrap.Modal(document.getElementById('povModal'));
+    const povFriendSelect = document.getElementById('povFriendSelect');
+    const povMessage = document.getElementById('povMessage');
+    const povSubmitBtn = document.getElementById('povSubmitBtn');
+
+    // Function to open POV modal (called from toolbar button)
+    openPovModal = async function() {
+        // Load friends and populate the select
+        const friends = await loadFriendsList();
+        povFriendSelect.innerHTML = '<option value="">Select a friend...</option>';
+
+        friends.forEach(friend => {
+            const option = document.createElement('option');
+            option.value = friend.username;
+            option.textContent = friend.display_name || friend.username;
+            povFriendSelect.appendChild(option);
+        });
+
+        // Clear previous message
+        povMessage.value = '';
+
+        // Show modal
+        povModal.show();
+    }
+
+    // Handle POV submission
+    povSubmitBtn.addEventListener('click', function() {
+        const friendUsername = povFriendSelect.value;
+        const message = povMessage.value.trim();
+
+        if (!friendUsername) {
+            alert('Please select a friend to share with.');
+            return;
+        }
+
+        if (!message) {
+            alert('Please write a message.');
+            return;
+        }
+
+        // Insert POV block into editor
+        const cm = easyMDE.codemirror;
+        const cursor = cm.getCursor();
+
+        // Create the POV block with @mention
+        const povBlock = `\n{pov}\n@${friendUsername}\n\n${message}\n{/pov} #pov\n`;
+
+        // Insert at cursor position
+        cm.replaceRange(povBlock, cursor);
+
+        // Move cursor after the block
+        const newLine = cursor.line + povBlock.split('\n').length - 1;
+        cm.setCursor({line: newLine, ch: 0});
+        cm.focus();
+
+        // Close modal
+        povModal.hide();
+    });
+
     {% endif %}
 
     // Restore from local storage if newer
@@ -1948,13 +2241,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadStatus = document.getElementById('uploadStatus');
     const gallery = document.getElementById('attachmentsGallery');
     const attachmentCount = document.getElementById('attachmentCount');
+    const attachmentBtn = document.getElementById('attachmentBtn');
+    const attachmentPanel = document.getElementById('attachmentPanel');
+    const closeAttachmentPanel = document.getElementById('closeAttachmentPanel');
     let entryPk = {% if entry %}{{ entry.pk }}{% else %}null{% endif %};
     const csrfToken = '{{ csrf_token }}';
     const isNewEntry = {{ is_new|yesno:"true,false" }};
     let pendingFiles = [];
 
+    // Attachment panel toggle
+    if (attachmentBtn && attachmentPanel) {
+        attachmentBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            attachmentPanel.classList.toggle('show');
+        });
+
+        closeAttachmentPanel.addEventListener('click', function() {
+            attachmentPanel.classList.remove('show');
+        });
+
+        // Close panel when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!attachmentPanel.contains(e.target) && !attachmentBtn.contains(e.target)) {
+                attachmentPanel.classList.remove('show');
+            }
+        });
+    }
+
     // Click to browse
-    uploadZone.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('click', function(e) {
+        e.stopPropagation();
+        fileInput.click();
+    });
 
     // Drag and drop
     uploadZone.addEventListener('dragover', (e) => {
@@ -2090,25 +2408,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addAttachmentToGallery(data) {
         const item = document.createElement('div');
-        item.className = 'attachment-item';
+        item.className = 'attachment-item-compact';
         item.dataset.id = data.id;
 
         let preview;
         if (data.file_type === 'image') {
             preview = `<img src="${data.url}" alt="${data.file_name}">`;
         } else if (data.file_type === 'audio') {
-            preview = `<div class="file-icon audio"><i class="bi bi-music-note-beamed"></i></div>`;
+            preview = `<div class="file-icon-sm audio"><i class="bi bi-music-note-beamed"></i></div>`;
         } else {
-            preview = `<div class="file-icon video"><i class="bi bi-play-circle"></i></div>`;
+            preview = `<div class="file-icon-sm video"><i class="bi bi-play-circle"></i></div>`;
         }
 
         item.innerHTML = `
             ${preview}
-            <div class="file-info">
-                <div class="file-name" title="${data.file_name}">${data.file_name}</div>
-                <div class="file-size">${data.size_display}</div>
-            </div>
-            <button type="button" class="delete-btn" onclick="deleteAttachment(${data.id})">
+            <span class="file-name-compact" title="${data.file_name}">${data.file_name}</span>
+            <button type="button" class="delete-btn-sm" onclick="deleteAttachment(${data.id})">
                 <i class="bi bi-x"></i>
             </button>
         `;
@@ -2118,7 +2433,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateCount(delta) {
         const current = parseInt(attachmentCount.textContent) || 0;
-        attachmentCount.textContent = current + delta;
+        const newCount = Math.max(0, current + delta);
+        attachmentCount.textContent = newCount;
+
+        // Show/hide badge based on count
+        if (newCount > 0) {
+            attachmentCount.classList.remove('d-none');
+        } else {
+            attachmentCount.classList.add('d-none');
+        }
     }
 
     // Make deleteAttachment global
@@ -2134,7 +2457,9 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const item = gallery.querySelector(`[data-id="${id}"]`);
+                // Find and remove the item (check both old and new class names)
+                const item = gallery.querySelector(`.attachment-item-compact[data-id="${id}"]`) ||
+                             gallery.querySelector(`.attachment-item[data-id="${id}"]`);
                 if (item) item.remove();
                 updateCount(-1);
             }

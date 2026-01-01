@@ -1,0 +1,449 @@
+/* ==========================================================================
+   Yearly Calendar Page Styles
+   ========================================================================== */
+
+/* Year selector */
+.year-select {
+    width: auto;
+    min-width: 100px;
+    font-weight: 600;
+}
+
+/* Stats Cards */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+/* Yearly Calendar Grid - 4 columns on large screens */
+.yearly-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+}
+
+@media (max-width: 1200px) {
+    .yearly-calendar-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .yearly-calendar-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .yearly-calendar-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Month Card */
+.month-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.month-header {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+}
+
+.month-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.month-calendar {
+    padding: 0.75rem;
+}
+
+/* Weekday Headers */
+.weekday-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    margin-bottom: 0.25rem;
+}
+
+.weekday-headers span {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+}
+
+/* Days Grid */
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+/* Day Cell */
+.day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.15s ease;
+    position: relative;
+}
+
+.day-cell:hover {
+    background: #f3f4f6;
+    text-decoration: none;
+    color: #1f2937;
+}
+
+.day-cell.empty {
+    background: transparent;
+    pointer-events: none;
+}
+
+/* Today */
+.day-cell.today {
+    background: #eef2ff;
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+.day-cell.today::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #4f46e5;
+}
+
+/* Has Entry */
+.day-cell.has-entry {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #166534;
+    font-weight: 600;
+}
+
+.day-cell.has-entry:hover {
+    background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
+}
+
+/* Today with Entry */
+.day-cell.today.has-entry {
+    background: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);
+    color: #3730a3;
+}
+
+.day-cell.today.has-entry::after {
+    background: #3730a3;
+}
+
+/* Day Number */
+.day-num {
+    line-height: 1;
+}
+
+/* Legend */
+.calendar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.legend-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+}
+
+.legend-dot.has-entry {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border-color: #86efac;
+}
+
+.legend-dot.today {
+    background: #eef2ff;
+    border-color: #a5b4fc;
+    position: relative;
+}
+
+.legend-dot.today::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #4f46e5;
+}
+
+/* Legend label for heatmap */
+.legend-label {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+/* ==========================================================================
+   HEATMAP VIEW
+   ========================================================================== */
+
+/* Heatmap colors - green scale like GitHub */
+.heatmap-view .day-cell[data-heat="0"] {
+    background: #f3f4f6;
+}
+
+.heatmap-view .day-cell[data-heat="1"] {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.heatmap-view .day-cell[data-heat="2"] {
+    background: #6ee7b7;
+    color: #065f46;
+}
+
+.heatmap-view .day-cell[data-heat="3"] {
+    background: #34d399;
+    color: white;
+}
+
+.heatmap-view .day-cell[data-heat="4"] {
+    background: #059669;
+    color: white;
+}
+
+/* Override has-entry styles in heatmap mode */
+.heatmap-view .day-cell.has-entry {
+    background: none;
+}
+
+.heatmap-view .day-cell[data-heat="1"].has-entry {
+    background: #d1fae5;
+}
+
+.heatmap-view .day-cell[data-heat="2"].has-entry {
+    background: #6ee7b7;
+}
+
+.heatmap-view .day-cell[data-heat="3"].has-entry {
+    background: #34d399;
+}
+
+.heatmap-view .day-cell[data-heat="4"].has-entry {
+    background: #059669;
+}
+
+/* Today in heatmap view */
+.heatmap-view .day-cell.today {
+    box-shadow: inset 0 0 0 2px #4f46e5;
+}
+
+.heatmap-view .day-cell.today::after {
+    display: none;
+}
+
+/* Heatmap legend dots */
+.legend-dot.heat-0 {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+}
+
+.legend-dot.heat-1 {
+    background: #d1fae5;
+    border-color: #a7f3d0;
+}
+
+.legend-dot.heat-2 {
+    background: #6ee7b7;
+    border-color: #34d399;
+}
+
+.legend-dot.heat-3 {
+    background: #34d399;
+    border-color: #10b981;
+}
+
+.legend-dot.heat-4 {
+    background: #059669;
+    border-color: #047857;
+}
+
+/* View toggle button styling */
+.view-toggle .btn.active {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: white;
+}
+
+.view-toggle .btn:not(.active):hover {
+    background: #f3f4f6;
+}
+
+/* ==========================================================================
+   MOOD VIEW
+   ========================================================================== */
+
+/* Mood colors using CSS variables from global.css */
+.mood-view .day-cell[data-mood=""] {
+    background: #f3f4f6;
+}
+
+.mood-view .day-cell[data-mood="ecstatic"] {
+    background: var(--mood-ecstatic);
+    color: white;
+}
+
+.mood-view .day-cell[data-mood="happy"] {
+    background: var(--mood-happy);
+    color: white;
+}
+
+.mood-view .day-cell[data-mood="neutral"] {
+    background: var(--mood-neutral);
+    color: white;
+}
+
+.mood-view .day-cell[data-mood="sad"] {
+    background: var(--mood-sad);
+    color: white;
+}
+
+.mood-view .day-cell[data-mood="angry"] {
+    background: var(--mood-angry);
+    color: white;
+}
+
+/* Override has-entry styles in mood mode */
+.mood-view .day-cell.has-entry {
+    background: none;
+}
+
+.mood-view .day-cell[data-mood="ecstatic"].has-entry {
+    background: var(--mood-ecstatic);
+}
+
+.mood-view .day-cell[data-mood="happy"].has-entry {
+    background: var(--mood-happy);
+}
+
+.mood-view .day-cell[data-mood="neutral"].has-entry {
+    background: var(--mood-neutral);
+}
+
+.mood-view .day-cell[data-mood="sad"].has-entry {
+    background: var(--mood-sad);
+}
+
+.mood-view .day-cell[data-mood="angry"].has-entry {
+    background: var(--mood-angry);
+}
+
+/* Today in mood view */
+.mood-view .day-cell.today {
+    box-shadow: inset 0 0 0 2px #4f46e5;
+}
+
+.mood-view .day-cell.today::after {
+    display: none;
+}
+
+/* Mood legend dots */
+.legend-dot.mood-ecstatic {
+    background: var(--mood-ecstatic);
+    border-color: var(--mood-ecstatic);
+}
+
+.legend-dot.mood-happy {
+    background: var(--mood-happy);
+    border-color: var(--mood-happy);
+}
+
+.legend-dot.mood-neutral {
+    background: var(--mood-neutral);
+    border-color: var(--mood-neutral);
+}
+
+.legend-dot.mood-sad {
+    background: var(--mood-sad);
+    border-color: var(--mood-sad);
+}
+
+.legend-dot.mood-angry {
+    background: var(--mood-angry);
+    border-color: var(--mood-angry);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+    }
+
+    .calendar-legend {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+}

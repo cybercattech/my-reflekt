@@ -5,6 +5,8 @@ app_name = 'journal'
 
 urlpatterns = [
     path('', views.entry_list, name='entry_list'),
+    path('calendar/', views.yearly_calendar, name='yearly_calendar'),
+    path('calendar/<int:year>/', views.yearly_calendar, name='yearly_calendar_year'),
     path('new/', views.entry_create, name='entry_create'),
     path('import/', views.import_entries, name='import_entries'),
     path('<int:pk>/', views.entry_detail, name='entry_detail'),
@@ -24,6 +26,7 @@ urlpatterns = [
 
     # Slash commands API
     path('api/slash-commands/', views.get_slash_commands, name='slash_commands'),
+    path('api/active-captures/', views.get_active_captures, name='active_captures'),
     path('api/capture/', views.save_capture, name='save_capture'),
     path('api/capture/<int:pk>/delete/', views.delete_capture, name='delete_capture'),
     path('capture/<int:pk>/delete/', views.delete_capture, name='capture_delete'),

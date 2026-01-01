@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Calendar {{ year }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/pages/yearly-calendar.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-calendar3 me-2 text-primary"></i>Calendar
+            </h1>
+            <p class="text-muted mb-0">Your journaling activity at a glance</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <!-- View Toggle -->
+            <div class="view-toggle btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-secondary active" id="viewEntries" title="Show entries">
+                    <i class="bi bi-check2-circle"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="viewHeatmap" title="Show word count heatmap">
+                    <i class="bi bi-fire"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="viewMood" title="Show AI-analyzed mood">
+                    <i class="bi bi-emoji-smile"></i>
+                </button>
+            </div>
+
+            <!-- Year Navigation -->
+            <div class="year-nav d-flex align-items-center gap-2">
+                {% if year > available_years|last %}
+                <a href="{% url 'journal:yearly_calendar_year' year|add:'-1' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                {% else %}
+                <button class="btn btn-outline-secondary btn-sm" disabled>
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                {% endif %}
+
+                <select class="form-select form-select-sm year-select" onchange="window.location.href='{% url 'journal:yearly_calendar' %}' + this.value + '/'">
+                    {% for y in available_years %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+
+                {% if year < today.year %}
+                <a href="{% url 'journal:yearly_calendar_year' year|add:'1' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                {% else %}
+                <button class="btn btn-outline-secondary btn-sm" disabled>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+                {% endif %}
+            </div>
+
+            <a href="{% url 'journal:entry_create' %}" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-plus-lg me-1"></i>New Entry
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary bg-opacity-10">
+                    <i class="bi bi-journal-text text-primary"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ entries_count }}</div>
+                    <div class="stat-label">Entries in {{ year }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-success bg-opacity-10">
+                    <i class="bi bi-pencil text-success"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ total_words|intcomma }}</div>
+                    <div class="stat-label">Words Written</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-info bg-opacity-10">
+                    <i class="bi bi-calendar-check text-info"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{% widthratio entries_count 365 100 %}%</div>
+                    <div class="stat-label">Days Journaled</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yearly Calendar Grid -->
+    <div class="yearly-calendar-grid">
+        {% for month in months_data %}
+        <div class="month-card">
+            <div class="month-header">
+                <span class="month-name">{{ month.month_full }}</span>
+            </div>
+            <div class="month-calendar">
+                <div class="weekday-headers">
+                    <span>S</span>
+                    <span>M</span>
+                    <span>T</span>
+                    <span>W</span>
+                    <span>T</span>
+                    <span>F</span>
+                    <span>S</span>
+                </div>
+                <div class="days-grid">
+                    {% for week in month.weeks %}
+                        {% for day in week %}
+                        {% if day.in_month %}
+                            {% if day.entry_pk %}
+                        <a href="{% url 'journal:entry_detail' day.entry_pk %}"
+                           class="day-cell {% if day.is_today %}today{% endif %} has-entry"
+                           data-heat="{{ day.heat_level }}"
+                           data-words="{{ day.word_count }}"
+                           data-mood="{{ day.mood }}"
+                           title="{{ day.date|date:'F j, Y' }} - {{ day.word_count|intcomma }} words{% if day.mood %} - {{ day.mood }}{% endif %}">
+                            <span class="day-num">{{ day.day }}</span>
+                        </a>
+                            {% else %}
+                        <a href="{% url 'journal:entry_create' %}?date={{ day.date|date:'Y-m-d' }}"
+                           class="day-cell {% if day.is_today %}today{% endif %}"
+                           data-heat="0"
+                           data-words="0"
+                           data-mood=""
+                           title="{{ day.date|date:'F j, Y' }} - Click to create entry">
+                            <span class="day-num">{{ day.day }}</span>
+                        </a>
+                            {% endif %}
+                        {% else %}
+                        <span class="day-cell empty"></span>
+                        {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Legend - Entries View -->
+    <div class="calendar-legend mt-4" id="legendEntries">
+        <div class="legend-item">
+            <span class="legend-dot has-entry"></span>
+            <span>Entry written</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot today"></span>
+            <span>Today</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot"></span>
+            <span>No entry</span>
+        </div>
+    </div>
+
+    <!-- Legend - Heatmap View -->
+    <div class="calendar-legend mt-4 d-none" id="legendHeatmap">
+        <span class="legend-label">Less</span>
+        <div class="legend-item">
+            <span class="legend-dot heat-0"></span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot heat-1"></span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot heat-2"></span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot heat-3"></span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot heat-4"></span>
+        </div>
+        <span class="legend-label">More words</span>
+    </div>
+
+    <!-- Legend - Mood View -->
+    <div class="calendar-legend mt-4 d-none" id="legendMood">
+        <div class="legend-item">
+            <span class="legend-dot mood-ecstatic"></span>
+            <span>Ecstatic</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot mood-happy"></span>
+            <span>Happy</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot mood-neutral"></span>
+            <span>Neutral</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot mood-sad"></span>
+            <span>Sad</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot mood-angry"></span>
+            <span>Angry</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot"></span>
+            <span>No mood</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarGrid = document.querySelector('.yearly-calendar-grid');
+    const viewEntries = document.getElementById('viewEntries');
+    const viewHeatmap = document.getElementById('viewHeatmap');
+    const viewMood = document.getElementById('viewMood');
+    const legendEntries = document.getElementById('legendEntries');
+    const legendHeatmap = document.getElementById('legendHeatmap');
+    const legendMood = document.getElementById('legendMood');
+
+    function setActiveView(activeBtn, viewClass, activeLegend) {
+        // Remove active from all buttons
+        viewEntries.classList.remove('active');
+        viewHeatmap.classList.remove('active');
+        viewMood.classList.remove('active');
+
+        // Add active to clicked button
+        activeBtn.classList.add('active');
+
+        // Remove all view classes
+        calendarGrid.classList.remove('heatmap-view', 'mood-view');
+
+        // Add the appropriate view class
+        if (viewClass) {
+            calendarGrid.classList.add(viewClass);
+        }
+
+        // Hide all legends
+        legendEntries.classList.add('d-none');
+        legendHeatmap.classList.add('d-none');
+        legendMood.classList.add('d-none');
+
+        // Show active legend
+        activeLegend.classList.remove('d-none');
+    }
+
+    viewEntries.addEventListener('click', function() {
+        setActiveView(viewEntries, null, legendEntries);
+    });
+
+    viewHeatmap.addEventListener('click', function() {
+        setActiveView(viewHeatmap, 'heatmap-view', legendHeatmap);
+    });
+
+    viewMood.addEventListener('click', function() {
+        setActiveView(viewMood, 'mood-view', legendMood);
+    });
+});
+</script>
+{% endblock %}

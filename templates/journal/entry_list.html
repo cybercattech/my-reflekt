@@ -110,13 +110,13 @@
                 <div class="card-body py-2">
                     <form method="get" class="row g-2 align-items-center">
                         <input type="hidden" name="show_all" value="1">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
                                 <input type="text" name="q" class="form-control" placeholder="Search entries..." value="{{ query }}">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <select name="mood" class="form-select form-select-sm">
                                 <option value="">All moods</option>
                                 <option value="ecstatic" {% if mood == 'ecstatic' %}selected{% endif %}>Ecstatic</option>
@@ -125,6 +125,18 @@
                                 <option value="sad" {% if mood == 'sad' %}selected{% endif %}>Sad</option>
                                 <option value="angry" {% if mood == 'angry' %}selected{% endif %}>Angry</option>
                             </select>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bi bi-calendar"></i></span>
+                                <input type="date" name="start_date" class="form-control" placeholder="Start" value="{{ start_date }}" title="Start date">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bi bi-calendar"></i></span>
+                                <input type="date" name="end_date" class="form-control" placeholder="End" value="{{ end_date }}" title="End date">
+                            </div>
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-secondary btn-sm w-100">Filter</button>
@@ -202,7 +214,7 @@
                 <ul class="pagination justify-content-center">
                     {% if entries.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?show_all=1&page={{ entries.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}">&laquo;</a>
+                        <a class="page-link" href="?show_all=1&page={{ entries.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&laquo;</a>
                     </li>
                     {% endif %}
                     <li class="page-item disabled">
@@ -210,7 +222,7 @@
                     </li>
                     {% if entries.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?show_all=1&page={{ entries.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}">&raquo;</a>
+                        <a class="page-link" href="?show_all=1&page={{ entries.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if mood %}&mood={{ mood }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&raquo;</a>
                     </li>
                     {% endif %}
                 </ul>

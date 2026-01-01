@@ -147,6 +147,10 @@
                     <span class="link-dot blue"></span>
                     <span>Insights</span>
                 </a>
+                <a href="{% url 'journal:yearly_calendar' %}" class="sidebar-link {% if active_page == 'calendar' %}active{% endif %}" data-tooltip="Calendar">
+                    <span class="link-dot purple"></span>
+                    <span>Calendar</span>
+                </a>
                 <a href="{% url 'journal:entry_list' %}?show_all=1" class="sidebar-link {% if active_page == 'entries' %}active{% endif %}" data-tooltip="All Entries">
                     <span class="link-dot"></span>
                     <span>All Entries</span>
