@@ -30,3 +30,20 @@ def clean_theme(theme):
     if not theme:
         return ''
     return theme.replace('_', ' ').title()
+
+
+@register.filter
+def temperature(value, unit='C'):
+    """
+    Convert temperature to specified unit and format for display.
+    Temperature is stored in Celsius, converts to Fahrenheit if unit is 'F'.
+    """
+    if value is None:
+        return ''
+    try:
+        temp = float(value)
+        if unit == 'F':
+            temp = (temp * 9/5) + 32
+        return f"{round(temp)}°{unit}"
+    except (ValueError, TypeError):
+        return ''
