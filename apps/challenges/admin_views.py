@@ -24,7 +24,7 @@ def challenge_admin_list(request):
     context = {
         'challenges': challenges,
         'title': 'Challenge Management',
-        'active_page': 'challenges',
+        'active_page': 'admin_challenges',
         'status_filter': status,
     }
     return render(request, 'admin/challenges/challenge_list.html', context)
@@ -82,7 +82,7 @@ def challenge_create(request):
 
     context = {
         'title': 'Create Challenge',
-        'active_page': 'challenges',
+        'active_page': 'admin_challenges',
     }
     return render(request, 'admin/challenges/challenge_form.html', context)
 
@@ -116,7 +116,7 @@ def challenge_edit(request, pk):
     context = {
         'challenge': challenge,
         'title': f'Edit: {challenge.title}',
-        'active_page': 'challenges',
+        'active_page': 'admin_challenges',
     }
     return render(request, 'admin/challenges/challenge_form.html', context)
 
@@ -135,7 +135,7 @@ def challenge_delete(request, pk):
     context = {
         'challenge': challenge,
         'title': f'Delete: {challenge.title}',
-        'active_page': 'challenges',
+        'active_page': 'admin_challenges',
     }
     return render(request, 'admin/challenges/challenge_confirm_delete.html', context)
 
@@ -150,7 +150,7 @@ def challenge_prompts(request, pk):
         'challenge': challenge,
         'prompts': prompts,
         'title': f'Prompts: {challenge.title}',
-        'active_page': 'challenges',
+        'active_page': 'admin_challenges',
     }
     return render(request, 'admin/challenges/prompt_list.html', context)
 
@@ -232,6 +232,6 @@ def challenge_stats(request, pk):
         'failed_count': participants.filter(status='failed').count(),
         'abandoned_count': participants.filter(status='abandoned').count(),
         'title': f'Stats: {challenge.title}',
-        'active_page': 'challenges',
+        'active_page': 'admin_challenges',
     }
     return render(request, 'admin/challenges/challenge_stats.html', context)

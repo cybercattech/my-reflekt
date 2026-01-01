@@ -47,3 +47,20 @@ def temperature(value, unit='C'):
         return f"{round(temp)}°{unit}"
     except (ValueError, TypeError):
         return ''
+
+
+@register.filter
+def format_iso_date(value):
+    """Format an ISO date string (YYYY-MM-DD) to a readable format."""
+    if not value:
+        return ''
+    try:
+        from datetime import datetime
+        if isinstance(value, str):
+            dt = datetime.strptime(value, '%Y-%m-%d')
+            return dt.strftime('%b %d, %Y')
+        elif hasattr(value, 'strftime'):
+            return value.strftime('%b %d, %Y')
+        return str(value)
+    except (ValueError, TypeError):
+        return str(value)

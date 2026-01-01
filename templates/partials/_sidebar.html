@@ -7,7 +7,7 @@
     <!-- Scrollable Content -->
     <div class="sidebar-content">
 
-    {% if active_page == "overview" or active_page == "users" or active_page == "subscriptions" or active_page == "blog" or active_page == "emails" or active_page == "feedback" or active_page == "challenges" or active_page == "admin" %}
+    {% if active_page == "overview" or active_page == "users" or active_page == "subscriptions" or active_page == "blog" or active_page == "emails" or active_page == "feedback" or active_page == "admin_challenges" or active_page == "admin" %}
     <!-- ==================== ADMIN MODE ==================== -->
 
     <!-- Switch to User View -->
@@ -69,7 +69,7 @@
                 <span class="link-dot orange"></span>
                 <span>Categories</span>
             </a>
-            <a href="{% url 'accounts:admin_challenge_list' %}" class="sidebar-link {% if active_page == 'challenges' %}active{% endif %}" data-tooltip="Challenges">
+            <a href="{% url 'accounts:admin_challenge_list' %}" class="sidebar-link {% if active_page == 'admin_challenges' %}active{% endif %}" data-tooltip="Challenges">
                 <span class="link-dot green"></span>
                 <span>Challenges</span>
             </a>
@@ -241,10 +241,12 @@
                     <span class="link-dot red"></span>
                     <span>Pain Tracking</span>
                 </a>
+                {% if user.profile.enable_intimacy_tracking %}
                 <a href="{% url 'wellness:intimacy' %}" class="sidebar-link {% if active_page == 'intimacy' %}active{% endif %}" data-tooltip="Intimacy">
                     <span class="link-dot purple"></span>
                     <span>Intimacy</span>
                 </a>
+                {% endif %}
                 {% if user.profile.enable_cycle_tracking %}
                 <a href="{% url 'wellness:cycle' %}" class="sidebar-link {% if active_page == 'cycle' %}active{% endif %}" data-tooltip="Cycle Tracking">
                     <span class="link-dot orange"></span>

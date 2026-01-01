@@ -358,12 +358,23 @@ def monthly_view(request, year, month):
     """Detailed view for a specific month."""
     user = request.user
 
-    snapshot = get_object_or_404(
-        MonthlySnapshot,
+    # Get snapshot if it exists (may not exist for new users or months with no entries)
+    snapshot = MonthlySnapshot.objects.filter(
         user=user,
         year=year,
         month=month
-    )
+    ).first()
+
+    # Create empty snapshot-like object if none exists
+    if not snapshot:
+        snapshot = type('EmptySnapshot', (), {
+            'entry_count': 0,
+            'total_words': 0,
+            'avg_sentiment': 0.0,
+            'dominant_mood': 'neutral',
+            'mood_distribution': {},
+            'top_themes': [],
+        })()
 
     # Get all entries for this month
     from apps.journal.models import Entry
