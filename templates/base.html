@@ -227,6 +227,11 @@
     {% include "partials/_feedback_button.html" %}
     {% endif %}
 
+    <!-- Tutorial Walkthrough (authenticated users only) -->
+    {% if user.is_authenticated %}
+    {% include "partials/_tutorial.html" %}
+    {% endif %}
+
     <!-- Footer (from partial) -->
     <footer class="site-footer bg-light py-3 {% if user.is_authenticated %}footer-with-sidebar{% endif %}">
         <div class="container text-center text-muted">

@@ -124,6 +124,54 @@
     visibility: hidden !important;
 }
 
+/* Tutorial Link at Bottom */
+.sidebar-bottom-link {
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    padding: 0 0.5rem;
+    background: #ffffff;
+    border-top: 1px solid #f3f4f6;
+}
+
+.sidebar-bottom-link .sidebar-link {
+    margin: 0.5rem 0;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.sidebar-bottom-link .sidebar-link:hover {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #4f46e5;
+}
+
+.sidebar-bottom-link .sidebar-link i {
+    font-size: 1rem;
+    width: 22px;
+    text-align: center;
+}
+
+/* Hide bottom link text when collapsed */
+.app-sidebar.collapsed .sidebar-bottom-link .sidebar-link span {
+    display: none;
+}
+
+.app-sidebar.collapsed .sidebar-bottom-link .sidebar-link {
+    justify-content: center;
+    padding: 0.6rem;
+}
+
+/* Show text when hover-expanded */
+.app-sidebar.collapsed.hover-expanded .sidebar-bottom-link .sidebar-link span {
+    display: inline !important;
+}
+
+.app-sidebar.collapsed.hover-expanded .sidebar-bottom-link .sidebar-link {
+    justify-content: flex-start !important;
+    padding: 0.5rem 1.25rem !important;
+}
+
 /* Collapse Toggle Button */
 .sidebar-collapse-toggle {
     position: absolute;
@@ -190,7 +238,7 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0.75rem 0 4rem 0; /* Extra bottom padding for collapse button */
+    padding: 0.75rem 0 6.5rem 0; /* Extra bottom padding for tutorial link + collapse button */
     /* Ensure scrolling works - calculate height minus toggle button area */
     max-height: calc(100vh - 56px - 60px); /* viewport - navbar - collapse button area */
 }

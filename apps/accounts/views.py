@@ -1272,3 +1272,21 @@ def submit_feedback(request):
         return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def complete_tutorial(request):
+    """Mark the tutorial as completed for the user."""
+    request.user.profile.tutorial_completed = True
+    request.user.profile.save(update_fields=['tutorial_completed'])
+    return JsonResponse({'success': True})
+
+
+@login_required
+@require_POST
+def reset_tutorial(request):
+    """Reset the tutorial so it shows again."""
+    request.user.profile.tutorial_completed = False
+    request.user.profile.save(update_fields=['tutorial_completed'])
+    return JsonResponse({'success': True})

@@ -126,6 +126,12 @@ class Profile(models.Model):
         help_text="Enable menstrual cycle tracking"
     )
 
+    # Onboarding
+    tutorial_completed = models.BooleanField(
+        default=False,
+        help_text="Whether user has completed the onboarding tutorial"
+    )
+
     # Per-User Encryption
     encryption_salt = models.BinaryField(
         max_length=32,

@@ -1,0 +1,327 @@
+<!-- Tutorial Walkthrough -->
+<div class="tutorial-overlay d-none" id="tutorialOverlay"></div>
+
+<div class="tutorial-modal d-none" id="tutorialModal">
+    <div class="tutorial-content">
+        <div class="tutorial-header">
+            <span class="tutorial-step-indicator" id="tutorialStepIndicator">1 of 8</span>
+            <button type="button" class="tutorial-close" id="tutorialSkip" title="Skip tutorial">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="tutorial-body">
+            <div class="tutorial-icon" id="tutorialIcon">
+                <i class="bi bi-house"></i>
+            </div>
+            <h5 class="tutorial-title" id="tutorialTitle">Welcome to Reflekt!</h5>
+            <p class="tutorial-text" id="tutorialText">Let's take a quick tour to help you get started with your journaling journey.</p>
+        </div>
+        <div class="tutorial-footer">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" id="tutorialPrev" style="visibility: hidden;">
+                <i class="bi bi-chevron-left me-1"></i>Previous
+            </button>
+            <button type="button" class="btn btn-primary btn-sm rounded-pill" id="tutorialNext">
+                Next<i class="bi bi-chevron-right ms-1"></i>
+            </button>
+        </div>
+    </div>
+    <div class="tutorial-arrow" id="tutorialArrow"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tutorialSteps = [
+        {
+            icon: 'bi-stars',
+            title: 'Welcome to Reflekt!',
+            text: 'Let\'s take a quick tour to help you get started with your journaling journey.',
+            element: null,
+            position: 'center'
+        },
+        {
+            icon: 'bi-speedometer2',
+            title: 'Dashboard Overview',
+            text: 'This is your dashboard - see your journaling stats, streaks, and daily insights at a glance.',
+            element: '.sidebar-link[data-tooltip="Overview"]',
+            position: 'right'
+        },
+        {
+            icon: 'bi-journal-text',
+            title: 'Insights / Journal',
+            text: 'View all your journal entries here. Browse by date, search, and filter your thoughts.',
+            element: '.sidebar-link[data-tooltip="Insights"]',
+            position: 'right'
+        },
+        {
+            icon: 'bi-calendar3',
+            title: 'Calendar View',
+            text: 'See your entire year of journaling at a glance. Toggle between entry view, word count heatmap, and mood colors.',
+            element: '.sidebar-link[data-tooltip="Calendar"]',
+            position: 'right'
+        },
+        {
+            icon: 'bi-collection',
+            title: 'Captures',
+            text: 'Track books, movies, workouts, travel, and more using slash commands like /book or /workout in your entries.',
+            element: '.sidebar-link[data-tooltip="All Captures"]',
+            position: 'right'
+        },
+        {
+            icon: 'bi-bullseye',
+            title: 'Goals & Habits',
+            text: 'Set SMART goals and build habits. Track your progress and see how consistency affects your mood.',
+            element: '.sidebar-link[data-tooltip="Goals"]',
+            position: 'right'
+        },
+        {
+            icon: 'bi-trophy',
+            title: 'Challenges',
+            text: 'Join journaling challenges with daily prompts to build your writing practice and earn badges.',
+            element: '.sidebar-link[data-tooltip="Challenges"]',
+            position: 'right'
+        },
+        {
+            icon: 'bi-plus-lg',
+            title: 'Create an Entry',
+            text: 'Click "New Entry" to start writing. Use slash commands like /gratitude, /book, or /workout to capture life moments.',
+            element: '.sidebar-link[data-tooltip="New Entry"]',
+            position: 'right'
+        },
+        {
+            icon: 'bi-chat-heart',
+            title: 'Send Feedback',
+            text: 'Have suggestions or found a bug? Click this button anytime to send us feedback.',
+            element: '.feedback-fab',
+            position: 'left'
+        },
+        {
+            icon: 'bi-check-circle',
+            title: 'You\'re All Set!',
+            text: 'Start journaling and discover insights about yourself. You can restart this tutorial anytime from the sidebar.',
+            element: null,
+            position: 'center'
+        }
+    ];
+
+    let currentStep = 0;
+    const overlay = document.getElementById('tutorialOverlay');
+    const modal = document.getElementById('tutorialModal');
+    const stepIndicator = document.getElementById('tutorialStepIndicator');
+    const icon = document.getElementById('tutorialIcon');
+    const title = document.getElementById('tutorialTitle');
+    const text = document.getElementById('tutorialText');
+    const prevBtn = document.getElementById('tutorialPrev');
+    const nextBtn = document.getElementById('tutorialNext');
+    const skipBtn = document.getElementById('tutorialSkip');
+    const arrow = document.getElementById('tutorialArrow');
+
+    function showStep(stepIndex) {
+        const step = tutorialSteps[stepIndex];
+
+        // Update content
+        stepIndicator.textContent = `${stepIndex + 1} of ${tutorialSteps.length}`;
+        icon.innerHTML = `<i class="bi ${step.icon}"></i>`;
+        title.textContent = step.title;
+        text.textContent = step.text;
+
+        // Update buttons
+        prevBtn.style.visibility = stepIndex === 0 ? 'hidden' : 'visible';
+
+        if (stepIndex === tutorialSteps.length - 1) {
+            nextBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Done';
+        } else {
+            nextBtn.innerHTML = 'Next<i class="bi bi-chevron-right ms-1"></i>';
+        }
+
+        // Position modal
+        positionModal(step);
+    }
+
+    function positionModal(step) {
+        // Reset classes and inline styles
+        modal.classList.remove('tutorial-center', 'tutorial-right', 'tutorial-left', 'tutorial-bottom');
+        modal.style.left = '';
+        modal.style.right = '';
+        modal.style.top = '';
+        modal.style.bottom = '';
+        modal.style.transform = '';
+        arrow.style.display = 'none';
+
+        if (!step.element || step.position === 'center') {
+            // Center the modal - no element to highlight
+            modal.classList.add('tutorial-center');
+            highlightElement(null);
+            return;
+        }
+
+        const targetEl = document.querySelector(step.element);
+        if (!targetEl) {
+            modal.classList.add('tutorial-center');
+            highlightElement(null);
+            return;
+        }
+
+        // Highlight target element with spotlight effect
+        highlightElement(targetEl);
+
+        const rect = targetEl.getBoundingClientRect();
+        const modalWidth = 320;
+        const modalHeight = modal.offsetHeight || 200;
+        const padding = 20;
+
+        if (step.position === 'right') {
+            // Position to the right of the element
+            modal.style.left = `${rect.right + padding}px`;
+            modal.style.top = `${rect.top + (rect.height / 2) - (modalHeight / 2)}px`;
+            modal.style.right = 'auto';
+            modal.style.bottom = 'auto';
+            modal.style.transform = 'none';
+
+            // Show arrow pointing left
+            arrow.style.display = 'block';
+            arrow.className = 'tutorial-arrow arrow-left';
+            arrow.style.left = '-10px';
+            arrow.style.top = '50%';
+            arrow.style.transform = 'translateY(-50%)';
+        } else if (step.position === 'left') {
+            // Position to the left of the element
+            modal.style.left = 'auto';
+            modal.style.right = `${window.innerWidth - rect.left + padding}px`;
+            modal.style.top = `${rect.top + (rect.height / 2) - (modalHeight / 2)}px`;
+            modal.style.bottom = 'auto';
+            modal.style.transform = 'none';
+
+            // Show arrow pointing right
+            arrow.style.display = 'block';
+            arrow.className = 'tutorial-arrow arrow-right';
+            arrow.style.right = '-10px';
+            arrow.style.left = 'auto';
+            arrow.style.top = '50%';
+            arrow.style.transform = 'translateY(-50%)';
+        } else if (step.position === 'bottom') {
+            // Position below the element
+            modal.style.left = `${rect.left + (rect.width / 2) - (modalWidth / 2)}px`;
+            modal.style.top = `${rect.bottom + padding}px`;
+            modal.style.right = 'auto';
+            modal.style.bottom = 'auto';
+            modal.style.transform = 'none';
+        }
+
+        // Keep modal in viewport
+        const modalRect = modal.getBoundingClientRect();
+        if (modalRect.right > window.innerWidth) {
+            modal.style.left = `${window.innerWidth - modalWidth - padding}px`;
+        }
+        if (modalRect.bottom > window.innerHeight) {
+            modal.style.top = `${window.innerHeight - modalHeight - padding}px`;
+        }
+        if (modalRect.top < 0) {
+            modal.style.top = `${padding}px`;
+        }
+    }
+
+    function highlightElement(el) {
+        // Remove previous highlights
+        document.querySelectorAll('.tutorial-highlight').forEach(e => e.classList.remove('tutorial-highlight'));
+
+        if (el) {
+            // If element is inside a collapsed sidebar section, expand it
+            const sectionContent = el.closest('.sidebar-section-content');
+            if (sectionContent && !sectionContent.classList.contains('show')) {
+                sectionContent.classList.add('show');
+                const toggle = sectionContent.previousElementSibling;
+                if (toggle && toggle.classList.contains('sidebar-section-toggle')) {
+                    toggle.classList.add('active');
+                }
+            }
+
+            el.classList.add('tutorial-highlight');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Add spotlight class to body (hides overlay, uses box-shadow spotlight)
+            document.body.classList.add('has-spotlight');
+        } else {
+            // No element to highlight, show regular overlay
+            document.body.classList.remove('has-spotlight');
+        }
+    }
+
+    function startTutorial() {
+        currentStep = 0;
+        overlay.classList.remove('d-none');
+        modal.classList.remove('d-none');
+        document.body.classList.add('tutorial-active');
+        showStep(currentStep);
+    }
+
+    function endTutorial() {
+        overlay.classList.add('d-none');
+        modal.classList.add('d-none');
+        document.body.classList.remove('tutorial-active');
+        document.body.classList.remove('has-spotlight');
+        document.querySelectorAll('.tutorial-highlight').forEach(e => e.classList.remove('tutorial-highlight'));
+
+        // Mark tutorial as completed
+        fetch('{% url "accounts:complete_tutorial" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        }).catch(() => {});
+
+        localStorage.setItem('reflekt-tutorial-completed', 'true');
+    }
+
+    function nextStep() {
+        if (currentStep < tutorialSteps.length - 1) {
+            currentStep++;
+            showStep(currentStep);
+        } else {
+            endTutorial();
+        }
+    }
+
+    function prevStep() {
+        if (currentStep > 0) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    }
+
+    // Event listeners
+    nextBtn.addEventListener('click', nextStep);
+    prevBtn.addEventListener('click', prevStep);
+    skipBtn.addEventListener('click', endTutorial);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            // Allow clicking through to highlighted element
+        }
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (modal.classList.contains('d-none')) return;
+
+        if (e.key === 'Escape') {
+            endTutorial();
+        } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+            nextStep();
+        } else if (e.key === 'ArrowLeft') {
+            prevStep();
+        }
+    });
+
+    // Expose start function globally
+    window.startTutorial = startTutorial;
+
+    // Auto-start for first-time users
+    {% if user.is_authenticated and not user.profile.tutorial_completed %}
+    const tutorialCompleted = localStorage.getItem('reflekt-tutorial-completed');
+    if (!tutorialCompleted) {
+        // Small delay to let page render
+        setTimeout(startTutorial, 500);
+    }
+    {% endif %}
+});
+</script>

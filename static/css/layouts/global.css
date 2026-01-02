@@ -311,3 +311,220 @@ body.no-footer .site-footer {
         bottom: 80px; /* Above the sidebar toggle button */
     }
 }
+
+/* ==========================================================================
+   Tutorial Walkthrough
+   ========================================================================== */
+
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    backdrop-filter: blur(2px);
+}
+
+.tutorial-modal {
+    position: fixed;
+    width: 320px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    animation: tutorialFadeIn 0.3s ease;
+}
+
+@keyframes tutorialFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.tutorial-modal.tutorial-center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
+}
+
+.tutorial-content {
+    padding: 1.25rem;
+}
+
+.tutorial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.tutorial-step-indicator {
+    font-size: 0.75rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+}
+
+.tutorial-close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.tutorial-close:hover {
+    color: #374151;
+}
+
+.tutorial-body {
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+
+.tutorial-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.tutorial-title {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.tutorial-text {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+.tutorial-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tutorial-footer .btn {
+    min-width: 100px;
+}
+
+/* Tutorial arrow */
+.tutorial-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+.tutorial-arrow.arrow-left {
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid white;
+}
+
+.tutorial-arrow.arrow-right {
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid white;
+}
+
+.tutorial-arrow.arrow-top {
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid white;
+}
+
+/* Spotlight effect for target elements */
+.tutorial-highlight {
+    position: relative;
+    z-index: 10001 !important;
+    background: white !important;
+    border-radius: 8px;
+    /* Glowing border + massive shadow creates the fog effect */
+    box-shadow:
+        0 0 0 4px rgba(99, 102, 241, 0.6),
+        0 0 15px rgba(99, 102, 241, 0.4),
+        0 0 0 9999px rgba(0, 0, 0, 0.5) !important;
+    animation: tutorialSpotlight 2s infinite;
+}
+
+@keyframes tutorialSpotlight {
+    0%, 100% {
+        box-shadow:
+            0 0 0 4px rgba(99, 102, 241, 0.6),
+            0 0 15px rgba(99, 102, 241, 0.4),
+            0 0 0 9999px rgba(0, 0, 0, 0.5);
+    }
+    50% {
+        box-shadow:
+            0 0 0 6px rgba(99, 102, 241, 0.8),
+            0 0 25px rgba(99, 102, 241, 0.5),
+            0 0 0 9999px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Hide the regular overlay when spotlight is active - the box-shadow creates the fog */
+body.tutorial-active.has-spotlight .tutorial-overlay {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Allow box-shadow to extend beyond parent containers */
+body.tutorial-active.has-spotlight .app-sidebar,
+body.tutorial-active.has-spotlight .app-sidebar .sidebar-content,
+body.tutorial-active.has-spotlight .feedback-fab-container {
+    overflow: visible !important;
+}
+
+/* Only the section containing the highlight should have overflow visible */
+body.tutorial-active.has-spotlight .sidebar-section-content:has(.tutorial-highlight) {
+    overflow: visible !important;
+}
+
+/* Prevent body scroll during tutorial */
+body.tutorial-active {
+    overflow: hidden;
+}
+
+/* Mobile adjustments */
+@media (max-width: 576px) {
+    .tutorial-modal {
+        width: calc(100% - 2rem);
+        left: 1rem !important;
+        right: 1rem !important;
+        bottom: 1rem !important;
+        top: auto !important;
+        transform: none !important;
+    }
+
+    .tutorial-modal.tutorial-center {
+        top: auto !important;
+        left: 1rem !important;
+        transform: none !important;
+    }
+
+    .tutorial-arrow {
+        display: none !important;
+    }
+}
