@@ -20,17 +20,20 @@ ALLOWED_TAGS = [
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
     'div', 'span',
     'sup', 'sub',
+    'figure', 'figcaption',  # For {image} blocks
 ]
 
 ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title', 'target', 'rel'],
-    'img': ['src', 'alt', 'title', 'width', 'height'],
+    'img': ['src', 'alt', 'title', 'width', 'height', 'loading', 'onclick', 'style'],
     'code': ['class'],
     'pre': ['class'],
     'div': ['class'],
     'span': ['class', 'data-tag', 'data-capture-type', 'data-capture-name'],
     'th': ['align'],
     'td': ['align'],
+    'figure': ['class'],
+    'figcaption': ['class'],
 }
 
 # MyST directive styles
@@ -233,6 +236,149 @@ def process_capture_blocks(text):
     # Pattern for inline capture blocks (excluding dream and gratitude which are admonitions)
     pattern = r'\{(place|travel|workout|watched|meal|book|person)\}\s*(.*?)\s*\{/\1\}'
     text = re.sub(pattern, replace_capture, text, flags=re.DOTALL | re.IGNORECASE)
+
+    return text
+
+
+def process_image_blocks(text, attachments=None):
+    """
+    Convert {image} blocks to inline images.
+
+    Supports multiple formats:
+
+    MyST directive syntax (fenced):
+    ```{image} https://example.com/photo.jpg
+    :width: 500px
+    :alt: My photo
+    ```
+
+    Inline syntax:
+    - {image} https://example.com/photo.jpg {/image} - Full URL
+    - {image} /media/path/to/image.jpg {/image} - Relative URL
+    - {image} 1 {/image} - Attachment by position (1-indexed)
+    - {image} filename.jpg {/image} - Attachment by filename
+    - {image} photo.jpg | My vacation photo {/image} - With alt text
+    """
+    # Build attachment lookup if provided
+    attachment_list = list(attachments) if attachments else []
+    attachment_by_name = {a.file_name.lower(): a for a in attachment_list}
+
+    def resolve_image_url(src):
+        """Resolve image source to URL, checking attachments if needed."""
+        src = src.strip()
+
+        # Check if it's a full URL
+        if src.startswith(('http://', 'https://', '//')):
+            return src, None
+        # Check if it's a relative path starting with /
+        elif src.startswith('/'):
+            return src, None
+        # Check if it's a number (attachment position)
+        elif src.isdigit():
+            idx = int(src) - 1  # Convert to 0-indexed
+            if 0 <= idx < len(attachment_list):
+                attachment = attachment_list[idx]
+                if attachment.is_image:
+                    return attachment.file.url, attachment.file_name
+        # Check if it matches an attachment filename
+        else:
+            src_lower = src.lower()
+            if src_lower in attachment_by_name:
+                attachment = attachment_by_name[src_lower]
+                if attachment.is_image:
+                    return attachment.file.url, attachment.file_name
+
+        return None, None
+
+    def build_image_html(image_url, alt_text='', width=None, height=None, align=None):
+        """Build the HTML for an image figure."""
+        style_parts = ['cursor: pointer;']
+        if width:
+            style_parts.append(f'max-width: {width};')
+        if height:
+            style_parts.append(f'max-height: {height};')
+        style = ' '.join(style_parts)
+
+        # Escape quotes in alt text for onclick
+        alt_escaped = alt_text.replace("'", "\\'").replace('"', '&quot;')
+
+        # Build CSS classes based on alignment
+        classes = ['entry-image']
+        if align:
+            align = align.lower()
+            if align == 'left':
+                classes.append('entry-image-left')
+            elif align == 'right':
+                classes.append('entry-image-right')
+            elif align == 'center':
+                classes.append('entry-image-center')
+        class_str = ' '.join(classes)
+
+        return f'<figure class="{class_str}"><img src="{image_url}" alt="{alt_text}" loading="lazy" onclick="openLightbox(\'{image_url}\', \'{alt_escaped}\')" style="{style}"><figcaption>{alt_text}</figcaption></figure>'
+
+    def replace_myst_image(match):
+        """Handle MyST directive syntax: ```{image} URL\n:options\n```"""
+        first_line = match.group(1).strip()
+        options_block = match.group(2) if match.group(2) else ''
+
+        # Parse options from the block
+        options = {}
+        for line in options_block.strip().split('\n'):
+            line = line.strip()
+            if line.startswith(':') and ':' in line[1:]:
+                # Format is :key: value
+                key_end = line.index(':', 1)
+                key = line[1:key_end].strip()
+                value = line[key_end + 1:].strip()
+                options[key] = value
+
+        # Get options
+        alt_text = options.get('alt', '')
+        width = options.get('width', None)
+        height = options.get('height', None)
+        align = options.get('align', None)
+
+        # Resolve the image URL
+        image_url, filename = resolve_image_url(first_line)
+
+        if not alt_text and filename:
+            alt_text = filename
+
+        if image_url:
+            return build_image_html(image_url, alt_text, width, height, align)
+        else:
+            return f'<span class="text-muted"><i class="bi bi-image me-1"></i>[Image: {first_line}]</span>'
+
+    def replace_inline_image(match):
+        """Handle inline syntax: {image} content {/image}"""
+        content = match.group(1).strip()
+
+        # Check for alt text (separated by |)
+        if '|' in content:
+            src, alt_text = content.split('|', 1)
+            src = src.strip()
+            alt_text = alt_text.strip()
+        else:
+            src = content
+            alt_text = ''
+
+        image_url, filename = resolve_image_url(src)
+
+        if not alt_text and filename:
+            alt_text = filename
+
+        if image_url:
+            return build_image_html(image_url, alt_text)
+        else:
+            return f'<span class="text-muted"><i class="bi bi-image me-1"></i>[Image: {src}]</span>'
+
+    # Pattern 1: MyST directive syntax ```{image} URL\n:options\n```
+    myst_pattern = r'```\{image\}\s*([^\n]+)\n((?::[^\n]+\n)*)```'
+    text = re.sub(myst_pattern, replace_myst_image, text, flags=re.IGNORECASE)
+
+    # Pattern 2: Inline syntax {image} content {/image}
+    inline_pattern = r'\{image\}\s*(.*?)\s*\{/image\}'
+    text = re.sub(inline_pattern, replace_inline_image, text, flags=re.DOTALL | re.IGNORECASE)
 
     return text
 
@@ -532,3 +678,79 @@ def multiply(value, arg):
         return float(value) * float(arg)
     except (ValueError, TypeError):
         return value
+
+
+@register.simple_tag
+def render_entry_content(entry):
+    """
+    Render entry content with full support for all block types including images.
+
+    This template tag is used instead of the render_markdown filter when
+    we need access to the entry's attachments for {image} blocks.
+
+    Usage: {% render_entry_content entry %}
+    """
+    if not entry or not entry.content:
+        return ''
+
+    value = entry.content
+
+    # Get entry attachments for image block processing
+    attachments = entry.attachments.all() if hasattr(entry, 'attachments') else []
+
+    # First, process hashtags before markdown conversion
+    value = process_hashtags(value)
+
+    # Process POV blocks (shared content from friends)
+    value = process_pov_blocks(value)
+
+    # Process goal and habit blocks
+    value = process_goal_habit_blocks(value)
+
+    # Process capture blocks ({place}, {travel}, {workout}, etc.)
+    value = process_capture_blocks(value)
+
+    # Process wellness blocks ({dream}, {gratitude}) as admonitions
+    value = process_wellness_blocks(value)
+
+    # Process image blocks with attachments
+    value = process_image_blocks(value, attachments)
+
+    # Then, process MyST directives before markdown conversion
+    value = process_myst_directives(value)
+
+    # Configure markdown extensions
+    extensions = [
+        'markdown.extensions.fenced_code',
+        'markdown.extensions.codehilite',
+        'markdown.extensions.tables',
+        'markdown.extensions.nl2br',
+        'markdown.extensions.sane_lists',
+        'markdown.extensions.smarty',
+        'markdown.extensions.toc',
+    ]
+
+    extension_configs = {
+        'markdown.extensions.codehilite': {
+            'css_class': 'highlight',
+            'guess_lang': True,
+        },
+    }
+
+    # Convert markdown to HTML
+    md = markdown.Markdown(extensions=extensions, extension_configs=extension_configs)
+    html = md.convert(value)
+
+    # Sanitize HTML to prevent XSS (but allow our custom elements)
+    allowed_tags = ALLOWED_TAGS + ['i']
+    allowed_attrs = dict(ALLOWED_ATTRIBUTES)
+    allowed_attrs['i'] = ['class']
+
+    clean_html = bleach.clean(
+        html,
+        tags=allowed_tags,
+        attributes=allowed_attrs,
+        strip=True
+    )
+
+    return mark_safe(clean_html)

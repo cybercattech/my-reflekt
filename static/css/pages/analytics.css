@@ -998,3 +998,26 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   Mood Entry Card Borders (Monthly Dashboard)
+   ========================================================================== */
+.mood-entry-card.ecstatic-entry {
+    border-left: 3px solid var(--mood-ecstatic) !important;
+}
+
+.mood-entry-card.happy-entry {
+    border-left: 3px solid var(--mood-happy) !important;
+}
+
+.mood-entry-card.neutral-entry {
+    border-left: 3px solid var(--mood-neutral) !important;
+}
+
+.mood-entry-card.sad-entry {
+    border-left: 3px solid var(--mood-sad) !important;
+}
+
+.mood-entry-card.angry-entry {
+    border-left: 3px solid var(--mood-angry-light) !important;
+}

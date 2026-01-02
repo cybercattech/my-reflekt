@@ -50,7 +50,8 @@ def run_sync_analysis(entry):
     # Run analysis
     sentiment_score = get_sentiment_score(entry.content)
     sentiment_label = get_sentiment_label(sentiment_score)
-    detected_mood, confidence, _ = classify_mood(entry.content)
+    # Pass sentiment score to mood classifier for consistency
+    detected_mood, confidence, _ = classify_mood(entry.content, sentiment_score)
     themes = extract_themes(entry.content)
     keywords = extract_keywords(entry.content)
 

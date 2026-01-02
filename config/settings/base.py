@@ -135,7 +135,15 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Django 5.x storage configuration
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Static file finders
 STATICFILES_FINDERS = [
@@ -166,21 +174,25 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Allauth configuration
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+# Allauth configuration (updated for django-allauth 0.60+)
+ACCOUNT_LOGIN_METHODS = {'email'}  # Login via email only
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Required fields, password twice
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Require email verification
-ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_ADAPTER = 'apps.accounts.adapters.AccountAdapter'
 ACCOUNT_FORMS = {
     'signup': 'apps.accounts.adapters.CustomSignupForm',
 }
 
+# Rate limiting for email operations
+ACCOUNT_RATE_LIMITS = {
+    'confirm_email': '3/m',  # 3 confirmation emails per minute
+    'login': '5/m',  # 5 login attempts per minute
+    'login_failed': '3/m',  # 3 failed logins per minute
+}
+
 # Email verification settings
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3  # Link expires after 3 days
-ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = 180  # 3 minutes between resend requests
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True  # Auto-login after verification
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Reflekt] '  # Email subject prefix
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/dashboard/'  # Redirect after email verification

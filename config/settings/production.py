@@ -38,8 +38,27 @@ AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 AWS_DEFAULT_ACL = 'private'
 AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = True  # Generate signed URLs for private files
+AWS_LOCATION = 'media'  # Prefix for uploaded files
 
-# Use S3 for media files
+# Django 5.x storage configuration with S3
 if AWS_ACCESS_KEY_ID and AWS_STORAGE_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                "region_name": AWS_S3_REGION_NAME,
+                "access_key": AWS_ACCESS_KEY_ID,
+                "secret_key": AWS_SECRET_ACCESS_KEY,
+                "default_acl": AWS_DEFAULT_ACL,
+                "file_overwrite": AWS_S3_FILE_OVERWRITE,
+                "querystring_auth": AWS_QUERYSTRING_AUTH,
+                "object_parameters": AWS_S3_OBJECT_PARAMETERS,
+                "location": AWS_LOCATION,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'

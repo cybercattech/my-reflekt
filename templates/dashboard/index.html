@@ -1,4 +1,5 @@
 {% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
 {% load subscription_tags %}
 {% load challenge_tags %}
 {% load analytics_tags %}
@@ -6,6 +7,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block dashboard_css %}
+<link href="{% static 'css/layouts/dashboard.css' %}" rel="stylesheet">
 <style>
 .premium-locked {
     position: relative;
@@ -38,217 +40,6 @@
     border-radius: 0.5rem;
     font-weight: 600;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Insights Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 1rem;
-    min-height: 280px;
-}
-
-.stats-grid .entries-card {
-    grid-column: 1;
-    grid-row: 1 / 3;
-}
-
-.stats-grid .words-stats-card {
-    grid-column: 2;
-    grid-row: 1;
-}
-
-.stats-grid .month-stats-card {
-    grid-column: 2;
-    grid-row: 2;
-}
-
-.stats-grid .journaled-stats-card {
-    grid-column: 3;
-    grid-row: 1 / 3;
-}
-
-/* Entries Card - Purple Gradient */
-.entries-card {
-    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
-    border-radius: 16px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    padding: 1.25rem;
-}
-
-.entries-card .entries-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.entries-card .entries-count {
-    font-size: 4rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.entries-card .entries-label {
-    font-size: 1.25rem;
-    opacity: 0.9;
-}
-
-.entries-card .chart-area {
-    flex: 1;
-    min-height: 80px;
-    margin: 0.5rem 0;
-}
-
-.entries-card .year-tabs {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: auto;
-}
-
-.entries-card .year-tab {
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    background: transparent;
-    color: rgba(255,255,255,0.7);
-    border: 1px solid rgba(255,255,255,0.3);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.entries-card .year-tab:hover {
-    color: white;
-    background: rgba(255,255,255,0.1);
-}
-
-.entries-card .year-tab.active {
-    background: rgba(67, 56, 202, 0.8);
-    color: white;
-}
-
-/* Words Card - Teal Gradient */
-.words-stats-card {
-    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-    border-radius: 16px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    text-align: center;
-}
-
-.words-stats-card .words-label-top {
-    font-size: 0.85rem;
-    opacity: 0.9;
-}
-
-.words-stats-card .words-value {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.words-stats-card .words-label {
-    font-size: 0.85rem;
-    opacity: 0.9;
-}
-
-/* Month Stats Card - Blue Gradient */
-.month-stats-card {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border-radius: 16px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    text-align: center;
-}
-
-.month-stats-card .month-label-top {
-    font-size: 0.85rem;
-    opacity: 0.9;
-}
-
-.month-stats-card .month-value {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.month-stats-card .month-label {
-    font-size: 0.85rem;
-    opacity: 0.9;
-}
-
-/* Journaled Days Card - Pink/Rose Gradient */
-.journaled-stats-card {
-    background: linear-gradient(135deg, #be185d 0%, #9f1239 100%);
-    border-radius: 16px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-    padding: 1.25rem;
-    text-align: center;
-}
-
-.journaled-stats-card .journaled-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.journaled-stats-card .journaled-label-top {
-    font-size: 1rem;
-    opacity: 0.9;
-}
-
-.journaled-stats-card .journaled-value {
-    font-size: 3rem;
-    font-weight: 700;
-    line-height: 1;
-    margin: 0.25rem 0;
-}
-
-.journaled-stats-card .journaled-unit {
-    font-size: 1rem;
-    opacity: 0.9;
-}
-
-.journaled-stats-card .journaled-breakdown {
-    display: flex;
-    gap: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    width: 100%;
-    justify-content: space-evenly;
-}
-
-.journaled-stats-card .breakdown-item {
-    text-align: center;
-    flex: 1;
-}
-
-.journaled-stats-card .breakdown-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    line-height: 1;
-}
-
-.journaled-stats-card .breakdown-label {
-    font-size: 0.7rem;
-    opacity: 0.8;
-    margin-top: 0.25rem;
 }
 
 /* Section Labels */
@@ -825,39 +616,6 @@
 @media (max-width: 768px) {
     .moon-phases-grid {
         grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Responsive */
-@media (max-width: 992px) {
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto auto;
-    }
-    .entries-card {
-        grid-column: span 2;
-        grid-row: span 1;
-        min-height: 200px;
-    }
-    .journaled-stats-card {
-        grid-row: span 1;
-    }
-}
-
-@media (max-width: 576px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto;
-    }
-    .entries-card,
-    .words-stats-card,
-    .month-stats-card,
-    .journaled-stats-card {
-        grid-column: span 1;
-        grid-row: span 1;
-    }
-    .entries-card {
-        min-height: 220px;
     }
 }
 </style>

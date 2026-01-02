@@ -1,9 +1,11 @@
 {% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
 {% load analytics_tags %}
 
 {% block title %}{{ month_name }} {{ year }}{% endblock %}
 
 {% block dashboard_css %}
+<link href="{% static 'css/pages/analytics.css' %}" rel="stylesheet">
 <style>
 /* Modern Stats Cards */
 .stats-grid {
@@ -299,11 +301,6 @@
     font-size: 0.75rem;
     color: #374151;
     line-height: 1.3;
-}
-
-/* Angry entries have red accent */
-.mood-entry-card.angry-entry {
-    border-left: 3px solid var(--mood-angry-light);
 }
 
 /* Responsive */
@@ -668,7 +665,7 @@
                     <div class="mood-column-entries">
                         {% for entry in entries %}
                         {% if entry.analysis and entry.analysis.detected_mood == 'ecstatic' %}
-                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="mood-entry-card">
+                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="mood-entry-card ecstatic-entry">
                             <div class="entry-date">{{ entry.entry_date|date:"M j" }}</div>
                             <div class="entry-preview">{{ entry.preview|truncatewords:8 }}</div>
                         </a>
@@ -686,7 +683,7 @@
                     <div class="mood-column-entries">
                         {% for entry in entries %}
                         {% if entry.analysis and entry.analysis.detected_mood == 'happy' %}
-                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="mood-entry-card">
+                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="mood-entry-card happy-entry">
                             <div class="entry-date">{{ entry.entry_date|date:"M j" }}</div>
                             <div class="entry-preview">{{ entry.preview|truncatewords:8 }}</div>
                         </a>
@@ -704,7 +701,7 @@
                     <div class="mood-column-entries">
                         {% for entry in entries %}
                         {% if entry.analysis and entry.analysis.detected_mood == 'neutral' %}
-                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="mood-entry-card">
+                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="mood-entry-card neutral-entry">
                             <div class="entry-date">{{ entry.entry_date|date:"M j" }}</div>
                             <div class="entry-preview">{{ entry.preview|truncatewords:8 }}</div>
                         </a>
@@ -722,7 +719,7 @@
                     <div class="mood-column-entries">
                         {% for entry in entries %}
                         {% if entry.analysis and entry.analysis.detected_mood == 'sad' %}
-                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="mood-entry-card">
+                        <a href="{% url 'journal:entry_detail' entry.pk %}" class="mood-entry-card sad-entry">
                             <div class="entry-date">{{ entry.entry_date|date:"M j" }}</div>
                             <div class="entry-preview">{{ entry.preview|truncatewords:8 }}</div>
                         </a>

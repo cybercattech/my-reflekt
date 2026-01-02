@@ -62,7 +62,8 @@ def analyze_entry(entry_id: int):
         # Run analysis
         sentiment_score = get_sentiment_score(content)
         sentiment_label = get_sentiment_label(sentiment_score)
-        detected_mood, confidence, _ = classify_mood(content)
+        # Pass sentiment score to mood classifier for consistency
+        detected_mood, confidence, _ = classify_mood(content, sentiment_score)
         themes = extract_themes(content)
         keywords = extract_keywords(content)
 

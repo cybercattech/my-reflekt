@@ -4,10 +4,9 @@ Mood classification service.
 Classifies journal entries into mood categories:
 ecstatic, happy, neutral, sad, angry
 
-Ported from journal_mood_analysis.py
+Uses VADER sentiment score for mood classification.
 """
 import re
-from textblob import TextBlob
 
 
 # Mood categories with associated keywords
@@ -79,14 +78,15 @@ def count_mood_keywords(text: str) -> dict:
     return counts
 
 
-def classify_mood(text: str) -> tuple:
+def classify_mood(text: str, sentiment_score: float) -> tuple:
     """
     Classify text into a mood category.
 
-    Uses combination of sentiment analysis and keyword detection.
+    Uses VADER sentiment score combined with keyword detection.
 
     Args:
         text: Journal entry text
+        sentiment_score: VADER sentiment score (-1.0 to 1.0)
 
     Returns:
         tuple: (mood: str, confidence: float, all_scores: dict)
@@ -94,9 +94,7 @@ def classify_mood(text: str) -> tuple:
     if not text or not text.strip():
         return 'neutral', 0.5, {'neutral': 0.5}
 
-    # Get base sentiment score
-    blob = TextBlob(text)
-    sentiment = blob.sentiment.polarity
+    sentiment = sentiment_score
 
     # Get keyword counts
     keyword_counts = count_mood_keywords(text)
@@ -104,26 +102,35 @@ def classify_mood(text: str) -> tuple:
     # Calculate combined score for each mood
     scores = {mood: 0.0 for mood in MOOD_KEYWORDS.keys()}
 
-    # Base scoring from sentiment polarity
-    if sentiment >= 0.3:
-        scores['ecstatic'] = sentiment * 2
-        scores['happy'] = sentiment
-    elif sentiment >= 0.1:
-        scores['happy'] = sentiment * 2
-        scores['ecstatic'] = sentiment * 0.5
-    elif sentiment >= -0.1:
-        scores['neutral'] = 1 - abs(sentiment)
-    elif sentiment >= -0.3:
-        scores['sad'] = abs(sentiment) * 1.5
+    # Base scoring from sentiment polarity - adjusted thresholds
+    if sentiment >= 0.5:
+        # Very positive -> ecstatic
+        scores['ecstatic'] = 2.0
+        scores['happy'] = 0.5
+    elif sentiment >= 0.2:
+        # Positive -> happy, with some ecstatic possibility
+        scores['happy'] = 1.5
+        scores['ecstatic'] = sentiment
+    elif sentiment >= -0.2:
+        # Neutral range
+        scores['neutral'] = 1.0
+        if sentiment > 0:
+            scores['happy'] = sentiment * 2
+        elif sentiment < 0:
+            scores['sad'] = abs(sentiment) * 2
+    elif sentiment >= -0.5:
+        # Negative -> sad
+        scores['sad'] = 1.5
         scores['angry'] = abs(sentiment) * 0.5
     else:
-        scores['angry'] = abs(sentiment) * 1.5
-        scores['sad'] = abs(sentiment)
+        # Very negative -> angry
+        scores['angry'] = 2.0
+        scores['sad'] = 1.0
 
-    # Add keyword influence
+    # Add keyword influence (reduced weight so sentiment dominates)
     for mood, count in keyword_counts.items():
         if count > 0:
-            scores[mood] = scores.get(mood, 0) + (count * 0.15)
+            scores[mood] = scores.get(mood, 0) + (count * 0.1)
 
     # Normalize scores
     total = sum(scores.values())

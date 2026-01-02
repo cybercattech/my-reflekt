@@ -161,6 +161,77 @@
                         <div class="editor-column">
                             <div class="editor-container" style="position: relative;">
                                 {% if editor_preference == 'rich_text' %}
+                                <!-- Quill Custom Toolbar -->
+                                <div id="quill-toolbar">
+                                    <span class="ql-formats">
+                                        <select class="ql-header">
+                                            <option value="1">Heading 1</option>
+                                            <option value="2">Heading 2</option>
+                                            <option value="3">Heading 3</option>
+                                            <option selected>Normal</option>
+                                        </select>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button class="ql-bold"></button>
+                                        <button class="ql-italic"></button>
+                                        <button class="ql-underline"></button>
+                                        <button class="ql-strike"></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button class="ql-blockquote"></button>
+                                        <button class="ql-code-block"></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button class="ql-list" value="ordered"></button>
+                                        <button class="ql-list" value="bullet"></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button class="ql-link"></button>
+                                        <button class="ql-image"></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button class="ql-clean"></button>
+                                    </span>
+                                    <!-- Custom Reflekt Buttons -->
+                                    <span class="ql-formats ql-reflekt-buttons">
+                                        <button type="button" class="ql-reflekt-btn" id="btn-dream" title="Add Dream">
+                                            <i class="bi bi-cloud-moon"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-gratitude" title="Add Gratitude">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-person" title="Tag Person">
+                                            <i class="bi bi-person"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-place" title="Add Place">
+                                            <i class="bi bi-geo-alt"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-book" title="Add Book">
+                                            <i class="bi bi-book"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-watched" title="Add Movie/Show">
+                                            <i class="bi bi-film"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-travel" title="Add Travel">
+                                            <i class="bi bi-airplane"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-workout" title="Add Workout">
+                                            <i class="bi bi-activity"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-meal" title="Add Meal">
+                                            <i class="bi bi-egg-fried"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-goal" title="Link Goal">
+                                            <i class="bi bi-bullseye"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-habit" title="Log Habit">
+                                            <i class="bi bi-check2-square"></i>
+                                        </button>
+                                        <button type="button" class="ql-reflekt-btn" id="btn-pov" title="Share POV">
+                                            <i class="bi bi-people"></i>
+                                        </button>
+                                    </span>
+                                </div>
                                 <!-- Quill Rich Text Editor -->
                                 <div id="quill-editor"></div>
                                 <textarea name="content" id="id_content" style="display:none;">{{ form.content.value|default:'' }}</textarea>
@@ -429,6 +500,96 @@
     </div>
 </div>
 
+<!-- Quill Person Picker Modal -->
+<div class="modal fade" id="quillPersonPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2 bg-info bg-opacity-10">
+                <h6 class="modal-title d-flex align-items-center mb-0">
+                    <i class="bi bi-person me-2 text-info"></i>
+                    Tag a Person
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="quillPersonSearch" placeholder="Search or add new...">
+                    <button class="btn btn-primary" type="button" onclick="createPersonForQuill()">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+                <div id="quillPersonList" class="picker-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quill Generic Capture Form Modal -->
+<div class="modal fade" id="quillCaptureFormModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2 bg-primary bg-opacity-10">
+                <h6 class="modal-title d-flex align-items-center mb-0" id="quillCaptureTitle">
+                    Add Item
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="mb-3">
+                    <label class="form-label small fw-medium">Name</label>
+                    <input type="text" class="form-control" id="quillCaptureName" placeholder="Enter name...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-medium">Notes (optional)</label>
+                    <textarea class="form-control" id="quillCaptureNotes" rows="2" placeholder="Any additional notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="saveQuillCapture()">
+                    <i class="bi bi-check-lg me-1"></i>Add
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quill Goal Picker Modal -->
+<div class="modal fade" id="quillGoalPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2 bg-primary bg-opacity-10">
+                <h6 class="modal-title d-flex align-items-center mb-0">
+                    <i class="bi bi-bullseye me-2 text-primary"></i>
+                    Link a Goal
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div id="quillGoalList" class="picker-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quill Habit Picker Modal -->
+<div class="modal fade" id="quillHabitPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2 bg-success bg-opacity-10">
+                <h6 class="modal-title d-flex align-items-center mb-0">
+                    <i class="bi bi-check2-square me-2 text-success"></i>
+                    Log a Habit
+                </h6>
+                <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div id="quillHabitList" class="picker-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .hybrid-picker-list {
     max-height: 350px;
@@ -567,20 +728,570 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
 
+    // =================================================================
+    // SHARED SLASH COMMANDS SETUP (for both Quill and EasyMDE)
+    // =================================================================
+    console.log('[DEBUG] Slash commands section initialized');
+
+    let slashCommands = [];
+    const slashMenu = document.getElementById('slashCommandMenu');
+    let selectedCommandIndex = 0;
+    let currentCommand = null;
+
+    // Fetch slash commands from server
+    async function loadSlashCommands() {
+        console.log('[DEBUG] loadSlashCommands called');
+        try {
+            const response = await fetch('/journal/api/slash-commands/');
+            const data = await response.json();
+            slashCommands = data.commands.map(cmd => {
+                const mapped = {
+                    command: cmd.command,
+                    name: cmd.name,
+                    icon: cmd.icon,
+                    description: cmd.description,
+                    is_emoji_icon: cmd.is_emoji_icon || false,
+                };
+                if (cmd.special === 'capture_form') {
+                    mapped.special = 'capture_form';
+                    mapped.captureType = cmd.captureType;
+                } else if (cmd.special === 'goal_picker') {
+                    mapped.special = 'goal_picker';
+                } else if (cmd.special === 'habit_picker') {
+                    mapped.special = 'habit_picker';
+                } else if (cmd.special === 'hybrid_picker') {
+                    mapped.special = 'hybrid_picker';
+                    mapped.captureType = cmd.captureType;
+                } else if (cmd.special === 'block_insert') {
+                    mapped.special = 'block_insert';
+                    mapped.blockType = cmd.blockType;
+                    mapped.hashtag = cmd.hashtag;
+                } else if (cmd.special === 'quick_picker') {
+                    mapped.special = 'quick_picker';
+                    mapped.pickerType = cmd.pickerType;
+                }
+                return mapped;
+            });
+            console.log('Loaded slash commands:', slashCommands);
+        } catch (error) {
+            console.error('Error loading slash commands:', error);
+            slashCommands = [
+                { command: '/dream', name: 'Dream', icon: 'bi-cloud-moon', description: 'Log a dream', special: 'block_insert', blockType: 'dream' },
+                { command: '/gratitude', name: 'Gratitude', icon: 'bi-heart', description: 'Express gratitude', special: 'block_insert', blockType: 'gratitude' },
+            ];
+        }
+    }
+
+    // Load commands on page load
+    loadSlashCommands();
+
+    // Build menu items
+    function renderSlashMenu(filter = '') {
+        const filtered = filter
+            ? slashCommands.filter(c => c.command.toLowerCase().includes(filter.toLowerCase()) ||
+                                        c.name.toLowerCase().includes(filter.toLowerCase()))
+            : slashCommands;
+
+        if (filtered.length === 0) {
+            slashMenu.classList.remove('show');
+            return;
+        }
+
+        selectedCommandIndex = 0;
+        slashMenu.innerHTML = filtered.map((cmd, idx) => {
+            const iconHtml = cmd.is_emoji_icon
+                ? `<span style="font-size: 1.25rem;">${cmd.icon}</span>`
+                : `<i class="bi ${cmd.icon}"></i>`;
+
+            return `
+            <div class="slash-command-item ${idx === 0 ? 'selected' : ''}" data-command="${cmd.command}">
+                <div class="slash-command-icon">${iconHtml}</div>
+                <div class="slash-command-info">
+                    <div class="slash-command-name">${cmd.name}</div>
+                    <div class="slash-command-desc">${cmd.description}</div>
+                </div>
+                <div class="slash-command-shortcut">${cmd.command}</div>
+            </div>`;
+        }).join('');
+
+        slashMenu.querySelectorAll('.slash-command-item').forEach((item, idx) => {
+            item.addEventListener('click', function() {
+                const cmd = slashCommands.find(c => c.command === this.dataset.command);
+                if (cmd) {
+                    selectedCommandIndex = idx;
+                    // Let the editor-specific handler deal with this
+                }
+            });
+        });
+    }
+
     {% if editor_preference == 'rich_text' %}
-    // Initialize Quill
+    // Initialize Quill with custom toolbar
     const quill = new Quill('#quill-editor', {
         theme: 'snow',
         placeholder: 'Start writing your thoughts...',
         modules: {
-            toolbar: [
-                [{ 'header': [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                ['link'],
-                ['clean']
-            ]
+            toolbar: {
+                container: '#quill-toolbar',
+                handlers: {
+                    'image': function() {
+                        selectLocalImage();
+                    }
+                }
+            }
+        }
+    });
+
+    // =================================================================
+    // CUSTOM TOOLBAR BUTTON HANDLERS
+    // =================================================================
+
+    // Dream button - insert dream block
+    document.getElementById('btn-dream').addEventListener('click', function() {
+        const range = quill.getSelection(true);
+        const index = range ? range.index : quill.getLength();
+        quill.insertText(index, '\n');
+        quill.insertText(index + 1, '{dream}\nDescribe your dream here...\n{/dream}');
+        quill.insertText(index + 1 + '{dream}\nDescribe your dream here...\n{/dream}'.length, '\n');
+        quill.setSelection(index + 9, 26); // Select placeholder text
+    });
+
+    // Gratitude button - insert gratitude block
+    document.getElementById('btn-gratitude').addEventListener('click', function() {
+        const range = quill.getSelection(true);
+        const index = range ? range.index : quill.getLength();
+        quill.insertText(index, '\n');
+        quill.insertText(index + 1, '{gratitude}\nWhat are you grateful for today?\n{/gratitude}');
+        quill.insertText(index + 1 + '{gratitude}\nWhat are you grateful for today?\n{/gratitude}'.length, '\n');
+        quill.setSelection(index + 13, 32); // Select placeholder text
+    });
+
+    // Person button - open person picker modal
+    document.getElementById('btn-person').addEventListener('click', function() {
+        openQuillPersonPicker();
+    });
+
+    // Place button - open place capture form
+    document.getElementById('btn-place').addEventListener('click', function() {
+        openQuillCaptureForm('place', 'Place', 'bi-geo-alt');
+    });
+
+    // Book button - open book form
+    document.getElementById('btn-book').addEventListener('click', function() {
+        openQuillCaptureForm('book', 'Book', 'bi-book');
+    });
+
+    // Watched button - open watched form
+    document.getElementById('btn-watched').addEventListener('click', function() {
+        openQuillCaptureForm('watched', 'Movie/Show', 'bi-film');
+    });
+
+    // Travel button - open travel form
+    document.getElementById('btn-travel').addEventListener('click', function() {
+        openQuillCaptureForm('travel', 'Travel', 'bi-airplane');
+    });
+
+    // Workout button - open workout form
+    document.getElementById('btn-workout').addEventListener('click', function() {
+        openQuillCaptureForm('workout', 'Workout', 'bi-activity');
+    });
+
+    // Meal button - open meal form
+    document.getElementById('btn-meal').addEventListener('click', function() {
+        openQuillCaptureForm('meal', 'Meal', 'bi-egg-fried');
+    });
+
+    // Goal button - open goal picker modal
+    document.getElementById('btn-goal').addEventListener('click', function() {
+        openQuillGoalPicker();
+    });
+
+    // Habit button - open habit picker modal
+    document.getElementById('btn-habit').addEventListener('click', function() {
+        openQuillHabitPicker();
+    });
+
+    // POV button - open POV modal
+    document.getElementById('btn-pov').addEventListener('click', function() {
+        openQuillPovModal();
+    });
+
+    // =================================================================
+    // QUILL PICKER/FORM FUNCTIONS
+    // =================================================================
+
+    // Person Picker for Quill
+    async function openQuillPersonPicker() {
+        const modal = new bootstrap.Modal(document.getElementById('quillPersonPickerModal'));
+        const list = document.getElementById('quillPersonList');
+        const search = document.getElementById('quillPersonSearch');
+
+        // Fetch people
+        try {
+            const response = await fetch('/journal/api/people-search/');
+            const data = await response.json();
+
+            list.innerHTML = data.results.map(person => `
+                <div class="picker-item" onclick="insertPersonToQuill('${person.name}', ${person.id})">
+                    <div class="picker-item-icon" style="background: #0ea5e9;">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div>
+                        <div class="picker-item-name">${person.name}</div>
+                        <div class="picker-item-meta">${person.mention_count || 0} mentions</div>
+                    </div>
+                </div>
+            `).join('') || '<div class="text-muted p-3">No people found. Add someone new below.</div>';
+
+        } catch (error) {
+            console.error('Error fetching people:', error);
+            list.innerHTML = '<div class="text-muted p-3">Error loading people</div>';
+        }
+
+        search.value = '';
+        modal.show();
+    }
+
+    window.insertPersonToQuill = function(name, id) {
+        const range = quill.getSelection(true);
+        const index = range ? range.index : quill.getLength();
+        quill.insertText(index, `@${name} `, { 'link': `/analytics/people/${id}/` });
+        bootstrap.Modal.getInstance(document.getElementById('quillPersonPickerModal')).hide();
+        quill.focus();
+    };
+
+    window.createPersonForQuill = async function() {
+        const nameInput = document.getElementById('quillPersonSearch');
+        const name = nameInput.value.trim();
+        if (!name) return;
+
+        try {
+            const response = await fetch('/journal/api/people-create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ name: name })
+            });
+            const data = await response.json();
+            if (data.id) {
+                insertPersonToQuill(data.name, data.id);
+            }
+        } catch (error) {
+            console.error('Error creating person:', error);
+        }
+    };
+
+    // Generic Capture Form for Quill
+    const captureIcons = {
+        'place': '📍',
+        'book': '📚',
+        'watched': '🎬',
+        'travel': '✈️',
+        'workout': '💪',
+        'meal': '🍽️'
+    };
+
+    const captureColors = {
+        'place': '#10b981',
+        'book': '#6366f1',
+        'watched': '#8b5cf6',
+        'travel': '#3b82f6',
+        'workout': '#ef4444',
+        'meal': '#f59e0b'
+    };
+
+    let currentCaptureType = null;
+
+    function openQuillCaptureForm(type, title, icon) {
+        currentCaptureType = type;
+        const modal = new bootstrap.Modal(document.getElementById('quillCaptureFormModal'));
+        document.getElementById('quillCaptureTitle').innerHTML = `<i class="bi ${icon} me-2"></i>${title}`;
+        document.getElementById('quillCaptureName').value = '';
+        document.getElementById('quillCaptureName').placeholder = `Enter ${title.toLowerCase()} name...`;
+        document.getElementById('quillCaptureNotes').value = '';
+        modal.show();
+    }
+
+    window.saveQuillCapture = async function() {
+        const name = document.getElementById('quillCaptureName').value.trim();
+        const notes = document.getElementById('quillCaptureNotes').value.trim();
+
+        if (!name) {
+            alert('Please enter a name');
+            return;
+        }
+
+        try {
+            const response = await fetch('/journal/api/capture/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    entry_pk: {{ entry.pk|default:'null' }},
+                    capture_type: currentCaptureType,
+                    data: {
+                        name: name,
+                        notes: notes
+                    }
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                // Insert capture mention into editor
+                const range = quill.getSelection(true);
+                const index = range ? range.index : quill.getLength();
+                const icon = captureIcons[currentCaptureType] || '📌';
+                const color = captureColors[currentCaptureType] || '#6b7280';
+                quill.insertText(index, `${icon} ${name} `);
+
+                // Add capture to list if it exists
+                if (data.capture && typeof addCaptureToList === 'function') {
+                    addCaptureToList(data.capture);
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('quillCaptureFormModal')).hide();
+                quill.focus();
+            } else {
+                alert(data.error || 'Failed to save');
+            }
+        } catch (error) {
+            console.error('Error saving capture:', error);
+            alert('Failed to save');
+        }
+    };
+
+    // Goal Picker for Quill
+    async function openQuillGoalPicker() {
+        const modal = new bootstrap.Modal(document.getElementById('quillGoalPickerModal'));
+        const list = document.getElementById('quillGoalList');
+
+        try {
+            const response = await fetch('/journal/api/goals-search/');
+            const data = await response.json();
+            const goals = data.goals || data.results || data || [];
+
+            if (Array.isArray(goals) && goals.length > 0) {
+                list.innerHTML = goals.map(goal => `
+                    <div class="picker-item" onclick="insertGoalToQuill('${goal.title.replace(/'/g, "\\'")}', ${goal.id})">
+                        <div class="picker-item-icon" style="background: ${goal.color || '#6366f1'};">
+                            <i class="bi bi-bullseye"></i>
+                        </div>
+                        <div>
+                            <div class="picker-item-name">${goal.title}</div>
+                            <div class="picker-item-meta">${goal.progress || 0}% complete</div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<div class="text-muted p-3">No goals found. <a href="/goals/create/">Create one</a></div>';
+            }
+        } catch (error) {
+            console.error('Error fetching goals:', error);
+            list.innerHTML = '<div class="text-muted p-3">Error loading goals</div>';
+        }
+
+        modal.show();
+    }
+
+    window.insertGoalToQuill = function(title, id) {
+        const range = quill.getSelection(true);
+        const index = range ? range.index : quill.getLength();
+        quill.insertText(index, `🎯 ${title} `, { 'link': `/goals/${id}/` });
+        bootstrap.Modal.getInstance(document.getElementById('quillGoalPickerModal')).hide();
+        quill.focus();
+    };
+
+    // Habit Picker for Quill
+    async function openQuillHabitPicker() {
+        const modal = new bootstrap.Modal(document.getElementById('quillHabitPickerModal'));
+        const list = document.getElementById('quillHabitList');
+
+        try {
+            const response = await fetch('/journal/api/habits-search/');
+            const data = await response.json();
+            const habits = data.habits || data.results || data || [];
+
+            if (Array.isArray(habits) && habits.length > 0) {
+                list.innerHTML = habits.map(habit => `
+                    <div class="picker-item" onclick="logHabitFromQuill('${habit.name.replace(/'/g, "\\'")}', ${habit.id})">
+                        <div class="picker-item-icon" style="background: ${habit.color || '#22c55e'};">
+                            <i class="bi bi-${habit.icon || 'check2-square'}"></i>
+                        </div>
+                        <div>
+                            <div class="picker-item-name">${habit.name}</div>
+                            <div class="picker-item-meta">${habit.current_streak || 0} day streak</div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<div class="text-muted p-3">No habits found. <a href="/habits/create/">Create one</a></div>';
+            }
+        } catch (error) {
+            console.error('Error fetching habits:', error);
+            list.innerHTML = '<div class="text-muted p-3">Error loading habits</div>';
+        }
+
+        modal.show();
+    }
+
+    window.logHabitFromQuill = async function(name, id) {
+        try {
+            // Log the habit completion (checkin endpoint)
+            const response = await fetch(`/habits/${id}/checkin/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: ''
+            });
+
+            // Insert habit mention into editor regardless of response
+            const range = quill.getSelection(true);
+            const index = range ? range.index : quill.getLength();
+            quill.insertText(index, `✅ ${name} `);
+
+            bootstrap.Modal.getInstance(document.getElementById('quillHabitPickerModal')).hide();
+            quill.focus();
+
+        } catch (error) {
+            console.error('Error logging habit:', error);
+            // Still insert the mention even if logging fails
+            const range = quill.getSelection(true);
+            const index = range ? range.index : quill.getLength();
+            quill.insertText(index, `✅ ${name} `);
+            bootstrap.Modal.getInstance(document.getElementById('quillHabitPickerModal')).hide();
+            quill.focus();
+        }
+    };
+
+    // POV Modal for Quill
+    async function openQuillPovModal() {
+        const existingModal = document.getElementById('povModal');
+        if (existingModal) {
+            // Use the existing POV modal
+            const friendSelect = document.getElementById('povFriendSelect');
+            const messageInput = document.getElementById('povMessage');
+
+            // Fetch friends list
+            try {
+                const response = await fetch('/accounts/api/friends/');
+                const data = await response.json();
+                const friends = data.friends || data || [];
+
+                friendSelect.innerHTML = '<option value="">Select a friend...</option>';
+                friends.forEach(friend => {
+                    friendSelect.innerHTML += `<option value="${friend.id}">${friend.display_name || friend.username}</option>`;
+                });
+            } catch (error) {
+                console.error('Error fetching friends:', error);
+            }
+
+            messageInput.value = '';
+            const modal = new bootstrap.Modal(existingModal);
+            modal.show();
+
+            // Override the submit button for Quill
+            const submitBtn = document.getElementById('povSubmitBtn');
+            submitBtn.onclick = function() {
+                const friendId = friendSelect.value;
+                const message = messageInput.value.trim();
+
+                if (!friendId || !message) {
+                    alert('Please select a friend and write a message');
+                    return;
+                }
+
+                // Insert POV block into Quill
+                const range = quill.getSelection(true);
+                const index = range ? range.index : quill.getLength();
+                const friendName = friendSelect.options[friendSelect.selectedIndex].text;
+                quill.insertText(index, `\n{pov} @${friendName}\n${message}\n{/pov}\n`);
+
+                bootstrap.Modal.getInstance(existingModal).hide();
+                quill.focus();
+            };
+        }
+    }
+
+    // Custom image upload handler for Quill
+    function selectLocalImage() {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = async function() {
+            const file = input.files[0];
+            if (file) {
+                await uploadImageToQuill(file);
+            }
+        };
+    }
+
+    async function uploadImageToQuill(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/journal/api/upload-image/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success && data.url) {
+                // Insert image at cursor position
+                const range = quill.getSelection(true);
+                quill.insertEmbed(range.index, 'image', data.url);
+                quill.setSelection(range.index + 1);
+            } else {
+                alert('Failed to upload image: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Image upload error:', error);
+            alert('Failed to upload image');
+        }
+    }
+
+    // Handle paste events for images in Quill
+    quill.root.addEventListener('paste', async function(e) {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (let item of items) {
+            if (item.type.startsWith('image/')) {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = item.getAsFile();
+                if (file) {
+                    await uploadImageToQuill(file);
+                }
+                return;
+            }
+        }
+    });
+
+    // Handle drag and drop for images in Quill
+    quill.root.addEventListener('drop', async function(e) {
+        const files = e.dataTransfer?.files;
+        if (!files || files.length === 0) return;
+
+        for (let file of files) {
+            if (file.type.startsWith('image/')) {
+                e.preventDefault();
+                e.stopPropagation();
+                await uploadImageToQuill(file);
+                return;
+            }
         }
     });
 
@@ -600,6 +1311,150 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial word count
     updateWordCount(quill.getText());
+
+    // =================================================================
+    // SLASH COMMANDS FOR QUILL
+    // =================================================================
+    let quillSlashStartIndex = null;
+
+    quill.on('text-change', function(delta, oldDelta, source) {
+        if (source !== 'user') return;
+
+        const selection = quill.getSelection();
+        if (!selection) return;
+
+        const cursorPos = selection.index;
+        const text = quill.getText();
+
+        // Check if user just typed a "/"
+        if (delta.ops) {
+            const lastOp = delta.ops[delta.ops.length - 1];
+            if (lastOp.insert === '/') {
+                // Check if "/" is at start or after whitespace
+                const charBefore = cursorPos > 1 ? text[cursorPos - 2] : '';
+                if (cursorPos === 1 || !charBefore || /\s/.test(charBefore)) {
+                    quillSlashStartIndex = cursorPos - 1;
+                    renderSlashMenu();
+                    positionMenuForQuill();
+                }
+            }
+        }
+
+        // Filter menu as user types
+        if (slashMenu.classList.contains('show') && quillSlashStartIndex !== null) {
+            const typed = text.substring(quillSlashStartIndex, cursorPos);
+            if (typed.startsWith('/') && !/\s/.test(typed)) {
+                renderSlashMenu(typed);
+            } else {
+                hideQuillMenu();
+            }
+        }
+    });
+
+    function positionMenuForQuill() {
+        const selection = quill.getSelection();
+        if (!selection) return;
+
+        const bounds = quill.getBounds(selection.index);
+        const editorRect = quill.container.getBoundingClientRect();
+
+        slashMenu.style.left = (editorRect.left + bounds.left) + 'px';
+        slashMenu.style.top = (editorRect.top + bounds.bottom + 5) + 'px';
+        slashMenu.classList.add('show');
+    }
+
+    function hideQuillMenu() {
+        slashMenu.classList.remove('show');
+        quillSlashStartIndex = null;
+    }
+
+    function selectQuillCommand(cmd) {
+        currentCommand = cmd;
+
+        // Remove the slash command text from editor
+        if (quillSlashStartIndex !== null) {
+            const selection = quill.getSelection();
+            if (selection) {
+                const deleteLength = selection.index - quillSlashStartIndex;
+                quill.deleteText(quillSlashStartIndex, deleteLength);
+            }
+        }
+
+        hideQuillMenu();
+
+        // Handle special commands (same logic as EasyMDE)
+        if (cmd.special === 'quick_picker') {
+            showQuickPicker(cmd.pickerType);
+        } else if (cmd.special === 'goal_picker') {
+            showGoalPicker();
+        } else if (cmd.special === 'habit_picker') {
+            showHabitPicker();
+        } else if (cmd.special === 'capture_form') {
+            showCaptureForm(cmd);
+        } else if (cmd.special === 'block_insert') {
+            insertQuillBlock(cmd);
+        } else if (cmd.special === 'hybrid_picker') {
+            showHybridPicker(cmd);
+        }
+    }
+
+    function insertQuillBlock(cmd) {
+        const selection = quill.getSelection();
+        const index = selection ? selection.index : quill.getLength();
+
+        // Insert block text for Quill (simplified HTML version)
+        let blockText = '';
+        if (cmd.blockType === 'dream') {
+            blockText = '\n{dream}\nDescribe your dream here...\n{/dream}\n';
+        } else if (cmd.blockType === 'gratitude') {
+            blockText = '\n{gratitude}\nWhat are you grateful for?\n{/gratitude}\n';
+        } else if (cmd.template) {
+            blockText = '\n' + cmd.template + '\n';
+        }
+
+        quill.insertText(index, blockText);
+        quill.setSelection(index + blockText.length);
+    }
+
+    // Keyboard navigation for Quill slash menu
+    quill.root.addEventListener('keydown', function(e) {
+        if (!slashMenu.classList.contains('show')) return;
+
+        const items = slashMenu.querySelectorAll('.slash-command-item');
+        const filtered = Array.from(items).map(item => {
+            const cmd = item.dataset.command;
+            return slashCommands.find(c => c.command === cmd);
+        });
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedCommandIndex = (selectedCommandIndex + 1) % items.length;
+            items.forEach((item, idx) => item.classList.toggle('selected', idx === selectedCommandIndex));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedCommandIndex = (selectedCommandIndex - 1 + items.length) % items.length;
+            items.forEach((item, idx) => item.classList.toggle('selected', idx === selectedCommandIndex));
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            if (filtered[selectedCommandIndex]) {
+                e.preventDefault();
+                selectQuillCommand(filtered[selectedCommandIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            hideQuillMenu();
+        }
+    });
+
+    // Click handler for Quill slash menu items
+    slashMenu.addEventListener('click', function(e) {
+        const item = e.target.closest('.slash-command-item');
+        if (item) {
+            const cmd = slashCommands.find(c => c.command === item.dataset.command);
+            if (cmd) {
+                selectQuillCommand(cmd);
+            }
+        }
+    });
 
     {% else %}
     // Initialize EasyMDE for MyST Markdown

@@ -136,6 +136,306 @@
     box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
 }
 
+/* ==========================================================================
+   Stats Grid - Dashboard insight cards
+   ========================================================================== */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1rem;
+    min-height: 280px;
+}
+
+.stats-grid .entries-card {
+    grid-column: 1;
+    grid-row: 1 / 3;
+}
+
+.stats-grid .words-stats-card {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.stats-grid .month-stats-card {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.stats-grid .journaled-stats-card {
+    grid-column: 3;
+    grid-row: 1 / 3;
+}
+
+/* Tablet - 2 column layout */
+@media (max-width: 992px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        min-height: auto;
+    }
+    .stats-grid .entries-card {
+        grid-column: 1 / 3;
+        grid-row: 1;
+        min-height: 200px;
+    }
+    .stats-grid .words-stats-card {
+        grid-column: 1;
+        grid-row: 2;
+    }
+    .stats-grid .month-stats-card {
+        grid-column: 2;
+        grid-row: 2;
+    }
+    .stats-grid .journaled-stats-card {
+        grid-column: 1 / 3;
+        grid-row: 3;
+    }
+}
+
+/* Mobile - Single column stack */
+@media (max-width: 576px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 0.75rem;
+    }
+    .stats-grid .entries-card,
+    .stats-grid .words-stats-card,
+    .stats-grid .month-stats-card,
+    .stats-grid .journaled-stats-card {
+        grid-column: 1;
+        grid-row: auto;
+    }
+    .stats-grid .entries-card {
+        min-height: 220px;
+    }
+    /* Stack order: entries, journaled, words, month */
+    .stats-grid .entries-card { order: 1; }
+    .stats-grid .journaled-stats-card { order: 2; }
+    .stats-grid .words-stats-card { order: 3; }
+    .stats-grid .month-stats-card { order: 4; }
+}
+
+/* ==========================================================================
+   Stats Card Styles
+   ========================================================================== */
+
+/* Entries Card - Purple Gradient */
+.entries-card {
+    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+    border-radius: 16px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+}
+
+.entries-card .entries-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.entries-card .entries-count {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+@media (max-width: 576px) {
+    .entries-card .entries-count {
+        font-size: 3rem;
+    }
+}
+
+.entries-card .entries-label {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+.entries-card .chart-area {
+    flex: 1;
+    min-height: 80px;
+    margin: 0.5rem 0;
+}
+
+.entries-card .year-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+    flex-wrap: wrap;
+}
+
+.entries-card .year-tab {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.entries-card .year-tab:hover {
+    color: white;
+    background: rgba(255,255,255,0.1);
+}
+
+.entries-card .year-tab.active {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-color: white;
+}
+
+/* Words Card - Red Gradient */
+.words-stats-card {
+    background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+    border-radius: 16px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.words-stats-card .words-label-top {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.words-stats-card .words-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+@media (max-width: 576px) {
+    .words-stats-card .words-value {
+        font-size: 2rem;
+    }
+}
+
+.words-stats-card .words-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+/* Perfect Months Card - Navy Gradient */
+.month-stats-card {
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    border-radius: 16px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.month-stats-card .month-label-top {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.month-stats-card .month-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+@media (max-width: 576px) {
+    .month-stats-card .month-value {
+        font-size: 2rem;
+    }
+}
+
+.month-stats-card .month-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+/* Journaled Days Card - Pink/Rose Gradient */
+.journaled-stats-card {
+    background: linear-gradient(135deg, #be185d 0%, #9f1239 100%);
+    border-radius: 16px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.journaled-stats-card .journaled-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.journaled-stats-card .journaled-label-top {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.journaled-stats-card .journaled-value {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+    margin: 0.25rem 0;
+}
+
+@media (max-width: 576px) {
+    .journaled-stats-card .journaled-value {
+        font-size: 2.5rem;
+    }
+}
+
+.journaled-stats-card .journaled-unit {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.journaled-stats-card .journaled-breakdown {
+    display: flex;
+    gap: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    width: 100%;
+    justify-content: space-evenly;
+}
+
+.journaled-stats-card .breakdown-item {
+    text-align: center;
+    flex: 1;
+}
+
+.journaled-stats-card .breakdown-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+@media (max-width: 576px) {
+    .journaled-stats-card .breakdown-value {
+        font-size: 1.25rem;
+    }
+}
+
+.journaled-stats-card .breakdown-label {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+}
+
 /* Responsive sidebar - hidden by default on mobile */
 @media (max-width: 991.98px) {
     .sidebar-toggle {
