@@ -930,7 +930,9 @@ def remove_family_member(request, member_id):
     except FamilyMember.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Family member not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        from django.conf import settings
+        error_msg = str(e) if settings.DEBUG else 'An error occurred'
+        return JsonResponse({'success': False, 'error': error_msg}, status=500)
 
 
 @login_required
@@ -1041,7 +1043,9 @@ def add_family_member(request):
             })
 
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+            from django.conf import settings
+            error_msg = str(e) if settings.DEBUG else 'An error occurred'
+            return JsonResponse({'success': False, 'error': error_msg}, status=500)
 
     else:
         # User doesn't exist - send signup invitation
@@ -1092,7 +1096,9 @@ def add_family_member(request):
             })
 
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+            from django.conf import settings
+            error_msg = str(e) if settings.DEBUG else 'An error occurred'
+            return JsonResponse({'success': False, 'error': error_msg}, status=500)
 
 
 @login_required
@@ -1271,7 +1277,9 @@ def submit_feedback(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        from django.conf import settings
+        error_msg = str(e) if settings.DEBUG else 'An error occurred'
+        return JsonResponse({'success': False, 'error': error_msg}, status=500)
 
 
 @login_required

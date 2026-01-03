@@ -735,6 +735,473 @@ document.addEventListener('DOMContentLoaded', function() {
         return filtered;
     }
 
+    // =================================================================
+    // UNIFIED CAPTURE SYSTEM (shared between Quill and EasyMDE)
+    // =================================================================
+
+    // Unified field definitions for all capture types
+    const unifiedCaptureFields = {
+        book: [
+            { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Book title' },
+            { name: 'author', label: 'Author', type: 'text', required: false, placeholder: 'Author name' },
+            { name: 'status', label: 'Status', type: 'select', required: false,
+              options: [['reading', 'Reading'], ['finished', 'Finished'], ['abandoned', 'Abandoned']] },
+            { name: 'page', label: 'Page/Chapter', type: 'number', required: false, placeholder: 'Current page' },
+            { name: 'rating', label: 'Rating', type: 'rating', required: false },
+        ],
+        watched: [
+            { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Movie or show name' },
+            { name: 'type', label: 'Type', type: 'select', required: false,
+              options: [['movie', 'Movie'], ['show', 'TV Show'], ['documentary', 'Documentary']] },
+            { name: 'season', label: 'Season', type: 'number', required: false, placeholder: 'Season #' },
+            { name: 'episode', label: 'Episode', type: 'number', required: false, placeholder: 'Episode #' },
+            { name: 'rating', label: 'Rating', type: 'rating', required: false },
+        ],
+        travel: [
+            { name: 'mode', label: 'Mode', type: 'select', required: true,
+              options: [['car', 'Car'], ['plane', 'Plane'], ['train', 'Train'], ['bus', 'Bus'],
+                       ['walk', 'Walk'], ['bike', 'Bike'], ['boat', 'Boat']] },
+            { name: 'origin', label: 'From', type: 'text', required: true, placeholder: 'Starting point' },
+            { name: 'destination', label: 'To', type: 'text', required: true, placeholder: 'Destination' },
+        ],
+        workout: [
+            { name: 'type', label: 'Type', type: 'select', required: true,
+              options: [['run', 'Running'], ['walk', 'Walking'], ['gym', 'Gym'], ['yoga', 'Yoga'],
+                       ['swim', 'Swimming'], ['bike', 'Cycling'], ['hike', 'Hiking'],
+                       ['sports', 'Sports'], ['other', 'Other']] },
+            { name: 'duration', label: 'Duration (min)', type: 'number', required: false, placeholder: '30' },
+            { name: 'intensity', label: 'Intensity', type: 'select', required: false,
+              options: [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']] },
+        ],
+        person: [
+            { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Person\'s name' },
+            { name: 'context', label: 'Context', type: 'text', required: false, placeholder: 'e.g., lunch, meeting, call' },
+        ],
+        place: [
+            { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Place name' },
+            { name: 'type', label: 'Type', type: 'select', required: false,
+              options: [['restaurant', 'Restaurant'], ['cafe', 'Cafe'], ['bar', 'Bar'],
+                       ['park', 'Park'], ['office', 'Office'], ['home', 'Home'],
+                       ['store', 'Store'], ['gym', 'Gym'], ['other', 'Other']] },
+        ],
+        meal: [
+            { name: 'meal', label: 'Meal', type: 'select', required: true,
+              options: [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snack', 'Snack']] },
+            { name: 'what', label: 'What', type: 'text', required: true, placeholder: 'What did you eat?' },
+        ],
+        dream: [],
+        gratitude: [
+            { name: 'item1', label: 'Grateful for...', type: 'text', required: true, placeholder: 'Something you\'re grateful for' },
+            { name: 'item2', label: 'Also grateful for...', type: 'text', required: false },
+            { name: 'item3', label: 'And grateful for...', type: 'text', required: false },
+        ],
+        pain: [
+            { name: 'location', label: 'Location', type: 'select', required: true,
+              options: [['head', 'Head'], ['neck', 'Neck'], ['back', 'Back'], ['chest', 'Chest'],
+                       ['arm', 'Arm'], ['leg', 'Leg'], ['tooth', 'Tooth'], ['stomach', 'Stomach'],
+                       ['joint', 'Joint'], ['other', 'Other']] },
+            { name: 'intensity', label: 'Intensity (1-10)', type: 'range', required: true, min: 1, max: 10, defaultVal: 5 },
+            { name: 'pain_type', label: 'Type', type: 'select', required: false,
+              options: [['', '-- Select --'], ['sharp', 'Sharp'], ['dull', 'Dull'],
+                       ['throbbing', 'Throbbing'], ['burning', 'Burning'],
+                       ['aching', 'Aching'], ['stabbing', 'Stabbing']] },
+            { name: 'duration', label: 'Duration', type: 'select', required: false,
+              options: [['', '-- Select --'], ['brief', 'Brief (minutes)'], ['hours', 'Hours'],
+                       ['all_day', 'All Day'], ['ongoing', 'Ongoing']] },
+        ],
+        intimacy: [
+            { name: 'rating', label: 'Rating (optional)', type: 'rating', required: false },
+        ],
+        cycle: [
+            { name: 'event_type', label: 'Event', type: 'select', required: true,
+              options: [['period_start', 'Period Started'], ['period_end', 'Period Ended'],
+                       ['symptom', 'Symptom Only'], ['note', 'Note']] },
+            { name: 'flow_level', label: 'Flow (if applicable)', type: 'select', required: false,
+              options: [['', '-- Select --'], ['light', 'Light'], ['medium', 'Medium'], ['heavy', 'Heavy']] },
+        ],
+    };
+
+    // Unified icon definitions
+    const unifiedCaptureIcons = {
+        place: { icon: 'bi-geo-alt', emoji: '📍' },
+        book: { icon: 'bi-book', emoji: '📚' },
+        watched: { icon: 'bi-film', emoji: '🎬' },
+        travel: { icon: 'bi-airplane', emoji: '✈️' },
+        workout: { icon: 'bi-activity', emoji: '💪' },
+        meal: { icon: 'bi-egg-fried', emoji: '🍽️' },
+        person: { icon: 'bi-person', emoji: '👤' },
+        dream: { icon: 'bi-cloud-moon', emoji: '🌙' },
+        gratitude: { icon: 'bi-heart', emoji: '❤️' },
+        pain: { icon: 'bi-bandaid', emoji: '🩹' },
+        intimacy: { icon: 'bi-heart-fill', emoji: '💕' },
+        cycle: { icon: 'bi-calendar-heart', emoji: '🔴' },
+    };
+
+    // Unified modal references
+    const unifiedCaptureFormModal = new bootstrap.Modal(document.getElementById('captureFormModal'));
+    const unifiedHybridPickerModal = new bootstrap.Modal(document.getElementById('hybridPickerModal'));
+    let unifiedCurrentCaptureType = null;
+    let unifiedCurrentCommand = null;
+
+    // Helper to render form field HTML
+    function renderCaptureFieldHtml(field, prefillValue = '') {
+        if (field.type === 'text') {
+            return `<input type="text" class="form-control form-control-sm" name="${field.name}"
+                    ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}"
+                    value="${prefillValue}">`;
+        } else if (field.type === 'number') {
+            return `<input type="number" class="form-control form-control-sm" name="${field.name}"
+                    ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" min="0"
+                    value="${prefillValue}">`;
+        } else if (field.type === 'select') {
+            const optionsHtml = field.options.map(([val, label]) =>
+                `<option value="${val}" ${prefillValue === val ? 'selected' : ''}>${label}</option>`
+            ).join('');
+            return `<select class="form-select form-select-sm" name="${field.name}" ${field.required ? 'required' : ''}>
+                        <option value="" ${!prefillValue ? 'selected' : ''}>Select...</option>
+                        ${optionsHtml}
+                     </select>`;
+        } else if (field.type === 'rating') {
+            return `
+                <div class="rating-input" data-name="${field.name}">
+                    ${[1,2,3,4,5].map(n => `
+                        <i class="bi bi-star rating-star" data-value="${n}" style="cursor: pointer; font-size: 1.25rem; color: #d1d5db;"></i>
+                    `).join('')}
+                    <input type="hidden" name="${field.name}" value="">
+                </div>
+            `;
+        } else if (field.type === 'range') {
+            const min = field.min || 1;
+            const max = field.max || 10;
+            const defaultVal = field.defaultVal || Math.round((min + max) / 2);
+            return `
+                <div class="range-input d-flex align-items-center gap-2">
+                    <span class="text-muted small">${min}</span>
+                    <input type="range" class="form-range flex-grow-1" name="${field.name}"
+                           min="${min}" max="${max}" value="${defaultVal}"
+                           oninput="this.nextElementSibling.textContent = this.value"
+                           ${field.required ? 'required' : ''}>
+                    <span class="badge bg-primary range-value">${defaultVal}</span>
+                    <span class="text-muted small">${max}</span>
+                </div>
+            `;
+        } else if (field.type === 'textarea') {
+            return `<textarea class="form-control form-control-sm" name="${field.name}" rows="2"
+                    ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}"></textarea>`;
+        }
+        return `<input type="text" class="form-control form-control-sm" name="${field.name}">`;
+    }
+
+    // Helper to set up rating star click handlers
+    function setupRatingStars(container) {
+        container.querySelectorAll('.rating-input').forEach(ratingDiv => {
+            const stars = ratingDiv.querySelectorAll('.rating-star');
+            const hiddenInput = ratingDiv.querySelector('input[type="hidden"]');
+
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    const value = parseInt(star.dataset.value);
+                    hiddenInput.value = value;
+                    stars.forEach((s, idx) => {
+                        s.classList.toggle('bi-star-fill', idx < value);
+                        s.classList.toggle('bi-star', idx >= value);
+                        s.style.color = idx < value ? '#fbbf24' : '#d1d5db';
+                    });
+                });
+
+                star.addEventListener('mouseenter', () => {
+                    const value = parseInt(star.dataset.value);
+                    stars.forEach((s, idx) => {
+                        s.style.color = idx < value ? '#fbbf24' : '#d1d5db';
+                    });
+                });
+
+                star.addEventListener('mouseleave', () => {
+                    const currentValue = parseInt(hiddenInput.value) || 0;
+                    stars.forEach((s, idx) => {
+                        s.style.color = idx < currentValue ? '#fbbf24' : '#d1d5db';
+                    });
+                });
+            });
+        });
+    }
+
+    // Unified showCaptureForm - works for both editors
+    function showUnifiedCaptureForm(cmd, prefillData = null) {
+        const captureType = typeof cmd === 'string' ? cmd : cmd.captureType;
+        unifiedCurrentCaptureType = captureType;
+        unifiedCurrentCommand = typeof cmd === 'object' ? cmd : { captureType: captureType, name: captureType.charAt(0).toUpperCase() + captureType.slice(1) };
+
+        const fields = unifiedCaptureFields[captureType] || [];
+        const iconData = unifiedCaptureIcons[captureType] || { icon: 'bi-plus-circle', emoji: '📌' };
+
+        // Set title
+        const titleEl = document.getElementById('captureFormTitle');
+        const iconEl = document.getElementById('captureFormIcon');
+
+        if (unifiedCurrentCommand.is_emoji_icon) {
+            iconEl.className = 'me-2';
+            iconEl.textContent = unifiedCurrentCommand.icon;
+        } else {
+            iconEl.className = `bi ${iconData.icon} me-2`;
+            iconEl.textContent = '';
+        }
+        titleEl.textContent = unifiedCurrentCommand.name || captureType.charAt(0).toUpperCase() + captureType.slice(1);
+
+        // Render fields
+        const fieldsContainer = document.getElementById('captureFormFields');
+        if (fields.length === 0) {
+            fieldsContainer.innerHTML = `<p class="text-muted mb-0">This will mark this entry as a ${unifiedCurrentCommand.name?.toLowerCase() || captureType} entry.</p>`;
+        } else {
+            fieldsContainer.innerHTML = fields.map(field => {
+                const prefillValue = prefillData ? (prefillData[field.name] || '') : '';
+                return `
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">${field.label}${field.required ? ' <span class="text-danger">*</span>' : ''}</label>
+                        ${renderCaptureFieldHtml(field, prefillValue)}
+                    </div>
+                `;
+            }).join('');
+
+            // Set up rating stars after a brief delay
+            setTimeout(() => setupRatingStars(fieldsContainer), 50);
+        }
+
+        unifiedCaptureFormModal.show();
+    }
+
+    // Unified hybrid picker - shows existing items + add new option
+    async function showUnifiedHybridPicker(cmd) {
+        unifiedCurrentCommand = cmd;
+        const captureType = cmd.captureType;
+
+        try {
+            const response = await fetch(`/journal/api/active-captures/?type=${captureType}`);
+            const data = await response.json();
+
+            const modalEl = document.getElementById('hybridPickerModal');
+            const list = document.getElementById('hybridPickerList');
+            const title = document.getElementById('hybridPickerTitle');
+
+            title.textContent = `Select ${cmd.name}`;
+
+            let html = '';
+
+            // Add "Create New" option first
+            html += `
+                <div class="hybrid-picker-item create-new" data-action="create-new">
+                    <div class="d-flex align-items-center">
+                        <div class="picker-icon bg-primary text-white me-3">
+                            <i class="bi bi-plus-lg"></i>
+                        </div>
+                        <div>
+                            <div class="fw-medium">Add New ${cmd.name}</div>
+                            <small class="text-muted">Create a new entry</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add existing items
+            if (data.items && data.items.length > 0) {
+                html += '<div class="hybrid-picker-divider">Currently Active</div>';
+                data.items.forEach(item => {
+                    const subtitle = captureType === 'book'
+                        ? (item.author ? `by ${item.author}` : '') + (item.page ? ` • Page ${item.page}` : '')
+                        : (item.type === 'show' ? 'TV Show' : item.type || '');
+
+                    const escapedItem = JSON.stringify(item).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+                    html += `
+                        <div class="hybrid-picker-item" data-item="${escapedItem}">
+                            <div class="d-flex align-items-center">
+                                <div class="picker-icon bg-light me-3">
+                                    <i class="bi ${cmd.icon}"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-medium">${item.title || item.name}</div>
+                                    ${subtitle ? `<small class="text-muted">${subtitle}</small>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            list.innerHTML = html;
+
+            // Add click handler for "Create New"
+            list.querySelector('[data-action="create-new"]').addEventListener('click', () => {
+                unifiedHybridPickerModal.hide();
+                showUnifiedCaptureForm(cmd);
+            });
+
+            // Add click handlers for existing items
+            list.querySelectorAll('.hybrid-picker-item[data-item]').forEach(el => {
+                el.addEventListener('click', () => {
+                    const itemData = JSON.parse(el.dataset.item.replace(/&#39;/g, "'").replace(/&quot;/g, '"'));
+                    unifiedHybridPickerModal.hide();
+                    // Pre-fill the capture form with existing item data
+                    showUnifiedCaptureForm(cmd, itemData.data || itemData);
+                });
+            });
+
+            unifiedHybridPickerModal.show();
+        } catch (err) {
+            console.error('Failed to fetch active captures:', err);
+            // Fall back to just showing the capture form
+            showUnifiedCaptureForm(cmd);
+        }
+    }
+
+    // Unified capture form submit handler
+    document.getElementById('captureForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const captureData = {};
+        for (const [key, value] of formData.entries()) {
+            if (value) captureData[key] = value;
+        }
+
+        unifiedCaptureFormModal.hide();
+
+        // Ensure entry exists
+        let pk = entryPk;
+        if (!pk) {
+            pk = await quickSaveEntryForCapture();
+            if (pk) entryPk = pk;
+        }
+
+        if (!pk) {
+            alert('Failed to save entry. Please try again.');
+            return;
+        }
+
+        // Save the capture
+        try {
+            const response = await fetch('/journal/api/capture/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    entry_pk: pk,
+                    capture_type: unifiedCurrentCaptureType,
+                    data: captureData
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                // Add capture to visual list
+                if (typeof addCaptureToList === 'function' && data.capture) {
+                    addCaptureToList(data.capture);
+                }
+
+                // Insert into editor (works for both Quill and EasyMDE)
+                const iconData = unifiedCaptureIcons[unifiedCurrentCaptureType] || { emoji: '📌' };
+                const displayText = captureData.name || captureData.title || captureData.destination || captureData.activity || captureData.dish || captureData.what || 'Item';
+                insertCaptureIntoEditor(iconData.emoji, displayText);
+            } else {
+                alert(data.error || 'Failed to save capture');
+            }
+        } catch (err) {
+            console.error('Failed to save capture:', err);
+            alert('Failed to save capture. Please try again.');
+        }
+    });
+
+    // Quick save for captures (shared)
+    async function quickSaveEntryForCapture() {
+        const titleInput = document.getElementById('id_title');
+        const dateInput = document.getElementById('id_entry_date');
+
+        // Get content from whichever editor is active
+        let content = '';
+        if (typeof quill !== 'undefined') {
+            content = quill.root.innerHTML;
+        } else if (typeof easyMDE !== 'undefined') {
+            content = easyMDE.value();
+        }
+
+        try {
+            const response = await fetch('/journal/entry/new/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    title: titleInput.value || 'Untitled Entry',
+                    content: content,
+                    entry_date: dateInput.value,
+                    is_quick_save: 'true'
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data.pk;
+            }
+        } catch (err) {
+            console.error('Quick save failed:', err);
+        }
+        return null;
+    }
+
+    // Placeholder for insertCaptureIntoEditor - will be defined by each editor
+    // This gets overwritten by Quill or EasyMDE specific implementation
+    let insertCaptureIntoEditor = function(emoji, text) {
+        console.log('Insert capture:', emoji, text);
+    };
+
+    // Add capture to visual list (shared)
+    function addCaptureToList(capture) {
+        const list = document.getElementById('capturesList');
+        if (!list) return;
+
+        const pill = document.createElement('div');
+        pill.className = `capture-pill-sm ${capture.type}`;
+        pill.dataset.id = capture.id;
+        pill.title = capture.display_text;
+        pill.innerHTML = `
+            <i class="bi ${capture.icon}"></i>
+            <span class="capture-text">${capture.display_text}</span>
+            <span class="capture-delete" onclick="event.stopPropagation(); deleteCapture(${capture.id})" title="Remove">
+                <i class="bi bi-x"></i>
+            </span>
+        `;
+
+        list.appendChild(pill);
+    }
+
+    // Delete capture (shared)
+    window.deleteCapture = async function(captureId) {
+        if (!confirm('Remove this tracked item?')) return;
+
+        try {
+            const response = await fetch(`/journal/capture/${captureId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const pill = document.querySelector(`.capture-pill-sm[data-id="${captureId}"]`) ||
+                             document.querySelector(`.capture-pill[data-id="${captureId}"]`);
+                if (pill) pill.remove();
+            } else {
+                alert('Failed to delete capture');
+            }
+        } catch (err) {
+            console.error('Failed to delete capture:', err);
+            alert('Failed to delete capture');
+        }
+    };
+
     {% if editor_preference == 'rich_text' %}
     // Initialize Quill with custom toolbar
     const quill = new Quill('#quill-editor', {
@@ -776,39 +1243,47 @@ document.addEventListener('DOMContentLoaded', function() {
         quill.setSelection(index + 13, 32); // Select placeholder text
     });
 
+    // Quill-specific: Define how to insert captures into editor
+    insertCaptureIntoEditor = function(emoji, text) {
+        const range = quill.getSelection(true);
+        const index = range ? range.index : quill.getLength();
+        quill.insertText(index, `${emoji} ${text} `);
+        quill.focus();
+    };
+
     // Person button - open person picker modal (uses shared quickPickerModal)
     document.getElementById('btn-person').addEventListener('click', function() {
         showQuickPicker('person');
     });
 
-    // Place button - open place capture form (uses shared captureFormModal)
+    // Place button - open place capture form (uses unified captureFormModal)
     document.getElementById('btn-place').addEventListener('click', function() {
-        showCaptureForm('place');
+        showUnifiedCaptureForm({ name: 'Place', icon: 'bi-geo-alt', captureType: 'place' });
     });
 
     // Book button - open hybrid picker (shows existing books + create new)
     document.getElementById('btn-book').addEventListener('click', function() {
-        showHybridPicker({ name: 'Book', icon: 'bi-book', captureType: 'book' });
+        showUnifiedHybridPicker({ name: 'Book', icon: 'bi-book', captureType: 'book' });
     });
 
     // Watched button - open hybrid picker (shows existing shows + create new)
     document.getElementById('btn-watched').addEventListener('click', function() {
-        showHybridPicker({ name: 'Watched', icon: 'bi-film', captureType: 'watched' });
+        showUnifiedHybridPicker({ name: 'Watched', icon: 'bi-film', captureType: 'watched' });
     });
 
-    // Travel button - open travel form (uses shared captureFormModal)
+    // Travel button - open travel form (uses unified captureFormModal)
     document.getElementById('btn-travel').addEventListener('click', function() {
-        showCaptureForm('travel');
+        showUnifiedCaptureForm({ name: 'Travel', icon: 'bi-airplane', captureType: 'travel' });
     });
 
-    // Workout button - open workout form (uses shared captureFormModal)
+    // Workout button - open workout form (uses unified captureFormModal)
     document.getElementById('btn-workout').addEventListener('click', function() {
-        showCaptureForm('workout');
+        showUnifiedCaptureForm({ name: 'Workout', icon: 'bi-activity', captureType: 'workout' });
     });
 
-    // Meal button - open meal form (uses shared captureFormModal)
+    // Meal button - open meal form (uses unified captureFormModal)
     document.getElementById('btn-meal').addEventListener('click', function() {
-        showCaptureForm('meal');
+        showUnifiedCaptureForm({ name: 'Meal', icon: 'bi-egg-fried', captureType: 'meal' });
     });
 
     // Goal button - open goal picker modal (uses shared goalHabitPickerModal)
@@ -1000,124 +1475,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#quickPickerCreate button').addEventListener('click', function() {
         const name = document.getElementById('quickPickerSearch').value.trim();
         if (name) createPickerItem(name);
-    });
-
-    // =================================================================
-    // CAPTURE FORM FUNCTIONS FOR QUILL
-    // =================================================================
-
-    const captureFormModal = new bootstrap.Modal(document.getElementById('captureFormModal'));
-    let currentCaptureType = null;
-
-    const captureFormFields = {
-        place: [
-            { name: 'name', label: 'Place Name', type: 'text', required: true, placeholder: 'Where are you?' }
-        ],
-        book: [
-            { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Book title' },
-            { name: 'author', label: 'Author', type: 'text', required: false, placeholder: 'Author name' }
-        ],
-        watched: [
-            { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Movie or show name' }
-        ],
-        travel: [
-            { name: 'destination', label: 'Destination', type: 'text', required: true, placeholder: 'Where to?' }
-        ],
-        workout: [
-            { name: 'activity', label: 'Activity', type: 'text', required: true, placeholder: 'What workout?' }
-        ],
-        meal: [
-            { name: 'dish', label: 'Dish', type: 'text', required: true, placeholder: 'What are you eating?' }
-        ]
-    };
-
-    const captureIcons = {
-        place: { icon: 'bi-geo-alt', emoji: '📍' },
-        book: { icon: 'bi-book', emoji: '📚' },
-        watched: { icon: 'bi-film', emoji: '🎬' },
-        travel: { icon: 'bi-airplane', emoji: '✈️' },
-        workout: { icon: 'bi-activity', emoji: '💪' },
-        meal: { icon: 'bi-egg-fried', emoji: '🍽️' }
-    };
-
-    function showCaptureForm(typeOrCmd) {
-        // Handle both string type (from toolbar buttons) and command object (from slash commands)
-        const type = typeof typeOrCmd === 'string' ? typeOrCmd : typeOrCmd.captureType;
-        currentCaptureType = type;
-        const fields = captureFormFields[type] || [];
-        const iconData = captureIcons[type] || { icon: 'bi-plus-circle', emoji: '📌' };
-
-        document.getElementById('captureFormTitle').innerHTML = `<i class="bi ${iconData.icon} me-2"></i>Log ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-        document.getElementById('captureFormIcon').className = `bi ${iconData.icon} me-2`;
-
-        const formFieldsContainer = document.getElementById('captureFormFields');
-        formFieldsContainer.innerHTML = fields.map(field => `
-            <div class="mb-3">
-                <label class="form-label small fw-medium">${field.label}</label>
-                <input type="${field.type}" class="form-control" name="${field.name}"
-                       placeholder="${field.placeholder}" ${field.required ? 'required' : ''}>
-            </div>
-        `).join('');
-
-        captureFormModal.show();
-    }
-
-    document.getElementById('captureForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        const captureData = {};
-        for (const [key, value] of formData.entries()) {
-            if (value) captureData[key] = value;
-        }
-
-        captureFormModal.hide();
-
-        let pk = entryPk;
-        if (!pk) {
-            pk = await quickSaveEntryForCapture();
-            if (pk) entryPk = pk;
-        }
-
-        if (!pk) {
-            alert('Failed to save entry. Please try again.');
-            return;
-        }
-
-        try {
-            const response = await fetch('/journal/api/capture/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    entry_pk: pk,
-                    capture_type: currentCaptureType,
-                    data: captureData
-                })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                // Insert into Quill
-                const iconData = captureIcons[currentCaptureType] || { emoji: '📌' };
-                const displayText = captureData.name || captureData.title || captureData.destination || captureData.activity || captureData.dish || 'Item';
-                const range = quill.getSelection(true);
-                const index = range ? range.index : quill.getLength();
-                quill.insertText(index, `${iconData.emoji} ${displayText} `);
-                quill.focus();
-
-                if (typeof addCaptureToList === 'function' && data.capture) {
-                    addCaptureToList(data.capture);
-                }
-            } else {
-                alert(data.error || 'Failed to save capture');
-            }
-        } catch (err) {
-            console.error('Failed to save capture:', err);
-            alert('Failed to save capture. Please try again.');
-        }
     });
 
     // =================================================================
@@ -1329,96 +1686,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return null;
     }
-
-    // =================================================================
-    // HYBRID PICKER FOR QUILL (shows existing items or creates new)
-    // =================================================================
-
-    let currentHybridCommand = null;
-
-    async function showHybridPicker(cmd) {
-        currentHybridCommand = cmd;
-        const captureType = cmd.captureType;
-
-        // Fetch active items
-        try {
-            const response = await fetch(`/journal/api/active-captures/?type=${captureType}`);
-            const data = await response.json();
-
-            const modalEl = document.getElementById('hybridPickerModal');
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            const list = document.getElementById('hybridPickerList');
-            const title = document.getElementById('hybridPickerTitle');
-
-            title.textContent = `Select ${cmd.name}`;
-
-            let html = '';
-
-            // Add "Create New" option first
-            html += `
-                <div class="hybrid-picker-item create-new" onclick="showCaptureFormFromHybrid()">
-                    <div class="d-flex align-items-center">
-                        <div class="picker-icon bg-primary text-white me-3">
-                            <i class="bi bi-plus-lg"></i>
-                        </div>
-                        <div>
-                            <div class="fw-medium">Add New ${cmd.name}</div>
-                            <small class="text-muted">Create a new entry</small>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Add existing items
-            if (data.items && data.items.length > 0) {
-                html += '<div class="hybrid-picker-divider">Currently Active</div>';
-                data.items.forEach(item => {
-                    const subtitle = captureType === 'book'
-                        ? (item.author ? `by ${item.author}` : '') + (item.page ? ` • Page ${item.page}` : '')
-                        : (item.type === 'show' ? 'TV Show' : item.type || '');
-
-                    html += `
-                        <div class="hybrid-picker-item" data-item='${JSON.stringify(item).replace(/'/g, "&#39;")}' onclick="selectHybridItem(this)">
-                            <div class="d-flex align-items-center">
-                                <div class="picker-icon bg-light text-dark me-3">
-                                    <i class="bi ${cmd.icon}"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-medium">${item.title || item.name}</div>
-                                    ${subtitle ? `<small class="text-muted">${subtitle}</small>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            list.innerHTML = html;
-            modal.show();
-        } catch (error) {
-            console.error('Failed to load hybrid picker:', error);
-            // Fallback to capture form
-            showCaptureForm(cmd);
-        }
-    }
-
-    window.showCaptureFormFromHybrid = function() {
-        bootstrap.Modal.getInstance(document.getElementById('hybridPickerModal')).hide();
-        showCaptureForm(currentHybridCommand);
-    };
-
-    window.selectHybridItem = function(element) {
-        const item = JSON.parse(element.dataset.item.replace(/&#39;/g, "'"));
-        bootstrap.Modal.getInstance(document.getElementById('hybridPickerModal')).hide();
-
-        // Insert into Quill
-        const iconData = captureIcons[currentHybridCommand.captureType] || { emoji: '📌' };
-        const displayText = item.title || item.name || 'Item';
-        const range = quill.getSelection(true);
-        const index = range ? range.index : quill.getLength();
-        quill.insertText(index, `${iconData.emoji} ${displayText} `);
-        quill.focus();
-    };
 
     // POV Modal for Quill
     async function openQuillPovModal() {
@@ -1640,11 +1907,11 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (cmd.special === 'habit_picker') {
             showHabitPicker();
         } else if (cmd.special === 'capture_form') {
-            showCaptureForm(cmd);
+            showUnifiedCaptureForm(cmd);
         } else if (cmd.special === 'block_insert') {
             insertQuillBlock(cmd);
         } else if (cmd.special === 'hybrid_picker') {
-            showHybridPicker(cmd);
+            showUnifiedHybridPicker(cmd);
         }
     }
 
@@ -1744,6 +2011,14 @@ document.addEventListener('DOMContentLoaded', function() {
             codeSyntaxHighlighting: true
         }
     });
+
+    // EasyMDE-specific: Define how to insert captures into editor
+    insertCaptureIntoEditor = function(emoji, text) {
+        const cm = easyMDE.codemirror;
+        const cursor = cm.getCursor();
+        cm.replaceRange(`${emoji} ${text} `, cursor);
+        cm.focus();
+    };
 
     // Word count and auto-save
     easyMDE.codemirror.on('change', function() {
@@ -1952,6 +2227,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Click handler for EasyMDE slash menu items
+    slashMenu.addEventListener('click', function(e) {
+        const item = e.target.closest('.slash-command-item');
+        if (item) {
+            const cmd = slashCommands.find(c => c.command === item.dataset.command);
+            if (cmd) {
+                selectCommand(cmd);
+            }
+        }
+    });
+
     function hideMenu() {
         slashMenu.classList.remove('show');
         slashStartPos = null;
@@ -1980,116 +2266,17 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (cmd.special === 'habit_picker') {
             showHabitPicker();
         } else if (cmd.special === 'capture_form') {
-            showCaptureForm(cmd);
+            showUnifiedCaptureForm(cmd);
         } else if (cmd.special === 'block_insert') {
             console.log('Calling insertBlock with:', cmd.blockType, cmd.hashtag);
             insertBlock(cmd);
         } else if (cmd.special === 'hybrid_picker') {
-            console.log('Calling showHybridPicker');
-            showHybridPicker(cmd);
+            console.log('Calling showUnifiedHybridPicker');
+            showUnifiedHybridPicker(cmd);
         } else {
             console.log('No handler for special type:', cmd.special);
         }
     }
-
-    // =================================================================
-    // HYBRID PICKER (for books, shows - show existing + add new option)
-    // =================================================================
-
-    let currentHybridCommand = null;
-
-    async function showHybridPicker(cmd) {
-        currentHybridCommand = cmd;
-        const captureType = cmd.captureType;
-
-        console.log('showHybridPicker called for:', captureType, cmd);
-
-        // Fetch active items
-        try {
-            const response = await fetch(`/journal/api/active-captures/?type=${captureType}`);
-            const data = await response.json();
-            console.log('Active captures response:', data);
-
-            const modalEl = document.getElementById('hybridPickerModal');
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            const list = document.getElementById('hybridPickerList');
-            const title = document.getElementById('hybridPickerTitle');
-
-            title.textContent = `Select ${cmd.name}`;
-
-            let html = '';
-
-            // Add "Create New" option first
-            html += `
-                <div class="hybrid-picker-item create-new" onclick="showCaptureFormFromHybrid()">
-                    <div class="d-flex align-items-center">
-                        <div class="picker-icon bg-primary text-white me-3">
-                            <i class="bi bi-plus-lg"></i>
-                        </div>
-                        <div>
-                            <div class="fw-medium">Add New ${cmd.name}</div>
-                            <small class="text-muted">Create a new entry</small>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Add existing items
-            if (data.items && data.items.length > 0) {
-                html += '<div class="hybrid-picker-divider">Currently Active</div>';
-                data.items.forEach(item => {
-                    const subtitle = captureType === 'book'
-                        ? (item.author ? `by ${item.author}` : '') + (item.page ? ` • Page ${item.page}` : '')
-                        : (item.type === 'show' ? 'TV Show' : item.type || '');
-
-                    // Use data attribute and event delegation to avoid JSON in onclick
-                    const escapedItem = JSON.stringify(item).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-                    html += `
-                        <div class="hybrid-picker-item" data-item="${escapedItem}">
-                            <div class="d-flex align-items-center">
-                                <div class="picker-icon bg-light me-3">
-                                    <i class="bi ${cmd.icon}"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-medium">${item.title}</div>
-                                    ${subtitle ? `<small class="text-muted">${subtitle}</small>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            list.innerHTML = html;
-
-            // Add click handlers for items with data-item attribute
-            list.querySelectorAll('.hybrid-picker-item[data-item]').forEach(el => {
-                el.addEventListener('click', () => {
-                    const itemData = JSON.parse(el.dataset.item.replace(/&#39;/g, "'").replace(/&quot;/g, '"'));
-                    selectHybridItem(itemData);
-                });
-            });
-
-            modal.show();
-        } catch (err) {
-            console.error('Failed to fetch active captures:', err);
-            // Fall back to just showing the capture form
-            showCaptureForm(cmd);
-        }
-    }
-
-    window.showCaptureFormFromHybrid = function() {
-        bootstrap.Modal.getInstance(document.getElementById('hybridPickerModal')).hide();
-        showCaptureForm(currentHybridCommand);
-    };
-
-    function selectHybridItem(item) {
-        bootstrap.Modal.getInstance(document.getElementById('hybridPickerModal')).hide();
-
-        // Pre-fill the capture form with existing item data
-        const cmd = currentHybridCommand;
-        showCaptureForm(cmd, item.data);
-    };
 
     // =================================================================
     // BLOCK INSERT (for dream, gratitude blocks)
@@ -2299,321 +2486,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // =================================================================
-    // CAPTURE FORM (for /watched, /travel, /workout, etc.)
-    // =================================================================
-
-    // Field definitions for each capture type (matches backend SLASH_COMMANDS)
-    const captureFormFields = {
-        book: [
-            { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Book title' },
-            { name: 'author', label: 'Author', type: 'text', required: false, placeholder: 'Author name' },
-            { name: 'status', label: 'Status', type: 'select', required: false,
-              options: [['reading', 'Reading'], ['finished', 'Finished'], ['abandoned', 'Abandoned']] },
-            { name: 'page', label: 'Page/Chapter', type: 'number', required: false, placeholder: 'Current page' },
-            { name: 'rating', label: 'Rating', type: 'rating', required: false },
-        ],
-        watched: [
-            { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Movie or show name' },
-            { name: 'type', label: 'Type', type: 'select', required: false,
-              options: [['movie', 'Movie'], ['show', 'TV Show'], ['documentary', 'Documentary']] },
-            { name: 'season', label: 'Season', type: 'number', required: false, placeholder: 'Season #' },
-            { name: 'episode', label: 'Episode', type: 'number', required: false, placeholder: 'Episode #' },
-            { name: 'rating', label: 'Rating', type: 'rating', required: false },
-        ],
-        travel: [
-            { name: 'mode', label: 'Mode', type: 'select', required: true,
-              options: [['car', 'Car'], ['plane', 'Plane'], ['train', 'Train'], ['bus', 'Bus'],
-                       ['walk', 'Walk'], ['bike', 'Bike'], ['boat', 'Boat']] },
-            { name: 'origin', label: 'From', type: 'text', required: true, placeholder: 'Starting point' },
-            { name: 'destination', label: 'To', type: 'text', required: true, placeholder: 'Destination' },
-        ],
-        workout: [
-            { name: 'type', label: 'Type', type: 'select', required: true,
-              options: [['run', 'Running'], ['walk', 'Walking'], ['gym', 'Gym'], ['yoga', 'Yoga'],
-                       ['swim', 'Swimming'], ['bike', 'Cycling'], ['hike', 'Hiking'],
-                       ['sports', 'Sports'], ['other', 'Other']] },
-            { name: 'duration', label: 'Duration (min)', type: 'number', required: false, placeholder: '30' },
-            { name: 'intensity', label: 'Intensity', type: 'select', required: false,
-              options: [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']] },
-        ],
-        person: [
-            { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Person\'s name' },
-            { name: 'context', label: 'Context', type: 'text', required: false, placeholder: 'e.g., lunch, meeting, call' },
-        ],
-        place: [
-            { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Place name' },
-            { name: 'type', label: 'Type', type: 'select', required: false,
-              options: [['restaurant', 'Restaurant'], ['cafe', 'Cafe'], ['bar', 'Bar'],
-                       ['park', 'Park'], ['office', 'Office'], ['home', 'Home'],
-                       ['store', 'Store'], ['gym', 'Gym'], ['other', 'Other']] },
-        ],
-        meal: [
-            { name: 'meal', label: 'Meal', type: 'select', required: true,
-              options: [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snack', 'Snack']] },
-            { name: 'what', label: 'What', type: 'text', required: true, placeholder: 'What did you eat?' },
-        ],
-        dream: [
-            { name: 'description', label: 'Dream description (optional)', type: 'textarea', required: false, placeholder: 'Brief summary of the dream...' },
-        ],
-        gratitude: [
-            { name: 'item1', label: 'Grateful for...', type: 'text', required: true, placeholder: 'Something you\'re grateful for' },
-            { name: 'item2', label: 'Also grateful for...', type: 'text', required: false },
-            { name: 'item3', label: 'And grateful for...', type: 'text', required: false },
-        ],
-        pain: [
-            { name: 'location', label: 'Location', type: 'select', required: true,
-              options: [['head', 'Head'], ['neck', 'Neck'], ['back', 'Back'], ['chest', 'Chest'],
-                       ['arm', 'Arm'], ['leg', 'Leg'], ['tooth', 'Tooth'], ['stomach', 'Stomach'],
-                       ['joint', 'Joint'], ['other', 'Other']] },
-            { name: 'intensity', label: 'Intensity (1-10)', type: 'range', required: true, min: 1, max: 10, defaultVal: 5 },
-            { name: 'pain_type', label: 'Type', type: 'select', required: false,
-              options: [['', '-- Select --'], ['sharp', 'Sharp'], ['dull', 'Dull'],
-                       ['throbbing', 'Throbbing'], ['burning', 'Burning'],
-                       ['aching', 'Aching'], ['stabbing', 'Stabbing']] },
-            { name: 'duration', label: 'Duration', type: 'select', required: false,
-              options: [['', '-- Select --'], ['brief', 'Brief (minutes)'], ['hours', 'Hours'],
-                       ['all_day', 'All Day'], ['ongoing', 'Ongoing']] },
-        ],
-        intimacy: [
-            { name: 'rating', label: 'Rating (optional)', type: 'rating', required: false },
-        ],
-        cycle: [
-            { name: 'event_type', label: 'Event', type: 'select', required: true,
-              options: [['period_start', 'Period Started'], ['period_end', 'Period Ended'],
-                       ['symptom', 'Symptom Only'], ['note', 'Note']] },
-            { name: 'flow_level', label: 'Flow (if applicable)', type: 'select', required: false,
-              options: [['', '-- Select --'], ['light', 'Light'], ['medium', 'Medium'], ['heavy', 'Heavy']] },
-        ],
-    };
-
-    const captureFormModal = new bootstrap.Modal(document.getElementById('captureFormModal'));
-    let currentCaptureType = null;
-
-    function showCaptureForm(cmd, prefillData = null) {
-        currentCaptureType = cmd.captureType;
-        const fields = captureFormFields[cmd.captureType] || [];
-
-        document.getElementById('captureFormTitle').textContent = cmd.name;
-        const iconEl = document.getElementById('captureFormIcon');
-        if (cmd.is_emoji_icon) {
-            iconEl.className = 'me-2';
-            iconEl.textContent = cmd.icon;
-        } else {
-            iconEl.className = `bi ${cmd.icon} me-2`;
-            iconEl.textContent = '';
-        }
-
-        const fieldsContainer = document.getElementById('captureFormFields');
-
-        if (fields.length === 0) {
-            // No fields (like /dream), just confirm and save
-            fieldsContainer.innerHTML = `<p class="text-muted mb-0">This will mark this entry as a ${cmd.name.toLowerCase()} entry.</p>`;
-        } else {
-            fieldsContainer.innerHTML = fields.map(field => {
-                let inputHtml = '';
-                const prefillValue = prefillData ? (prefillData[field.name] || '') : '';
-
-                if (field.type === 'text') {
-                    inputHtml = `<input type="text" class="form-control form-control-sm" name="${field.name}"
-                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}"
-                                        value="${prefillValue}">`;
-                } else if (field.type === 'number') {
-                    inputHtml = `<input type="number" class="form-control form-control-sm" name="${field.name}"
-                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" min="0"
-                                        value="${prefillValue}">`;
-                } else if (field.type === 'select') {
-                    const optionsHtml = field.options.map(([val, label]) =>
-                        `<option value="${val}" ${prefillValue === val ? 'selected' : ''}>${label}</option>`
-                    ).join('');
-                    inputHtml = `<select class="form-select form-select-sm" name="${field.name}" ${field.required ? 'required' : ''}>
-                                    <option value="" ${!prefillValue ? 'selected' : ''}>Select...</option>
-                                    ${optionsHtml}
-                                 </select>`;
-                } else if (field.type === 'rating') {
-                    inputHtml = `
-                        <div class="rating-input" data-name="${field.name}">
-                            ${[1,2,3,4,5].map(n => `
-                                <i class="bi bi-star rating-star" data-value="${n}" style="cursor: pointer; font-size: 1.25rem; color: #d1d5db;"></i>
-                            `).join('')}
-                            <input type="hidden" name="${field.name}" value="">
-                        </div>
-                    `;
-                } else if (field.type === 'range') {
-                    const min = field.min || 1;
-                    const max = field.max || 10;
-                    const defaultVal = field.defaultVal || Math.round((min + max) / 2);
-                    inputHtml = `
-                        <div class="range-input d-flex align-items-center gap-2">
-                            <span class="text-muted small">${min}</span>
-                            <input type="range" class="form-range flex-grow-1" name="${field.name}"
-                                   min="${min}" max="${max}" value="${defaultVal}"
-                                   oninput="this.nextElementSibling.textContent = this.value"
-                                   ${field.required ? 'required' : ''}>
-                            <span class="badge bg-primary range-value">${defaultVal}</span>
-                            <span class="text-muted small">${max}</span>
-                        </div>
-                    `;
-                } else if (field.type === 'time') {
-                    inputHtml = `<input type="time" class="form-control form-control-sm" name="${field.name}"
-                                        ${field.required ? 'required' : ''}>`;
-                } else if (field.type === 'textarea') {
-                    inputHtml = `<textarea class="form-control form-control-sm" name="${field.name}" rows="2"
-                                        ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}"></textarea>`;
-                }
-
-                return `
-                    <div class="mb-3">
-                        <label class="form-label small fw-medium">${field.label}${field.required ? ' <span class="text-danger">*</span>' : ''}</label>
-                        ${inputHtml}
-                    </div>
-                `;
-            }).join('');
-
-            // Add rating star click handlers
-            setTimeout(() => {
-                fieldsContainer.querySelectorAll('.rating-input').forEach(ratingDiv => {
-                    const stars = ratingDiv.querySelectorAll('.rating-star');
-                    const hiddenInput = ratingDiv.querySelector('input[type="hidden"]');
-
-                    stars.forEach(star => {
-                        star.addEventListener('click', () => {
-                            const value = parseInt(star.dataset.value);
-                            hiddenInput.value = value;
-                            stars.forEach((s, idx) => {
-                                s.classList.toggle('bi-star-fill', idx < value);
-                                s.classList.toggle('bi-star', idx >= value);
-                                s.style.color = idx < value ? '#fbbf24' : '#d1d5db';
-                            });
-                        });
-
-                        star.addEventListener('mouseenter', () => {
-                            const value = parseInt(star.dataset.value);
-                            stars.forEach((s, idx) => {
-                                s.style.color = idx < value ? '#fbbf24' : '#d1d5db';
-                            });
-                        });
-
-                        star.addEventListener('mouseleave', () => {
-                            const currentValue = parseInt(hiddenInput.value) || 0;
-                            stars.forEach((s, idx) => {
-                                s.style.color = idx < currentValue ? '#fbbf24' : '#d1d5db';
-                            });
-                        });
-                    });
-                });
-            }, 100);
-        }
-
-        captureFormModal.show();
-
-        // Focus first input after modal opens
-        setTimeout(() => {
-            const firstInput = fieldsContainer.querySelector('input, select');
-            if (firstInput) firstInput.focus();
-        }, 200);
-    }
-
-    // Handle capture form submission
-    document.getElementById('captureForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        const captureData = {};
-        for (const [key, value] of formData.entries()) {
-            if (value) captureData[key] = value;
-        }
-
-        captureFormModal.hide();
-
-        // Ensure entry exists
-        let pk = entryPk;
-        if (!pk) {
-            pk = await quickSaveEntryForCapture();
-            if (pk) entryPk = pk;
-        }
-
-        if (!pk) {
-            alert('Failed to save entry. Please try again.');
-            return;
-        }
-
-        // Save the capture
-        try {
-            const response = await fetch('/journal/api/capture/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    entry_pk: pk,
-                    capture_type: currentCaptureType,
-                    data: captureData
-                })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                // Add capture to the visual list (not raw text in editor)
-                addCaptureToList(data.capture);
-            } else {
-                alert(data.error || 'Failed to save capture');
-            }
-        } catch (err) {
-            console.error('Failed to save capture:', err);
-            alert('Failed to save capture. Please try again.');
-        }
-    });
-
-    // Add a capture to the visual list
-    function addCaptureToList(capture) {
-        const list = document.getElementById('capturesList');
-
-        // Create the pill element with compact styling
-        const pill = document.createElement('div');
-        pill.className = `capture-pill-sm ${capture.type}`;
-        pill.dataset.id = capture.id;
-        pill.title = capture.display_text;
-        pill.innerHTML = `
-            <i class="bi ${capture.icon}"></i>
-            <span class="capture-text">${capture.display_text}</span>
-            <span class="capture-delete" onclick="event.stopPropagation(); deleteCapture(${capture.id})" title="Remove">
-                <i class="bi bi-x"></i>
-            </span>
-        `;
-
-        list.appendChild(pill);
-    }
-
-    // Delete a capture
-    window.deleteCapture = async function(captureId) {
-        if (!confirm('Remove this tracked item?')) return;
-
-        try {
-            const response = await fetch(`/journal/capture/${captureId}/delete/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                // Remove from visual list (check both old and new class names)
-                const pill = document.querySelector(`.capture-pill-sm[data-id="${captureId}"]`) ||
-                             document.querySelector(`.capture-pill[data-id="${captureId}"]`);
-                if (pill) pill.remove();
-            } else {
-                alert('Failed to delete capture');
-            }
-        } catch (err) {
-            console.error('Failed to delete capture:', err);
-            alert('Failed to delete capture');
-        }
-    };
-
-    // =================================================================
-    // QUICK SAVE FOR CAPTURES
+    // QUICK SAVE FOR CAPTURES (EasyMDE version)
     // =================================================================
 
     function quickSaveEntryForCapture() {

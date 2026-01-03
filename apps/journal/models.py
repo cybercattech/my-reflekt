@@ -102,8 +102,9 @@ class Entry(models.Model):
 
     @property
     def preview(self):
-        """Return first 200 characters of content for previews, excluding POV blocks."""
+        """Return first 200 characters of content for previews, excluding POV blocks and HTML tags."""
         import re
+        from html import unescape
         content = self.content or ''
 
         # Remove injected POV blocks: ```pov @username ... ``` or ```{pov} @username ... ```
@@ -112,8 +113,14 @@ class Entry(models.Model):
         # Remove author POV blocks: {pov} username ... {/pov}
         content = re.sub(r'\{pov\}\s*[^\n]+\n.*?\{/pov\}', '', content, flags=re.DOTALL | re.IGNORECASE)
 
+        # Strip HTML tags (for Quill editor content)
+        content = re.sub(r'<[^>]+>', ' ', content)
+
+        # Decode HTML entities
+        content = unescape(content)
+
         # Clean up extra whitespace
-        content = re.sub(r'\n{3,}', '\n\n', content).strip()
+        content = re.sub(r'\s+', ' ', content).strip()
 
         if len(content) > 200:
             return content[:200] + '...'

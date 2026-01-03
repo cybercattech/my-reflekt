@@ -1829,8 +1829,10 @@ def save_capture(request):
             )
     except Exception as e:
         import logging
+        from django.conf import settings
         logging.getLogger(__name__).error(f"Error creating wellness log for {capture_type}: {e}")
-        return JsonResponse({'error': f'Failed to create wellness log: {str(e)}'}, status=500)
+        error_msg = str(e) if settings.DEBUG else 'Failed to create wellness log'
+        return JsonResponse({'error': error_msg}, status=500)
 
     # Create the capture
     capture = EntryCapture.objects.create(
@@ -2580,7 +2582,9 @@ def pov_reply_create(request, pov_id):
             }
         })
     except PermissionError as e:
-        return JsonResponse({'error': str(e)}, status=403)
+        from django.conf import settings
+        error_msg = str(e) if settings.DEBUG else 'Permission denied'
+        return JsonResponse({'error': error_msg}, status=403)
 
 
 @login_required
