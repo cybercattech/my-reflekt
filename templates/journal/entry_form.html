@@ -1833,6 +1833,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // SLASH COMMANDS FOR QUILL
     // =================================================================
     let quillSlashStartIndex = null;
+    let quillSlashEndIndex = null;  // Track end position for deletion
 
     quill.on('text-change', function(delta, oldDelta, source) {
         if (source !== 'user') return;
@@ -1851,16 +1852,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 const charBefore = cursorPos > 1 ? text[cursorPos - 2] : '';
                 if (cursorPos === 1 || !charBefore || /\s/.test(charBefore)) {
                     quillSlashStartIndex = cursorPos - 1;
+                    quillSlashEndIndex = cursorPos;
                     renderSlashMenu();
                     positionMenuForQuill();
                 }
             }
         }
 
-        // Filter menu as user types
+        // Filter menu as user types and track end position
         if (slashMenu.classList.contains('show') && quillSlashStartIndex !== null) {
             const typed = text.substring(quillSlashStartIndex, cursorPos);
             if (typed.startsWith('/') && !/\s/.test(typed)) {
+                quillSlashEndIndex = cursorPos;  // Update end position as user types
                 renderSlashMenu(typed);
             } else {
                 hideQuillMenu();
@@ -1883,16 +1886,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideQuillMenu() {
         slashMenu.classList.remove('show');
         quillSlashStartIndex = null;
+        quillSlashEndIndex = null;
     }
 
     function selectQuillCommand(cmd) {
         currentCommand = cmd;
 
-        // Remove the slash command text from editor
-        if (quillSlashStartIndex !== null) {
-            const selection = quill.getSelection();
-            if (selection) {
-                const deleteLength = selection.index - quillSlashStartIndex;
+        // Remove the slash command text from editor using stored positions
+        // (quill.getSelection() may return null if editor lost focus from menu click)
+        if (quillSlashStartIndex !== null && quillSlashEndIndex !== null) {
+            const deleteLength = quillSlashEndIndex - quillSlashStartIndex;
+            if (deleteLength > 0) {
                 quill.deleteText(quillSlashStartIndex, deleteLength);
             }
         }

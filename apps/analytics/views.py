@@ -110,6 +110,14 @@ def dashboard(request):
     stats['entries_this_year'] = entries_this_year
     stats['entries_prev_year'] = entries_prev_year
 
+    # Entries this month (real-time count, not from snapshot)
+    entries_this_month = Entry.objects.filter(
+        user=user,
+        entry_date__year=now.year,
+        entry_date__month=now.month
+    ).count()
+    stats['entries_this_month'] = entries_this_month
+
     # Perfect months - months where user wrote every single day
     import calendar
     from collections import defaultdict
