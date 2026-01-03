@@ -47,16 +47,28 @@ def run_sync_analysis(entry):
         extract_keywords,
     )
 
+    # Get plaintext content (stored before encryption by UserEncryptedTextField.pre_save)
+    # Falls back to entry.content if _plaintext_fields not available
+    if hasattr(entry, '_plaintext_fields') and 'content' in entry._plaintext_fields:
+        content = entry._plaintext_fields['content']
+    else:
+        content = entry.content
+
+    if not content or content.startswith('gAAAAAB'):
+        # Content is still encrypted or empty - skip analysis
+        logger.warning(f"Cannot analyze entry {entry.id}: content is encrypted or empty")
+        return
+
     # Run analysis
-    sentiment_score = get_sentiment_score(entry.content)
+    sentiment_score = get_sentiment_score(content)
     sentiment_label = get_sentiment_label(sentiment_score)
     # Pass sentiment score to mood classifier for consistency
-    detected_mood, confidence, _ = classify_mood(entry.content, sentiment_score)
-    themes = extract_themes(entry.content)
-    keywords = extract_keywords(entry.content)
+    detected_mood, confidence, _ = classify_mood(content, sentiment_score)
+    themes = extract_themes(content)
+    keywords = extract_keywords(content)
 
-    # Generate simple summary
-    summary = entry.content[:150] + '...' if len(entry.content) > 150 else entry.content
+    # Generate simple summary from plaintext
+    summary = content[:150] + '...' if len(content) > 150 else content
 
     # Create or update analysis
     with transaction.atomic():

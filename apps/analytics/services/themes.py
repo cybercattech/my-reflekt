@@ -105,7 +105,7 @@ STOP_WORDS = {
 }
 
 
-def extract_themes(text: str, min_count: int = 2) -> list:
+def extract_themes(text: str, min_count: int = 1) -> list:
     """
     Extract themes from text based on keyword matching.
 

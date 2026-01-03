@@ -35,7 +35,7 @@ body.no-scroll > .main-content > .container-fluid {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     min-height: 0;
 }
 
@@ -128,7 +128,7 @@ body.no-scroll .alert {
     flex: 1;
     min-height: 0;
     gap: 0.5rem;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Editor column takes remaining space */
@@ -137,7 +137,7 @@ body.no-scroll .alert {
     min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Editor container fills editor column */
@@ -145,7 +145,7 @@ body.no-scroll .alert {
     background: white;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    overflow: visible;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -166,6 +166,22 @@ body.no-scroll .alert {
    QUILL EDITOR CUSTOMIZATION
    ===================================================== */
 
+#quill-editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+    overflow: hidden;
+}
+
+/* Quill wrapper element */
+#quill-editor .ql-snow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 350px;
+}
+
 .ql-container {
     font-family: 'Georgia', serif;
     font-size: 1.125rem;
@@ -173,11 +189,13 @@ body.no-scroll .alert {
     border: none !important;
     flex: 1;
     overflow-y: auto;
+    min-height: 350px;
 }
 
 .ql-editor {
     padding: 1.5rem;
-    min-height: 100%;
+    min-height: 350px;
+    height: auto;
 }
 
 .ql-editor.ql-blank::before {
@@ -326,6 +344,19 @@ body.no-scroll .alert {
    EASYMDE EDITOR CUSTOMIZATION - Full Height
    ===================================================== */
 
+/* Style the textarea before EasyMDE transforms it */
+textarea#editor {
+    width: 100%;
+    min-height: 500px;
+    padding: 1rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+    font-size: 1rem;
+    line-height: 1.7;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    resize: vertical;
+}
+
 .EasyMDEContainer {
     border: none !important;
     display: flex !important;
@@ -357,15 +388,18 @@ body.no-scroll .alert {
     max-height: none !important;
     min-height: 0 !important;
     position: relative !important;
+    padding-bottom: 150px !important; /* Extra space at bottom for scrolling */
 }
 
 .EasyMDEContainer .CodeMirror-vscrollbar {
     display: block !important;
+    overflow-y: scroll !important;
 }
 
 .EasyMDEContainer .CodeMirror-sizer {
-    min-height: 0 !important;
+    min-height: 100% !important;
     border-right: 0 !important;
+    margin-bottom: 150px !important; /* Ensure content at bottom is visible */
 }
 
 .EasyMDEContainer .CodeMirror-lines {
@@ -379,7 +413,7 @@ body.no-scroll .alert {
 }
 
 .EasyMDEContainer .CodeMirror-gutters {
-    min-height: 0 !important;
+    min-height: 300px !important;
 }
 
 .EasyMDEContainer .editor-toolbar {

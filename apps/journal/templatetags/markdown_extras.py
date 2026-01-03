@@ -6,8 +6,17 @@ import markdown
 from django import template
 from django.utils.safestring import mark_safe
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
 
 register = template.Library()
+
+# CSS Sanitizer for allowing safe inline styles
+css_sanitizer = CSSSanitizer(allowed_css_properties=[
+    'max-width', 'max-height', 'width', 'height', 'cursor',
+    'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
+    'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
+    'text-align', 'float', 'display',
+])
 
 # Allowed HTML tags after markdown rendering
 ALLOWED_TAGS = [
@@ -373,10 +382,17 @@ def process_image_blocks(text, attachments=None):
             return f'<span class="text-muted"><i class="bi bi-image me-1"></i>[Image: {src}]</span>'
 
     # Pattern 1: MyST directive syntax ```{image} URL\n:options\n```
-    myst_pattern = r'```\{image\}\s*([^\n]+)\n((?::[^\n]+\n)*)```'
+    # Allow options with or without trailing newlines before closing ```
+    myst_pattern = r'```\{image\}\s*([^\n]+)\n((?::[^\n]+\n?)*)\s*```'
     text = re.sub(myst_pattern, replace_myst_image, text, flags=re.IGNORECASE)
 
-    # Pattern 2: Inline syntax {image} content {/image}
+    # Pattern 2: Simple MyST-like syntax without backticks: {image} URL\n:options...
+    # This matches: {image} URL followed by optional :key: value lines
+    # The block ends at a blank line or non-option line
+    simple_myst_pattern = r'\{image\}\s*([^\n]+)\n((?::[^\n]+\n)*)'
+    text = re.sub(simple_myst_pattern, replace_myst_image, text, flags=re.IGNORECASE)
+
+    # Pattern 3: Inline syntax {image} content {/image}
     inline_pattern = r'\{image\}\s*(.*?)\s*\{/image\}'
     text = re.sub(inline_pattern, replace_inline_image, text, flags=re.DOTALL | re.IGNORECASE)
 
@@ -539,6 +555,7 @@ def render_markdown(value):
         html,
         tags=allowed_tags,
         attributes=allowed_attrs,
+        css_sanitizer=css_sanitizer,
         strip=True
     )
 
@@ -638,6 +655,7 @@ def render_blog_markdown(value):
         html,
         tags=blog_allowed_tags,
         attributes=blog_allowed_attrs,
+        css_sanitizer=css_sanitizer,
         strip=True
     )
 
@@ -750,6 +768,7 @@ def render_entry_content(entry):
         html,
         tags=allowed_tags,
         attributes=allowed_attrs,
+        css_sanitizer=css_sanitizer,
         strip=True
     )
 

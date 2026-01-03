@@ -53,8 +53,8 @@ def analyze_entry(entry_id: int):
         content = entry.content
 
         # Check if content was successfully decrypted
-        # If no key available, content will be encrypted gibberish
-        if not cached_key or content.startswith('gAAAAA'):
+        # If no key available, content will be encrypted gibberish (Fernet tokens start with gAAAAAB)
+        if not cached_key or content.startswith('gAAAAAB'):
             # Content is still encrypted - skip analysis
             clear_current_encryption_key()
             return f"Entry {entry_id}: encryption key not available, skipping analysis"
