@@ -1,0 +1,176 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'accounts:admin_prompt_list' %}" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left me-1"></i>Categories
+        </a>
+        <h1 class="mt-2">
+            <i class="{{ category.icon }} me-2" style="color: {{ category.color }}"></i>
+            {{ category.name }} - Prompts
+        </h1>
+        <p class="text-muted mb-0">{{ category.description }}</p>
+    </div>
+    <div>
+        <a href="{% url 'accounts:admin_prompt_category_edit' category.pk %}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-pencil me-2"></i>Edit Category
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Existing Prompts -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Prompts ({{ prompts.count }})</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if prompts %}
+                <div class="list-group list-group-flush">
+                    {% for prompt in prompts %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-primary me-2">Day {{ prompt.day_number }}</span>
+                                    {% if not prompt.is_active %}
+                                    <span class="badge bg-secondary me-2">Inactive</span>
+                                    {% endif %}
+                                </div>
+                                <p class="mb-0">{{ prompt.text }}</p>
+                            </div>
+                            <div class="btn-group btn-group-sm ms-3">
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPrompt{{ prompt.pk }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form method="post" action="{% url 'accounts:admin_journal_prompt_delete' category.pk prompt.pk %}" class="d-inline"
+                                      onsubmit="return confirm('Delete this prompt?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Modal -->
+                    <div class="modal fade" id="editPrompt{{ prompt.pk }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'accounts:admin_journal_prompt_edit' category.pk prompt.pk %}">
+                                    {% csrf_token %}
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Prompt</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Prompt Text *</label>
+                                            <textarea class="form-control" name="text" rows="4" required>{{ prompt.text }}</textarea>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Day Number</label>
+                                                <input type="number" class="form-control" name="day_number" value="{{ prompt.day_number }}" min="1">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Status</label>
+                                                <div class="form-check mt-2">
+                                                    <input class="form-check-input" type="checkbox" name="is_active" id="is_active_{{ prompt.pk }}"
+                                                           {% if prompt.is_active %}checked{% endif %}>
+                                                    <label class="form-check-label" for="is_active_{{ prompt.pk }}">Active</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-chat-quote fs-1 d-block mb-3"></i>
+                    No prompts yet. Add your first prompt!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Prompt -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-plus-lg me-2"></i>Add Prompt</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'accounts:admin_journal_prompt_add' category.pk %}">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="text" class="form-label">Prompt Text *</label>
+                        <textarea class="form-control" id="text" name="text" rows="4" required
+                                  placeholder="What are three things you're grateful for today?"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="day_number" class="form-label">Day Number</label>
+                        <input type="number" class="form-control" id="day_number" name="day_number"
+                               value="{{ prompts.count|add:1 }}" min="1">
+                        <small class="text-muted">Used for sequential ordering</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-lg me-2"></i>Add Prompt
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Tips -->
+        <div class="card border-0 shadow-sm mt-4 bg-light">
+            <div class="card-body">
+                <h6><i class="bi bi-lightbulb me-2"></i>Tips for Great Prompts</h6>
+                <ul class="small mb-0 text-muted">
+                    <li>Start with action words: "Describe...", "Reflect on...", "List..."</li>
+                    <li>Be specific but leave room for interpretation</li>
+                    <li>Keep prompts focused on the category theme</li>
+                    <li>Vary the difficulty and depth of prompts</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Category Stats -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+                <h6><i class="bi bi-bar-chart me-2"></i>Category Stats</h6>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Total Prompts</span>
+                    <strong>{{ prompts.count }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Active Prompts</span>
+                    <strong>{{ category.prompt_count }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted">Status</span>
+                    {% if category.is_active %}
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

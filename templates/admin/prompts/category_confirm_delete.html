@@ -1,0 +1,38 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+                     style="width: 80px; height: 80px; background: #fee2e2;">
+                    <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2.5rem;"></i>
+                </div>
+
+                <h3 class="mb-3">Delete Category?</h3>
+                <p class="text-muted mb-4">
+                    Are you sure you want to delete <strong>"{{ category.name }}"</strong>?
+                    <br>
+                    This will also delete <strong>{{ category.prompt_count }} prompts</strong> in this category.
+                </p>
+
+                <div class="alert alert-warning text-start">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone. All prompts in this category will be permanently deleted.
+                </div>
+
+                <form method="post" class="d-flex gap-2 justify-content-center mt-4">
+                    {% csrf_token %}
+                    <a href="{% url 'accounts:admin_prompt_list' %}" class="btn btn-outline-secondary px-4">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-trash me-2"></i>Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

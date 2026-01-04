@@ -154,8 +154,11 @@ def extract_keywords(text: str, top_n: int = 10) -> list:
     if not text or not text.strip():
         return []
 
-    # Clean text: remove markdown, URLs, special characters
+    # Clean text: remove HTML, markdown, URLs, special characters
     clean_text = text.lower()
+
+    # Remove HTML tags and their attributes (for Quill content)
+    clean_text = re.sub(r'<[^>]+>', ' ', clean_text)
 
     # Remove URLs
     clean_text = re.sub(r'https?://\S+', '', clean_text)

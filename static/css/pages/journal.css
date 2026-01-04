@@ -879,6 +879,57 @@
     opacity: 1;
 }
 
+/* Entry Thumbnail */
+.entry-thumbnail {
+    display: block;
+    width: 100px !important;
+    min-width: 100px !important;
+    max-width: 100px !important;
+    height: 100px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.entry-thumbnail img,
+.entry-row .entry-thumbnail img,
+.list-group-item .entry-thumbnail img {
+    width: 100px !important;
+    height: 100px !important;
+    max-width: 100px !important;
+    max-height: 100px !important;
+    object-fit: cover;
+    transition: transform 0.2s;
+    display: block;
+}
+
+.entry-thumbnail:hover img {
+    transform: scale(1.05);
+}
+
+@media (max-width: 576px) {
+    .entry-thumbnail {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+        height: 70px !important;
+        min-height: 70px !important;
+        max-height: 70px !important;
+        border-radius: 6px;
+    }
+
+    .entry-thumbnail img,
+    .entry-row .entry-thumbnail img,
+    .list-group-item .entry-thumbnail img {
+        width: 70px !important;
+        height: 70px !important;
+        max-width: 70px !important;
+        max-height: 70px !important;
+    }
+}
+
 /* ==========================================================================
    Delete Modal
    ========================================================================== */

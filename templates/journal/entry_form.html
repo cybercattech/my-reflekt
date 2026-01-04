@@ -301,7 +301,7 @@
                         <div class="attachments-gallery-compact" id="attachmentsGallery">
                             {% if entry %}
                             {% for attachment in entry.attachments.all %}
-                            <div class="attachment-item-compact" data-id="{{ attachment.id }}">
+                            <div class="attachment-item-compact" data-id="{{ attachment.id }}" data-url="{{ attachment.secure_url }}">
                                 {% if attachment.is_image %}
                                 <img src="{{ attachment.secure_url }}" alt="{{ attachment.file_name }}">
                                 {% elif attachment.is_audio %}
@@ -310,9 +310,16 @@
                                 <div class="file-icon-sm video"><i class="bi bi-play-circle"></i></div>
                                 {% endif %}
                                 <span class="file-name-compact" title="{{ attachment.file_name }}">{{ attachment.file_name }}</span>
-                                <button type="button" class="delete-btn-sm" onclick="deleteAttachment({{ attachment.id }})">
-                                    <i class="bi bi-x"></i>
-                                </button>
+                                <div class="attachment-actions">
+                                    {% if attachment.is_image %}
+                                    <button type="button" class="copy-url-btn" onclick="copyImageSyntax(this, '{{ attachment.secure_url }}')" title="Copy {image} syntax">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                    {% endif %}
+                                    <button type="button" class="delete-btn-sm" onclick="deleteAttachment({{ attachment.id }})">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
                             </div>
                             {% endfor %}
                             {% endif %}
@@ -679,6 +686,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (cmd.special === 'hybrid_picker') {
                     mapped.special = 'hybrid_picker';
                     mapped.captureType = cmd.captureType;
+                    mapped.fields = cmd.fields;  // Include fields for "Create New" option
                 } else if (cmd.special === 'block_insert') {
                     mapped.special = 'block_insert';
                     mapped.blockType = cmd.blockType;
@@ -1006,9 +1014,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.items && data.items.length > 0) {
                 html += '<div class="hybrid-picker-divider">Currently Active</div>';
                 data.items.forEach(item => {
-                    const subtitle = captureType === 'book'
+                    // Use item.subtitle if returned from API (person type), otherwise calculate
+                    const subtitle = item.subtitle || (captureType === 'book'
                         ? (item.author ? `by ${item.author}` : '') + (item.page ? ` • Page ${item.page}` : '')
-                        : (item.type === 'show' ? 'TV Show' : item.type || '');
+                        : (item.type === 'show' ? 'TV Show' : item.type || ''));
 
                     const escapedItem = JSON.stringify(item).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
                     html += `
@@ -1818,6 +1827,146 @@ document.addEventListener('DOMContentLoaded', function() {
         quill.root.innerHTML = initialContent;
     }
 
+    // =================================================================
+    // IMAGE RESIZE FUNCTIONALITY
+    // =================================================================
+    let selectedImage = null;
+    let resizeOverlay = null;
+    let isResizing = false;
+    let startX, startY, startWidth, startHeight;
+
+    // Create resize overlay with handles
+    function createResizeOverlay() {
+        if (resizeOverlay) return resizeOverlay;
+
+        resizeOverlay = document.createElement('div');
+        resizeOverlay.className = 'quill-image-resize-overlay';
+        resizeOverlay.innerHTML = `
+            <div class="resize-handle resize-handle-nw" data-handle="nw"></div>
+            <div class="resize-handle resize-handle-ne" data-handle="ne"></div>
+            <div class="resize-handle resize-handle-sw" data-handle="sw"></div>
+            <div class="resize-handle resize-handle-se" data-handle="se"></div>
+            <div class="resize-handle resize-handle-n" data-handle="n"></div>
+            <div class="resize-handle resize-handle-s" data-handle="s"></div>
+            <div class="resize-handle resize-handle-e" data-handle="e"></div>
+            <div class="resize-handle resize-handle-w" data-handle="w"></div>
+            <div class="resize-info"></div>
+        `;
+        document.body.appendChild(resizeOverlay);
+        return resizeOverlay;
+    }
+
+    // Position overlay over image
+    function positionOverlay(img) {
+        const rect = img.getBoundingClientRect();
+        resizeOverlay.style.left = rect.left + window.scrollX + 'px';
+        resizeOverlay.style.top = rect.top + window.scrollY + 'px';
+        resizeOverlay.style.width = rect.width + 'px';
+        resizeOverlay.style.height = rect.height + 'px';
+        resizeOverlay.style.display = 'block';
+
+        // Update size info
+        const info = resizeOverlay.querySelector('.resize-info');
+        info.textContent = `${Math.round(img.width)} × ${Math.round(img.height)}`;
+    }
+
+    // Hide overlay
+    function hideOverlay() {
+        if (resizeOverlay) {
+            resizeOverlay.style.display = 'none';
+        }
+        selectedImage = null;
+    }
+
+    // Handle image click in Quill
+    quill.root.addEventListener('click', function(e) {
+        if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+            selectedImage = e.target;
+            createResizeOverlay();
+            positionOverlay(selectedImage);
+        } else if (!e.target.closest('.quill-image-resize-overlay')) {
+            hideOverlay();
+        }
+    });
+
+    // Handle resize start
+    document.addEventListener('mousedown', function(e) {
+        const handle = e.target.closest('.resize-handle');
+        if (handle && selectedImage) {
+            e.preventDefault();
+            isResizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = selectedImage.width;
+            startHeight = selectedImage.height;
+            resizeOverlay.dataset.handle = handle.dataset.handle;
+            document.body.style.cursor = getComputedStyle(handle).cursor;
+        }
+    });
+
+    // Handle resize move
+    document.addEventListener('mousemove', function(e) {
+        if (!isResizing || !selectedImage) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const handle = resizeOverlay.dataset.handle;
+        const aspectRatio = startWidth / startHeight;
+
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+
+        // Calculate new dimensions based on handle
+        if (handle.includes('e')) newWidth = startWidth + dx;
+        if (handle.includes('w')) newWidth = startWidth - dx;
+        if (handle.includes('s')) newHeight = startHeight + dy;
+        if (handle.includes('n')) newHeight = startHeight - dy;
+
+        // Corner handles maintain aspect ratio
+        if (handle === 'se' || handle === 'nw') {
+            newHeight = newWidth / aspectRatio;
+        } else if (handle === 'sw' || handle === 'ne') {
+            newHeight = newWidth / aspectRatio;
+        }
+
+        // Minimum size
+        newWidth = Math.max(50, newWidth);
+        newHeight = Math.max(50, newHeight);
+
+        // Apply new size
+        selectedImage.style.width = newWidth + 'px';
+        selectedImage.style.height = 'auto';
+        selectedImage.setAttribute('width', Math.round(newWidth));
+
+        // Reposition overlay
+        positionOverlay(selectedImage);
+    });
+
+    // Handle resize end
+    document.addEventListener('mouseup', function() {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = '';
+            // Trigger text-change to save
+            quill.update();
+        }
+    });
+
+    // Reposition overlay on scroll
+    quill.root.addEventListener('scroll', function() {
+        if (selectedImage && resizeOverlay.style.display !== 'none') {
+            positionOverlay(selectedImage);
+        }
+    });
+
+    // Hide overlay when clicking outside editor
+    document.addEventListener('click', function(e) {
+        if (!quill.root.contains(e.target) && !e.target.closest('.quill-image-resize-overlay')) {
+            hideOverlay();
+        }
+    });
+
     // Sync to hidden textarea
     quill.on('text-change', function() {
         const content = quill.root.innerHTML;
@@ -1923,18 +2072,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const selection = quill.getSelection();
         const index = selection ? selection.index : quill.getLength();
 
-        // Insert block text for Quill (simplified HTML version)
-        let blockText = '';
-        if (cmd.blockType === 'dream') {
-            blockText = '\n{dream}\nDescribe your dream here...\n{/dream}\n';
-        } else if (cmd.blockType === 'gratitude') {
-            blockText = '\n{gratitude}\nWhat are you grateful for?\n{/gratitude}\n';
-        } else if (cmd.template) {
-            blockText = '\n' + cmd.template + '\n';
-        }
+        // Insert block text for Quill - just the tags, cursor in between
+        const blockType = cmd.blockType;
+        const blockStart = `\n{${blockType}}\n`;
+        const blockEnd = `\n{/${blockType}}\n`;
 
-        quill.insertText(index, blockText);
-        quill.setSelection(index + blockText.length);
+        quill.insertText(index, blockStart + blockEnd);
+        // Position cursor inside the block (after the opening tag and newline)
+        quill.setSelection(index + blockStart.length, 0);
     }
 
     // Keyboard navigation for Quill slash menu
@@ -2261,8 +2406,6 @@ document.addEventListener('DOMContentLoaded', function() {
         hideMenu();
 
         // Handle special commands
-        console.log('selectCommand:', cmd.command, 'special:', cmd.special, cmd);
-
         if (cmd.special === 'quick_picker') {
             showQuickPicker(cmd.pickerType);
         } else if (cmd.special === 'goal_picker') {
@@ -2272,13 +2415,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (cmd.special === 'capture_form') {
             showUnifiedCaptureForm(cmd);
         } else if (cmd.special === 'block_insert') {
-            console.log('Calling insertBlock with:', cmd.blockType, cmd.hashtag);
             insertBlock(cmd);
         } else if (cmd.special === 'hybrid_picker') {
-            console.log('Calling showUnifiedHybridPicker');
             showUnifiedHybridPicker(cmd);
-        } else {
-            console.log('No handler for special type:', cmd.special);
         }
     }
 
@@ -2287,14 +2426,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // =================================================================
 
     function insertBlock(cmd) {
-        console.log('insertBlock called with:', cmd);
         const cm = easyMDE.codemirror;
         const cursor = cm.getCursor();
 
         // Create the block with hashtag
         const blockType = cmd.blockType;
         const hashtag = cmd.hashtag ? ` #${cmd.hashtag}` : '';
-        console.log('blockType:', blockType, 'hashtag:', hashtag);
 
         // Insert block syntax with cursor positioned inside
         const blockStart = `{${blockType}}\n`;
@@ -3258,7 +3395,22 @@ document.addEventListener('DOMContentLoaded', function() {
     unsavedLeaveBtn.addEventListener('click', function() {
         hasUnsavedChanges = false; // Prevent beforeunload
         if (pendingNavigation) {
-            window.location.href = pendingNavigation;
+            if (pendingNavigation === 'back') {
+                history.back();
+            } else {
+                window.location.href = pendingNavigation;
+            }
+        }
+    });
+
+    // Intercept browser back button with custom modal
+    history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', function(e) {
+        if (hasUnsavedChanges) {
+            // Push state again to prevent actual navigation
+            history.pushState(null, '', window.location.href);
+            pendingNavigation = 'back';
+            unsavedChangesModal.show();
         }
     });
 
@@ -3448,10 +3600,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const item = document.createElement('div');
         item.className = 'attachment-item-compact';
         item.dataset.id = data.id;
+        item.dataset.url = data.url;
 
         let preview;
+        let copyBtn = '';
         if (data.file_type === 'image') {
             preview = `<img src="${data.url}" alt="${data.file_name}">`;
+            copyBtn = `<button type="button" class="copy-url-btn" onclick="copyImageSyntax(this, '${data.url}')" title="Copy {image} syntax">
+                <i class="bi bi-clipboard"></i>
+            </button>`;
         } else if (data.file_type === 'audio') {
             preview = `<div class="file-icon-sm audio"><i class="bi bi-music-note-beamed"></i></div>`;
         } else {
@@ -3461,13 +3618,34 @@ document.addEventListener('DOMContentLoaded', function() {
         item.innerHTML = `
             ${preview}
             <span class="file-name-compact" title="${data.file_name}">${data.file_name}</span>
-            <button type="button" class="delete-btn-sm" onclick="deleteAttachment(${data.id})">
-                <i class="bi bi-x"></i>
-            </button>
+            <div class="attachment-actions">
+                ${copyBtn}
+                <button type="button" class="delete-btn-sm" onclick="deleteAttachment(${data.id})">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
         `;
 
         gallery.appendChild(item);
     }
+
+    // Copy image syntax to clipboard
+    window.copyImageSyntax = function(btn, url) {
+        const syntax = `{image} ${url}`;
+        navigator.clipboard.writeText(syntax).then(() => {
+            // Show success feedback
+            const icon = btn.querySelector('i');
+            icon.className = 'bi bi-check';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                icon.className = 'bi bi-clipboard';
+                btn.classList.remove('copied');
+            }, 1500);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            alert('Failed to copy to clipboard');
+        });
+    };
 
     function updateCount(delta) {
         const current = parseInt(attachmentCount.textContent) || 0;

@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from . import admin_views
 from apps.challenges import admin_views as challenge_admin_views
+from apps.journal import admin_views as journal_admin_views
 
 app_name = 'accounts'
 
@@ -32,6 +33,16 @@ urlpatterns = [
     path('manage/challenges/<int:pk>/prompts/<int:prompt_pk>/edit/', challenge_admin_views.prompt_edit, name='admin_prompt_edit'),
     path('manage/challenges/<int:pk>/prompts/<int:prompt_pk>/delete/', challenge_admin_views.prompt_delete, name='admin_prompt_delete'),
     path('manage/challenges/<int:pk>/stats/', challenge_admin_views.challenge_stats, name='admin_challenge_stats'),
+
+    # Prompt Category Management (Journal Prompts)
+    path('manage/prompts/', journal_admin_views.prompt_category_list, name='admin_prompt_list'),
+    path('manage/prompts/create/', journal_admin_views.prompt_category_create, name='admin_prompt_category_create'),
+    path('manage/prompts/<int:pk>/edit/', journal_admin_views.prompt_category_edit, name='admin_prompt_category_edit'),
+    path('manage/prompts/<int:pk>/delete/', journal_admin_views.prompt_category_delete, name='admin_prompt_category_delete'),
+    path('manage/prompts/<int:pk>/prompts/', journal_admin_views.prompt_prompts, name='admin_prompt_prompts'),
+    path('manage/prompts/<int:pk>/prompts/add/', journal_admin_views.prompt_add, name='admin_journal_prompt_add'),
+    path('manage/prompts/<int:pk>/prompts/<int:prompt_pk>/edit/', journal_admin_views.prompt_edit, name='admin_journal_prompt_edit'),
+    path('manage/prompts/<int:pk>/prompts/<int:prompt_pk>/delete/', journal_admin_views.prompt_delete, name='admin_journal_prompt_delete'),
 
     # Subscription
     path('pricing/', views.pricing_view, name='pricing'),

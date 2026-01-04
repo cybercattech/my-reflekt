@@ -403,7 +403,61 @@ def get_special_date_prompt(current_date):
 
 def get_prompt_for_user(user, current_date=None, current_time=None):
     """
-    Get a prompt, potentially personalized based on user's journal history.
-    Future enhancement: could analyze past entries to suggest relevant prompts.
+    Get a personalized prompt based on user's selected categories.
+
+    1. If user has selected prompt categories, get prompts from those categories
+    2. If no categories selected, fall back to the default category
+    3. Ultimate fallback: legacy context-aware prompts
     """
+    from django.utils import timezone
+    from .models import UserPromptPreference, PromptCategory, Prompt
+
+    if current_date is None:
+        current_date = timezone.now().date()
+
+    # Check if user has selected any prompt categories
+    preferences = UserPromptPreference.objects.filter(user=user).select_related('category')
+
+    if preferences.exists():
+        # Get all prompts from user's selected categories
+        category_ids = preferences.values_list('category_id', flat=True)
+        prompts = Prompt.objects.filter(
+            category_id__in=category_ids,
+            is_active=True
+        ).select_related('category')
+
+        if prompts.exists():
+            # Daily rotation using date as seed for consistency
+            prompt_list = list(prompts)
+            random.seed(current_date.toordinal())
+            selected = random.choice(prompt_list)
+            random.seed()
+
+            return {
+                'prompt': selected.text,
+                'category': selected.category.name,
+                'icon': selected.category.icon
+            }
+
+    # Fall back to default category if no preferences
+    default_category = PromptCategory.objects.filter(
+        is_default=True,
+        is_active=True
+    ).first()
+
+    if default_category:
+        prompts = default_category.prompts.filter(is_active=True)
+        if prompts.exists():
+            prompt_list = list(prompts)
+            random.seed(current_date.toordinal())
+            selected = random.choice(prompt_list)
+            random.seed()
+
+            return {
+                'prompt': selected.text,
+                'category': default_category.name,
+                'icon': default_category.icon
+            }
+
+    # Ultimate fallback: legacy context-aware prompts
     return get_daily_prompt(current_date, current_time)

@@ -752,6 +752,32 @@ textarea#editor {
     background: #fef2f2;
 }
 
+.attachment-item-compact .attachment-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.attachment-item-compact .copy-url-btn {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.attachment-item-compact .copy-url-btn:hover {
+    color: #4f46e5;
+    background: #eef2ff;
+}
+
+.attachment-item-compact .copy-url-btn.copied {
+    color: #22c55e;
+    background: #f0fdf4;
+}
+
 .save-status {
     font-size: 0.85rem;
     color: #6b7280;
@@ -1249,4 +1275,78 @@ textarea#editor {
     .ql-editor {
         min-height: 400px;
     }
+}
+
+/* =====================================================
+   QUILL IMAGE RESIZE
+   ===================================================== */
+
+.quill-image-resize-overlay {
+    position: absolute;
+    border: 2px solid #4f46e5;
+    background: rgba(79, 70, 229, 0.05);
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+}
+
+.quill-image-resize-overlay .resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #4f46e5;
+    border: 2px solid white;
+    border-radius: 2px;
+    pointer-events: auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Corner handles */
+.resize-handle-nw { top: -5px; left: -5px; cursor: nw-resize; }
+.resize-handle-ne { top: -5px; right: -5px; cursor: ne-resize; }
+.resize-handle-sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+.resize-handle-se { bottom: -5px; right: -5px; cursor: se-resize; }
+
+/* Edge handles */
+.resize-handle-n { top: -5px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+.resize-handle-s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+.resize-handle-e { right: -5px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
+.resize-handle-w { left: -5px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
+
+.resize-handle:hover {
+    background: #6366f1;
+    transform: scale(1.2);
+}
+
+/* Keep transform for positioned handles */
+.resize-handle-n:hover,
+.resize-handle-s:hover { transform: translateX(-50%) scale(1.2); }
+.resize-handle-e:hover,
+.resize-handle-w:hover { transform: translateY(-50%) scale(1.2); }
+
+/* Size info tooltip */
+.quill-image-resize-overlay .resize-info {
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* Ensure images in Quill are selectable */
+.ql-editor img {
+    cursor: pointer;
+    max-width: 100%;
+    transition: outline 0.15s;
+}
+
+.ql-editor img:hover {
+    outline: 2px solid #c7d2fe;
+    outline-offset: 2px;
 }

@@ -13,9 +13,9 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFoun
 from django.views.decorators.http import require_POST, require_http_methods
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.conf import settings
-from .models import Entry, Attachment, EntryCapture
+from .models import Entry, Attachment, EntryCapture, PromptCategory, UserPromptPreference
 from .forms import EntryForm
-from .prompts import get_daily_prompt
+from .prompts import get_daily_prompt, get_prompt_for_user
 from apps.analytics.services.mood import MOOD_EMOJIS
 
 
@@ -247,8 +247,8 @@ def entry_list(request):
     # Show all entries toggle
     show_all = request.GET.get('show_all', '') == '1'
 
-    # Daily writing prompt
-    daily_prompt = get_daily_prompt()
+    # Daily writing prompt (personalized based on user's preferences)
+    daily_prompt = get_prompt_for_user(request.user)
 
     # Count unanalyzed entries
     unanalyzed_count = Entry.objects.filter(user=request.user, is_analyzed=False).count()
@@ -781,8 +781,8 @@ def get_sidebar_context(user):
     top_themes = [{'name': t, 'count': c} for t, c in all_themes.most_common(8)]
     top_keywords = [{'name': k, 'count': c} for k, c in all_keywords.most_common(10)]
 
-    # Daily prompt
-    daily_prompt = get_daily_prompt()
+    # Daily prompt (personalized based on user's preferences)
+    daily_prompt = get_prompt_for_user(user)
 
     return {
         'calendar_months': calendar_months,
@@ -1142,9 +1142,15 @@ def attachment_upload(request, entry_pk):
         mime_type=mime_type,
     )
 
+    # Generate thumbnail for images
+    if file_type == 'image':
+        if attachment.generate_thumbnail():
+            attachment.save()
+
     return JsonResponse({
         'id': attachment.id,
         'url': reverse('journal:serve_attachment', kwargs={'pk': attachment.id}),
+        'thumbnail_url': attachment.thumbnail_url,
         'file_name': attachment.file_name,
         'file_type': attachment.file_type,
         'size_display': attachment.size_display,
@@ -1213,6 +1219,36 @@ def serve_media(request, user_id, filename):
 
 
 @login_required
+def serve_media_thumb(request, user_id, filename):
+    """
+    Serve user media thumbnails securely.
+    """
+    from django.core.files.storage import default_storage
+
+    # Security check: user can only access their own files
+    if request.user.id != user_id:
+        return HttpResponseForbidden("Access denied")
+
+    # Build the storage path for thumbnail
+    path = f"journal/images/{user_id}/thumbs/{filename}"
+
+    # Check if thumbnail exists, fall back to original if not
+    if not default_storage.exists(path):
+        # Try to find original
+        original_name = filename.replace('_thumb.jpg', '')
+        for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+            original_path = f"journal/images/{user_id}/{original_name}{ext}"
+            if default_storage.exists(original_path):
+                url = default_storage.url(original_path)
+                return redirect(url)
+        return HttpResponseNotFound("File not found")
+
+    # Get a fresh signed URL
+    url = default_storage.url(path)
+    return redirect(url)
+
+
+@login_required
 def serve_attachment(request, pk):
     """
     Serve attachment files securely.
@@ -1234,16 +1270,42 @@ def serve_attachment(request, pk):
 
 
 @login_required
+def serve_thumbnail(request, pk):
+    """
+    Serve attachment thumbnail securely.
+
+    Returns the thumbnail if available, otherwise falls back to the original.
+    """
+    attachment = get_object_or_404(Attachment, pk=pk)
+
+    # Security check: user must own the entry this attachment belongs to
+    if attachment.entry.user_id != request.user.id:
+        return HttpResponseForbidden("Access denied")
+
+    # If thumbnail exists, serve it
+    if attachment.thumbnail:
+        url = attachment.thumbnail.url
+    else:
+        # Fall back to original
+        url = attachment.file.url
+
+    return redirect(url)
+
+
+@login_required
 @require_POST
 def upload_inline_image(request):
     """
     Upload an image for inline use in entry content.
     Returns JSON with the image URL for Markdown embedding.
+    Also generates a thumbnail for entry list display.
     """
     import os
     import uuid
     from django.core.files.storage import default_storage
     from django.core.files.base import ContentFile
+    from PIL import Image
+    from io import BytesIO
 
     if 'file' not in request.FILES:
         return JsonResponse({'error': 'No file provided'}, status=400)
@@ -1261,27 +1323,62 @@ def upload_inline_image(request):
         return JsonResponse({'error': 'Only images are allowed (jpg, png, gif, webp)'}, status=400)
 
     # Generate unique filename
+    base_name = uuid.uuid4().hex
     ext = os.path.splitext(uploaded_file.name)[1].lower()
     if not ext:
         ext = '.jpg'
-    filename = f"{uuid.uuid4().hex}{ext}"
+    filename = f"{base_name}{ext}"
 
-    # Save to user-specific folder
+    # Read the file content
+    file_content = uploaded_file.read()
+
+    # Save original to user-specific folder
     path = f"journal/images/{request.user.id}/{filename}"
-    saved_path = default_storage.save(path, ContentFile(uploaded_file.read()))
+    default_storage.save(path, ContentFile(file_content))
+
+    # Generate and save thumbnail
+    thumb_filename = f"{base_name}_thumb.jpg"
+    thumb_path = f"journal/images/{request.user.id}/thumbs/{thumb_filename}"
+    try:
+        img = Image.open(BytesIO(file_content))
+        # Convert to RGB if necessary
+        if img.mode in ('RGBA', 'LA', 'P'):
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+            img = background
+        # Create thumbnail
+        img.thumbnail((200, 200), Image.Resampling.LANCZOS)
+        thumb_io = BytesIO()
+        img.save(thumb_io, format='JPEG', quality=85)
+        thumb_io.seek(0)
+        default_storage.save(thumb_path, ContentFile(thumb_io.read()))
+    except Exception as e:
+        # If thumbnail fails, just continue without it
+        import logging
+        logging.getLogger(__name__).error(f"Thumbnail generation failed: {e}")
+        thumb_filename = None
 
     # Return a secure URL that goes through Django (not direct S3)
-    # This allows us to check ownership and generate fresh signed URLs
     secure_url = reverse('journal:serve_media', kwargs={
         'user_id': request.user.id,
         'filename': filename
     })
 
-    return JsonResponse({
+    response_data = {
         'success': True,
         'url': secure_url,
         'filename': filename,
-    })
+    }
+
+    if thumb_filename:
+        response_data['thumbnail_url'] = reverse('journal:serve_media_thumb', kwargs={
+            'user_id': request.user.id,
+            'filename': thumb_filename
+        })
+
+    return JsonResponse(response_data)
 
 
 @login_required
@@ -1545,13 +1642,8 @@ SLASH_COMMANDS = [
         'name': 'Person',
         'icon': 'bi-person',
         'description': 'Log who you spent time with',
-        'special': 'capture_form',
-        'captureType': 'person',
-        'fields': [
-            {'name': 'name', 'label': 'Name', 'type': 'text', 'required': True},
-            {'name': 'context', 'label': 'Context', 'type': 'text', 'required': False,
-             'placeholder': 'e.g., lunch, meeting, call'},
-        ],
+        'special': 'quick_picker',
+        'pickerType': 'person',
     },
     {
         'command': '/place',
@@ -1587,26 +1679,21 @@ SLASH_COMMANDS = [
         'command': '/dream',
         'name': 'Dream',
         'icon': 'bi-cloud-moon',
-        'description': 'Flag as dream journal',
-        'special': 'capture_form',
+        'description': 'Start a dream journal block',
+        'special': 'block_insert',
+        'blockType': 'dream',
         'captureType': 'dream',
-        'fields': [
-            {'name': 'description', 'label': 'Dream description (optional)', 'type': 'textarea', 'required': False,
-             'placeholder': 'Brief summary of the dream...'},
-        ],
+        'fields': [],
     },
     {
         'command': '/gratitude',
         'name': 'Gratitude',
         'icon': 'bi-heart',
-        'description': 'Log things you\'re grateful for',
-        'special': 'capture_form',
+        'description': 'Start a gratitude block',
+        'special': 'block_insert',
+        'blockType': 'gratitude',
         'captureType': 'gratitude',
-        'fields': [
-            {'name': 'item1', 'label': 'Grateful for...', 'type': 'text', 'required': True},
-            {'name': 'item2', 'label': 'Also grateful for...', 'type': 'text', 'required': False},
-            {'name': 'item3', 'label': 'And grateful for...', 'type': 'text', 'required': False},
-        ],
+        'fields': [],
     },
     {
         'command': '/pov',
@@ -1764,6 +1851,27 @@ def get_active_captures(request):
                 })
                 if len(items) >= 10:
                     break
+
+        return JsonResponse({'items': items})
+
+    elif capture_type == 'person':
+        # Get tracked people from TrackedPerson model
+        from apps.analytics.models import TrackedPerson
+        people = TrackedPerson.objects.filter(
+            user=request.user
+        ).order_by('-mention_count', '-last_mentioned')[:15]
+
+        items = []
+        for person in people:
+            items.append({
+                'id': person.id,
+                'title': person.name,
+                'subtitle': person.get_relationship_display() if person.relationship else '',
+                'data': {
+                    'name': person.name,
+                    'relationship': person.relationship,
+                },
+            })
 
         return JsonResponse({'items': items})
 
@@ -2666,3 +2774,72 @@ def pov_delete_recipient(request, pov_id):
         messages.error(request, "Could not delete POV. You may not be a recipient.")
 
     return redirect('journal:shared_povs_list')
+
+
+# =============================================================================
+# Prompt Preferences
+# =============================================================================
+
+@login_required
+def prompt_preferences(request):
+    """Display all prompt categories for user to select/deselect."""
+    # Get all active categories
+    categories = PromptCategory.objects.filter(is_active=True).order_by('display_order', 'name')
+
+    # Get user's selected category IDs
+    user_selections = set(
+        UserPromptPreference.objects.filter(user=request.user)
+        .values_list('category_id', flat=True)
+    )
+
+    # Annotate categories with selection status and prompt count
+    categories_data = []
+    for category in categories:
+        categories_data.append({
+            'category': category,
+            'is_selected': category.id in user_selections,
+            'prompt_count': category.prompt_count,
+        })
+
+    return render(request, 'journal/prompt_preferences.html', {
+        'categories': categories_data,
+        'selected_count': len(user_selections),
+        'active_page': 'prompts',
+    })
+
+
+@login_required
+@require_POST
+def toggle_prompt_category(request, pk):
+    """AJAX endpoint to toggle a prompt category selection."""
+    category = get_object_or_404(PromptCategory, pk=pk, is_active=True)
+
+    # Check if user has already selected this category
+    existing = UserPromptPreference.objects.filter(
+        user=request.user,
+        category=category
+    ).first()
+
+    if existing:
+        # Deselect - remove the preference
+        existing.delete()
+        is_selected = False
+        message = f"Removed '{category.name}' from your prompts."
+    else:
+        # Select - add the preference
+        UserPromptPreference.objects.create(
+            user=request.user,
+            category=category
+        )
+        is_selected = True
+        message = f"Added '{category.name}' to your prompts."
+
+    # Get updated count
+    selected_count = UserPromptPreference.objects.filter(user=request.user).count()
+
+    return JsonResponse({
+        'success': True,
+        'is_selected': is_selected,
+        'message': message,
+        'selected_count': selected_count,
+    })

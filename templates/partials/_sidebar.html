@@ -7,7 +7,7 @@
     <!-- Scrollable Content -->
     <div class="sidebar-content">
 
-    {% if active_page == "overview" or active_page == "users" or active_page == "subscriptions" or active_page == "blog" or active_page == "emails" or active_page == "feedback" or active_page == "admin_challenges" or active_page == "admin" %}
+    {% if active_page == "overview" or active_page == "users" or active_page == "subscriptions" or active_page == "blog" or active_page == "emails" or active_page == "feedback" or active_page == "admin_challenges" or active_page == "admin_prompts" or active_page == "admin" %}
     <!-- ==================== ADMIN MODE ==================== -->
 
     <!-- Switch to User View -->
@@ -72,6 +72,10 @@
             <a href="{% url 'accounts:admin_challenge_list' %}" class="sidebar-link {% if active_page == 'admin_challenges' %}active{% endif %}" data-tooltip="Challenges">
                 <span class="link-dot green"></span>
                 <span>Challenges</span>
+            </a>
+            <a href="{% url 'accounts:admin_prompt_list' %}" class="sidebar-link {% if active_page == 'admin_prompts' %}active{% endif %}" data-tooltip="Prompts">
+                <span class="link-dot blue"></span>
+                <span>Prompts</span>
             </a>
         </div>
     </div>
@@ -299,6 +303,10 @@
                 <a href="{% url 'challenges:list' %}" class="sidebar-link {% if active_page == 'challenges' %}active{% endif %}" data-tooltip="Challenges">
                     <span class="link-dot green"></span>
                     <span>Challenges</span>
+                </a>
+                <a href="{% url 'journal:prompt_preferences' %}" class="sidebar-link {% if active_page == 'prompts' %}active{% endif %}" data-tooltip="Prompts">
+                    <span class="link-dot purple"></span>
+                    <span>Prompts</span>
                 </a>
             </div>
         </div>

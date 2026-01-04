@@ -1,0 +1,186 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="bi bi-lightbulb me-2"></i>
+        {% if category %}Edit Category{% else %}Create Category{% endif %}
+    </h1>
+    <a href="{% url 'accounts:admin_prompt_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to List
+    </a>
+</div>
+
+<form method="post" class="row g-4">
+    {% csrf_token %}
+
+    <!-- Main Info -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Category Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name *</label>
+                    <input type="text" class="form-control" id="name" name="name"
+                           value="{{ category.name|default:'' }}" required
+                           placeholder="e.g., Gratitude">
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"
+                              placeholder="Brief description of this category...">{{ category.description|default:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-palette me-2"></i>Appearance</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="icon" class="form-label">Icon</label>
+                        <input type="text" class="form-control" id="icon" name="icon"
+                               value="{{ category.icon|default:'bi-lightbulb' }}"
+                               placeholder="bi-lightbulb">
+                        <small class="text-muted">Bootstrap icon class (e.g., bi-heart, bi-star)</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="color" class="form-label">Theme Color</label>
+                        <input type="color" class="form-control form-control-color" id="color" name="color"
+                               value="{{ category.color|default:'#7c3aed' }}" style="height: 40px;">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image_url" class="form-label">Background Image URL</label>
+                    <input type="url" class="form-control" id="image_url" name="image_url"
+                           value="{{ category.image_url|default:'' }}"
+                           placeholder="https://images.unsplash.com/...">
+                    <small class="text-muted">Optional background image for the category card</small>
+                </div>
+
+                <!-- Preview -->
+                <div class="mt-4">
+                    <label class="form-label">Preview</label>
+                    <div class="card category-preview" id="categoryPreview"
+                         style="height: 180px; border-radius: 16px; overflow: hidden; position: relative;">
+                        <div class="preview-bg" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, {{ category.color|default:'#7c3aed' }} 0%, {{ category.color|default:'#7c3aed' }}cc 100%);"></div>
+                        <div class="preview-img" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center; {% if category.image_url %}background-image: url('{{ category.image_url }}');{% endif %}"></div>
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);"></div>
+                        <div class="card-body d-flex flex-column justify-content-end position-relative" style="z-index: 2; color: white;">
+                            <div class="position-absolute" style="top: 1rem; right: 1rem;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 44px; height: 44px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
+                                    <i class="preview-icon {{ category.icon|default:'bi-lightbulb' }}" style="font-size: 1.25rem;"></i>
+                                </div>
+                            </div>
+                            <h4 class="preview-name mb-1">{{ category.name|default:'Category Name' }}</h4>
+                            <p class="preview-desc small mb-0 opacity-75">{{ category.description|default:'Category description...'|truncatewords:10 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Status -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Settings</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="display_order" class="form-label">Display Order</label>
+                    <input type="number" class="form-control" id="display_order" name="display_order"
+                           value="{{ category.display_order|default:'0' }}" min="0">
+                    <small class="text-muted">Lower numbers appear first</small>
+                </div>
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                           {% if category.is_active or not category %}checked{% endif %}>
+                    <label class="form-check-label" for="is_active">Active</label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_default" name="is_default"
+                           {% if category.is_default %}checked{% endif %}>
+                    <label class="form-check-label" for="is_default">Default Category</label>
+                    <small class="text-muted d-block">Shown to users who haven't selected any categories</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-check-lg me-2"></i>
+                {% if category %}Update Category{% else %}Create Category{% endif %}
+            </button>
+            <a href="{% url 'accounts:admin_prompt_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+
+        <!-- Tips -->
+        <div class="card border-0 shadow-sm mt-4 bg-light">
+            <div class="card-body">
+                <h6><i class="bi bi-info-circle me-2"></i>Tips</h6>
+                <ul class="small mb-0 text-muted">
+                    <li>Use clear, descriptive names</li>
+                    <li>Choose icons that represent the category theme</li>
+                    <li>Background images work best at 600x400px or larger</li>
+                    <li>Only one category can be the default</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('name');
+    const descInput = document.getElementById('description');
+    const iconInput = document.getElementById('icon');
+    const colorInput = document.getElementById('color');
+    const imageInput = document.getElementById('image_url');
+
+    const previewName = document.querySelector('.preview-name');
+    const previewDesc = document.querySelector('.preview-desc');
+    const previewIcon = document.querySelector('.preview-icon');
+    const previewBg = document.querySelector('.preview-bg');
+    const previewImg = document.querySelector('.preview-img');
+
+    nameInput.addEventListener('input', function() {
+        previewName.textContent = this.value || 'Category Name';
+    });
+
+    descInput.addEventListener('input', function() {
+        previewDesc.textContent = this.value || 'Category description...';
+    });
+
+    iconInput.addEventListener('input', function() {
+        previewIcon.className = 'preview-icon ' + (this.value || 'bi-lightbulb');
+    });
+
+    colorInput.addEventListener('input', function() {
+        const color = this.value;
+        previewBg.style.background = `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`;
+    });
+
+    imageInput.addEventListener('input', function() {
+        if (this.value) {
+            previewImg.style.backgroundImage = `url('${this.value}')`;
+        } else {
+            previewImg.style.backgroundImage = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

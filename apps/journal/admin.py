@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import Entry, Tag, EntryCapture, SharedPOV, SharedPOVRecipient, POVReply
+from .models import (
+    Entry, Tag, EntryCapture, SharedPOV, SharedPOVRecipient, POVReply,
+    PromptCategory, Prompt, UserPromptPreference
+)
 
 
 @admin.register(Entry)
@@ -52,3 +55,37 @@ class POVReplyAdmin(admin.ModelAdmin):
     search_fields = ('author__email', 'content')
     readonly_fields = ('created_at', 'updated_at')
     raw_id_fields = ('pov', 'author')
+
+
+class PromptInline(admin.TabularInline):
+    model = Prompt
+    extra = 1
+    fields = ('text', 'day_number', 'is_active')
+
+
+@admin.register(PromptCategory)
+class PromptCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'is_default', 'is_active', 'prompt_count', 'display_order')
+    list_filter = ('is_default', 'is_active')
+    search_fields = ('name', 'description')
+    prepopulated_fields = {'slug': ('name',)}
+    ordering = ('display_order', 'name')
+    inlines = [PromptInline]
+
+
+@admin.register(Prompt)
+class PromptAdmin(admin.ModelAdmin):
+    list_display = ('text_preview', 'category', 'day_number', 'is_active', 'created_at')
+    list_filter = ('category', 'is_active')
+    search_fields = ('text', 'category__name')
+    ordering = ('category', 'day_number')
+    raw_id_fields = ('category',)
+
+
+@admin.register(UserPromptPreference)
+class UserPromptPreferenceAdmin(admin.ModelAdmin):
+    list_display = ('user', 'category', 'selected_at')
+    list_filter = ('category', 'selected_at')
+    search_fields = ('user__email', 'category__name')
+    raw_id_fields = ('user', 'category')
+    readonly_fields = ('selected_at',)

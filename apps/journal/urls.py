@@ -24,9 +24,11 @@ urlpatterns = [
     path('<int:entry_pk>/attachments/upload/', views.attachment_upload, name='attachment_upload'),
     path('attachments/<int:pk>/delete/', views.attachment_delete, name='attachment_delete'),
     path('attachments/<int:pk>/view/', views.serve_attachment, name='serve_attachment'),
+    path('attachments/<int:pk>/thumbnail/', views.serve_thumbnail, name='serve_thumbnail'),
 
     # Secure media serving (for inline images)
     path('media/<int:user_id>/<str:filename>', views.serve_media, name='serve_media'),
+    path('media/<int:user_id>/thumbs/<str:filename>', views.serve_media_thumb, name='serve_media_thumb'),
 
     # Slash commands API
     path('api/slash-commands/', views.get_slash_commands, name='slash_commands'),
@@ -60,4 +62,8 @@ urlpatterns = [
     path('api/pov/<int:pov_id>/reply/', views.pov_reply_create, name='pov_reply_create'),
     path('api/pov/<int:pov_id>/delete/', views.pov_delete_recipient, name='pov_delete_recipient'),
     path('api/pov/unread-count/', views.unread_povs_count, name='unread_povs_count'),
+
+    # Prompt Preferences
+    path('prompts/', views.prompt_preferences, name='prompt_preferences'),
+    path('api/prompt-category/<int:pk>/toggle/', views.toggle_prompt_category, name='toggle_prompt_category'),
 ]

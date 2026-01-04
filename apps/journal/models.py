@@ -131,6 +131,37 @@ class Entry(models.Model):
         """Return emoji for mood."""
         return MOOD_EMOJIS.get(self.mood, '')
 
+    @property
+    def first_image(self):
+        """Return the first image thumbnail URL or extract first image URL from content."""
+        import re
+        import os
+
+        # First check for image attachments (prefer thumbnail)
+        first_attachment = self.attachments.filter(file_type='image').first()
+        if first_attachment:
+            return first_attachment.thumbnail_url
+
+        # Then check content for embedded images (Quill stores as <img src="...">)
+        if self.content:
+            # Match img tags with src attribute
+            img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', self.content)
+            if img_match:
+                original_url = img_match.group(1)
+                # Convert to thumbnail URL if it's an inline image
+                # Pattern: /journal/media/{user_id}/{filename}
+                inline_match = re.match(r'/journal/media/(\d+)/([^/]+)$', original_url)
+                if inline_match:
+                    user_id = inline_match.group(1)
+                    filename = inline_match.group(2)
+                    # Generate thumbnail URL
+                    base_name = os.path.splitext(filename)[0]
+                    thumb_filename = f"{base_name}_thumb.jpg"
+                    return f"/journal/media/{user_id}/thumbs/{thumb_filename}"
+                return original_url
+
+        return None
+
 
 class Tag(models.Model):
     """
@@ -170,6 +201,16 @@ def attachment_upload_path(instance, filename):
     return f'attachments/{instance.entry.user_id}/{now.year}/{now.month:02d}/{safe_name}'
 
 
+def thumbnail_upload_path(instance, filename):
+    """Generate upload path for thumbnails"""
+    import os
+    from datetime import datetime
+    now = datetime.now()
+    base, ext = os.path.splitext(filename)
+    safe_name = "".join(c for c in base if c.isalnum() or c in '._-')
+    return f'thumbnails/{instance.entry.user_id}/{now.year}/{now.month:02d}/{safe_name}_thumb{ext}'
+
+
 class Attachment(models.Model):
     """
     Media attachments for journal entries.
@@ -190,6 +231,7 @@ class Attachment(models.Model):
         related_name='attachments'
     )
     file = models.FileField(upload_to=attachment_upload_path)
+    thumbnail = models.ImageField(upload_to=thumbnail_upload_path, blank=True, null=True)
     file_type = models.CharField(max_length=10, choices=ATTACHMENT_TYPES)
     file_name = models.CharField(max_length=255)
     file_size = models.PositiveIntegerField(help_text="Size in bytes")
@@ -228,6 +270,57 @@ class Attachment(models.Model):
     def secure_url(self):
         """Return a secure URL that goes through Django for access control."""
         return reverse('journal:serve_attachment', kwargs={'pk': self.pk})
+
+    @property
+    def thumbnail_url(self):
+        """Return URL for thumbnail (for images) or secure_url as fallback."""
+        if self.thumbnail:
+            return reverse('journal:serve_thumbnail', kwargs={'pk': self.pk})
+        return self.secure_url
+
+    def generate_thumbnail(self, max_size=200):
+        """Generate a thumbnail for image attachments."""
+        if self.file_type != 'image':
+            return False
+
+        try:
+            from PIL import Image
+            from io import BytesIO
+            from django.core.files.base import ContentFile
+            import os
+
+            # Open the original image
+            self.file.seek(0)
+            img = Image.open(self.file)
+
+            # Convert to RGB if necessary (for PNG with transparency)
+            if img.mode in ('RGBA', 'LA', 'P'):
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                img = background
+
+            # Calculate thumbnail size maintaining aspect ratio
+            img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+
+            # Save thumbnail to BytesIO
+            thumb_io = BytesIO()
+            img.save(thumb_io, format='JPEG', quality=85)
+            thumb_io.seek(0)
+
+            # Generate thumbnail filename
+            base_name = os.path.splitext(self.file_name)[0]
+            thumb_name = f"{base_name}_thumb.jpg"
+
+            # Save thumbnail
+            self.thumbnail.save(thumb_name, ContentFile(thumb_io.read()), save=False)
+            return True
+
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Thumbnail generation failed: {e}")
+            return False
 
 
 class EntryCapture(models.Model):
@@ -544,3 +637,100 @@ class GeocodedLocation(models.Model):
     @property
     def has_coordinates(self):
         return self.lat is not None and self.lng is not None
+
+
+class PromptCategory(models.Model):
+    """
+    Categories of journal prompts users can subscribe to.
+
+    Users can select multiple categories to receive varied prompts
+    tailored to their needs (e.g., anxiety, gratitude, teens).
+    """
+    name = models.CharField(max_length=100)  # e.g., "Anxiety", "Gratitude"
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=50, default='bi-lightbulb')  # Bootstrap icon
+    color = models.CharField(max_length=7, default='#7c3aed')  # Hex color for card
+    image_url = models.URLField(
+        blank=True,
+        help_text="Background image URL for the category card"
+    )
+    is_default = models.BooleanField(
+        default=False,
+        help_text="Default category shown to users who haven't selected any"
+    )
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', 'name']
+        verbose_name = 'Prompt Category'
+        verbose_name_plural = 'Prompt Categories'
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def prompt_count(self):
+        return self.prompts.filter(is_active=True).count()
+
+
+class Prompt(models.Model):
+    """
+    Individual prompts within a category.
+
+    Each category has multiple prompts that rotate daily.
+    """
+    category = models.ForeignKey(
+        PromptCategory,
+        on_delete=models.CASCADE,
+        related_name='prompts'
+    )
+    text = models.TextField()
+    day_number = models.PositiveIntegerField(
+        default=1,
+        help_text="Used for sequential rotation within category"
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['category', 'day_number']
+
+    def __str__(self):
+        return f"{self.category.name}: {self.text[:50]}..."
+
+    @property
+    def text_preview(self):
+        """Return first 80 characters of prompt text."""
+        if len(self.text) > 80:
+            return self.text[:80] + '...'
+        return self.text
+
+
+class UserPromptPreference(models.Model):
+    """
+    User's selected prompt categories.
+
+    Many-to-many through table allowing users to subscribe to
+    multiple prompt categories.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='prompt_preferences'
+    )
+    category = models.ForeignKey(
+        PromptCategory,
+        on_delete=models.CASCADE,
+        related_name='subscribers'
+    )
+    selected_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'category']
+        ordering = ['selected_at']
+
+    def __str__(self):
+        return f"{self.user.email} → {self.category.name}"
