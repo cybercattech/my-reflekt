@@ -35,9 +35,10 @@ AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME', default='')
 AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME', default='us-east-1')
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
-AWS_DEFAULT_ACL = 'private'
+AWS_DEFAULT_ACL = 'private'  # Keep files private - served through Django
 AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = True  # Generate signed URLs for private files
+AWS_QUERYSTRING_EXPIRE = 3600  # URLs expire after 1 hour
 AWS_LOCATION = 'media'  # Prefix for uploaded files
 
 # Django 5.x storage configuration with S3
@@ -53,8 +54,10 @@ if AWS_ACCESS_KEY_ID and AWS_STORAGE_BUCKET_NAME:
                 "default_acl": AWS_DEFAULT_ACL,
                 "file_overwrite": AWS_S3_FILE_OVERWRITE,
                 "querystring_auth": AWS_QUERYSTRING_AUTH,
+                "querystring_expire": AWS_QUERYSTRING_EXPIRE,
                 "object_parameters": AWS_S3_OBJECT_PARAMETERS,
                 "location": AWS_LOCATION,
+                "custom_domain": None,  # Must be None for signed URLs to work
             },
         },
         "staticfiles": {

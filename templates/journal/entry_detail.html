@@ -944,17 +944,17 @@
                                 {% for attachment in entry.attachments.all %}
                                     {% if attachment.file_type == 'image' %}
                                     <div class="attachment-item attachment-image"
-                                         onclick="openLightbox('{{ attachment.file.url }}', '{{ attachment.file_name|escapejs }}')"
-                                         data-image-url="{{ attachment.file.url }}"
+                                         onclick="openLightbox('{{ attachment.secure_url }}', '{{ attachment.file_name|escapejs }}')"
+                                         data-image-url="{{ attachment.secure_url }}"
                                          data-image-name="{{ attachment.file_name }}">
-                                        <img src="{{ attachment.file.url }}" alt="{{ attachment.file_name }}" loading="lazy">
+                                        <img src="{{ attachment.secure_url }}" alt="{{ attachment.file_name }}" loading="lazy">
                                     </div>
 
                                     {% elif attachment.file_type == 'audio' %}
                                     <div class="attachment-item attachment-audio">
                                         <i class="bi bi-music-note-beamed audio-icon"></i>
                                         <audio controls preload="metadata">
-                                            <source src="{{ attachment.file.url }}" type="{{ attachment.mime_type }}">
+                                            <source src="{{ attachment.secure_url }}" type="{{ attachment.mime_type }}">
                                             Your browser does not support the audio element.
                                         </audio>
                                         <div class="file-name">{{ attachment.file_name }}</div>
@@ -963,7 +963,7 @@
                                     {% elif attachment.file_type == 'video' %}
                                     <div class="attachment-item attachment-video">
                                         <video controls preload="metadata">
-                                            <source src="{{ attachment.file.url }}" type="{{ attachment.mime_type }}">
+                                            <source src="{{ attachment.secure_url }}" type="{{ attachment.mime_type }}">
                                             Your browser does not support the video element.
                                         </video>
                                         <div class="file-name">{{ attachment.file_name }}</div>

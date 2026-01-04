@@ -23,6 +23,10 @@ urlpatterns = [
     path('<int:entry_pk>/attachments/', views.attachment_list, name='attachment_list'),
     path('<int:entry_pk>/attachments/upload/', views.attachment_upload, name='attachment_upload'),
     path('attachments/<int:pk>/delete/', views.attachment_delete, name='attachment_delete'),
+    path('attachments/<int:pk>/view/', views.serve_attachment, name='serve_attachment'),
+
+    # Secure media serving (for inline images)
+    path('media/<int:user_id>/<str:filename>', views.serve_media, name='serve_media'),
 
     # Slash commands API
     path('api/slash-commands/', views.get_slash_commands, name='slash_commands'),

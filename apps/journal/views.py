@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Count, Sum, Avg, F
 from django.db.models.functions import ExtractYear
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
 from django.views.decorators.http import require_POST, require_http_methods
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.conf import settings
@@ -1144,7 +1144,7 @@ def attachment_upload(request, entry_pk):
 
     return JsonResponse({
         'id': attachment.id,
-        'url': attachment.file.url,
+        'url': reverse('journal:serve_attachment', kwargs={'pk': attachment.id}),
         'file_name': attachment.file_name,
         'file_type': attachment.file_type,
         'size_display': attachment.size_display,
@@ -1173,7 +1173,7 @@ def attachment_list(request, entry_pk):
 
     data = [{
         'id': a.id,
-        'url': a.file.url,
+        'url': reverse('journal:serve_attachment', kwargs={'pk': a.id}),
         'file_name': a.file_name,
         'file_type': a.file_type,
         'size_display': a.size_display,
@@ -1181,6 +1181,56 @@ def attachment_list(request, entry_pk):
     } for a in attachments]
 
     return JsonResponse({'attachments': data})
+
+
+@login_required
+def serve_media(request, user_id, filename):
+    """
+    Serve user media files securely.
+
+    Checks that the requesting user owns the file, then redirects
+    to a fresh signed S3 URL. This keeps files private while allowing
+    owners to access them.
+    """
+    from django.core.files.storage import default_storage
+
+    # Security check: user can only access their own files
+    if request.user.id != user_id:
+        return HttpResponseForbidden("Access denied")
+
+    # Build the storage path
+    path = f"journal/images/{user_id}/{filename}"
+
+    # Check if file exists
+    if not default_storage.exists(path):
+        return HttpResponseNotFound("File not found")
+
+    # Get a fresh signed URL (expires in 1 hour)
+    url = default_storage.url(path)
+
+    # Redirect to the signed URL
+    return redirect(url)
+
+
+@login_required
+def serve_attachment(request, pk):
+    """
+    Serve attachment files securely.
+
+    Checks that the requesting user owns the attachment, then redirects
+    to a fresh signed S3 URL.
+    """
+    attachment = get_object_or_404(Attachment, pk=pk)
+
+    # Security check: user must own the entry this attachment belongs to
+    if attachment.entry.user_id != request.user.id:
+        return HttpResponseForbidden("Access denied")
+
+    # Get a fresh signed URL
+    url = attachment.file.url
+
+    # Redirect to the signed URL
+    return redirect(url)
 
 
 @login_required
@@ -1220,12 +1270,16 @@ def upload_inline_image(request):
     path = f"journal/images/{request.user.id}/{filename}"
     saved_path = default_storage.save(path, ContentFile(uploaded_file.read()))
 
-    # Get the URL
-    url = default_storage.url(saved_path)
+    # Return a secure URL that goes through Django (not direct S3)
+    # This allows us to check ownership and generate fresh signed URLs
+    secure_url = reverse('journal:serve_media', kwargs={
+        'user_id': request.user.id,
+        'filename': filename
+    })
 
     return JsonResponse({
         'success': True,
-        'url': url,
+        'url': secure_url,
         'filename': filename,
     })
 

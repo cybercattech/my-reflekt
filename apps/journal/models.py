@@ -224,6 +224,11 @@ class Attachment(models.Model):
     def is_video(self):
         return self.file_type == 'video'
 
+    @property
+    def secure_url(self):
+        """Return a secure URL that goes through Django for access control."""
+        return reverse('journal:serve_attachment', kwargs={'pk': self.pk})
+
 
 class EntryCapture(models.Model):
     """
