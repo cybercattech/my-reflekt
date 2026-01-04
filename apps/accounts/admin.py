@@ -4,6 +4,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.db.models import Count, Sum
+from allauth.account.models import EmailAddress
 from .models import (Profile, Friendship, FriendRequest, Invitation,
                      Payment, SubscriptionHistory)
 
@@ -287,3 +288,62 @@ class SubscriptionHistoryAdmin(admin.ModelAdmin):
             color, obj.get_change_type_display()
         )
     change_type_badge.short_description = 'Type'
+
+
+# =============================================================================
+# Email Verification Admin (django-allauth)
+# =============================================================================
+
+# Unregister default EmailAddress admin if it exists
+try:
+    admin.site.unregister(EmailAddress)
+except admin.sites.NotRegistered:
+    pass
+
+
+@admin.register(EmailAddress)
+class EmailAddressAdmin(admin.ModelAdmin):
+    list_display = ('email', 'user', 'verified_badge', 'primary', 'created_at_display')
+    list_filter = ('verified', 'primary')
+    search_fields = ('email', 'user__email', 'user__username')
+    raw_id_fields = ('user',)
+    actions = ['verify_emails', 'unverify_emails', 'make_primary']
+
+    def verified_badge(self, obj):
+        if obj.verified:
+            return format_html(
+                '<span style="background-color: #22c55e; color: white; padding: 3px 8px; '
+                'border-radius: 3px; font-weight: bold;">✓ VERIFIED</span>'
+            )
+        else:
+            return format_html(
+                '<span style="background-color: #ef4444; color: white; padding: 3px 8px; '
+                'border-radius: 3px;">NOT VERIFIED</span>'
+            )
+    verified_badge.short_description = 'Status'
+
+    def created_at_display(self, obj):
+        # EmailAddress doesn't have created_at by default, show user's date_joined
+        if obj.user:
+            return obj.user.date_joined
+        return '-'
+    created_at_display.short_description = 'User Joined'
+
+    def verify_emails(self, request, queryset):
+        count = queryset.update(verified=True)
+        self.message_user(request, f'{count} email(s) marked as verified.')
+    verify_emails.short_description = '✅ Verify selected emails'
+
+    def unverify_emails(self, request, queryset):
+        count = queryset.update(verified=False)
+        self.message_user(request, f'{count} email(s) marked as unverified.')
+    unverify_emails.short_description = '❌ Unverify selected emails'
+
+    def make_primary(self, request, queryset):
+        for email_address in queryset:
+            # Set all other emails for this user as non-primary
+            EmailAddress.objects.filter(user=email_address.user).update(primary=False)
+            email_address.primary = True
+            email_address.save()
+        self.message_user(request, f'{queryset.count()} email(s) set as primary.')
+    make_primary.short_description = '⭐ Make selected emails primary'

@@ -501,6 +501,136 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ==========================================================================
+    // DELETE FUNCTIONALITY - Must be first to ensure it always works
+    // ==========================================================================
+
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteModalMessage = document.getElementById('deleteModalMessage');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    let entryToDelete = null;
+
+    // Get CSRF token from cookie (more reliable than template variable)
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function closeDeleteModal() {
+        if (deleteModal) {
+            deleteModal.classList.remove('active');
+        }
+        entryToDelete = null;
+    }
+
+    function performDelete(entryId) {
+        const csrfToken = getCsrfToken();
+        if (!csrfToken) {
+            alert('Security token not found. Please refresh the page and try again.');
+            return;
+        }
+
+        fetch(`/journal/${entryId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const entryRow = document.querySelector(`.entry-row[data-entry-id="${entryId}"]`);
+                if (entryRow) {
+                    entryRow.style.opacity = '0';
+                    entryRow.style.transform = 'translateX(-20px)';
+                    setTimeout(() => entryRow.remove(), 300);
+                }
+                closeDeleteModal();
+            } else {
+                alert(data.message || 'Failed to delete entry.');
+            }
+        })
+        .catch(err => {
+            console.error('Delete error:', err);
+            alert('An error occurred while deleting. Please try again.');
+        });
+    }
+
+    // Attach delete button handlers
+    document.querySelectorAll('.delete-entry-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            entryToDelete = this.dataset.entryId;
+            const entryTitle = this.dataset.entryTitle;
+
+            if (deleteModal && deleteModalMessage) {
+                deleteModalMessage.textContent = `Are you sure you want to delete "${entryTitle}"?`;
+                deleteModal.classList.add('active');
+            } else {
+                if (confirm(`Are you sure you want to delete "${entryTitle}"?`)) {
+                    performDelete(entryToDelete);
+                }
+            }
+        });
+    });
+
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    }
+
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === deleteModal) closeDeleteModal();
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && deleteModal && deleteModal.classList.contains('active')) {
+            closeDeleteModal();
+        }
+    });
+
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function() {
+            if (!entryToDelete) return;
+
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            performDelete(entryToDelete);
+
+            setTimeout(() => {
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Delete';
+            }, 2000);
+        });
+    }
+
+    // ==========================================================================
+    // CHARTS AND VISUALIZATIONS - Wrapped in try-catch to not break delete
+    // ==========================================================================
+
+    try {
     // Monthly Entries Chart
     const chartCtx = document.getElementById('monthlyEntriesChart');
     if (chartCtx) {
@@ -774,107 +904,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Delete entry functionality
-    const deleteModal = document.getElementById('deleteModal');
-    const deleteModalMessage = document.getElementById('deleteModalMessage');
-    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    let entryToDelete = null;
-
-    // Attach delete button handlers
-    const deleteButtons = document.querySelectorAll('.delete-entry-btn');
-    console.log('Found delete buttons:', deleteButtons.length);
-
-    deleteButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            entryToDelete = this.dataset.entryId;
-            const entryTitle = this.dataset.entryTitle;
-            console.log('Delete clicked for entry:', entryToDelete, entryTitle);
-
-            if (deleteModal && deleteModalMessage) {
-                deleteModalMessage.textContent = `Are you sure you want to delete "${entryTitle}"?`;
-                deleteModal.classList.add('active');
-                console.log('Modal should be visible now');
-            } else {
-                console.error('Delete modal elements not found!', {deleteModal, deleteModalMessage});
-                // Fallback: use confirm dialog
-                if (confirm(`Are you sure you want to delete "${entryTitle}"?`)) {
-                    performDelete(entryToDelete);
-                }
-            }
-        });
-    });
-
-    function closeDeleteModal() {
-        deleteModal.classList.remove('active');
-        entryToDelete = null;
-    }
-
-    if (cancelDeleteBtn) {
-        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-    }
-
-    if (deleteModal) {
-        deleteModal.addEventListener('click', function(e) {
-            if (e.target === deleteModal) closeDeleteModal();
-        });
-    }
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && deleteModal && deleteModal.classList.contains('active')) {
-            closeDeleteModal();
-        }
-    });
-
-    // Shared delete function
-    function performDelete(entryId) {
-        console.log('Performing delete for entry:', entryId);
-        fetch(`/journal/${entryId}/delete/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Delete response:', data);
-            if (data.success) {
-                const entryRow = document.querySelector(`.entry-row[data-entry-id="${entryId}"]`);
-                if (entryRow) {
-                    entryRow.style.opacity = '0';
-                    entryRow.style.transform = 'translateX(-20px)';
-                    setTimeout(() => entryRow.remove(), 300);
-                }
-                if (deleteModal) closeDeleteModal();
-            } else {
-                alert('Failed to delete entry.');
-            }
-        })
-        .catch(err => {
-            console.error('Delete error:', err);
-            alert('An error occurred.');
-        });
-    }
-
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', function() {
-            if (!entryToDelete) return;
-
-            confirmDeleteBtn.disabled = true;
-            confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-            performDelete(entryToDelete);
-
-            // Re-enable button after a delay
-            setTimeout(() => {
-                confirmDeleteBtn.disabled = false;
-                confirmDeleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Delete';
-            }, 2000);
-        });
+    } catch (e) {
+        console.error('Error in charts/visualizations:', e);
     }
 
     // Devotion button handlers
@@ -890,7 +921,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('{% url "journal:add_devotion_to_entry" %}', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-CSRFToken': getCsrfToken(),
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: `action=${action}`

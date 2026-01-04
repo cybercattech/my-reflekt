@@ -11,6 +11,7 @@ from django.db.models import Q, Count, Sum, Avg, F
 from django.db.models.functions import ExtractYear
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.conf import settings
 from .models import Entry, Attachment, EntryCapture
 from .forms import EntryForm
@@ -38,6 +39,7 @@ def features(request):
 
 
 @login_required
+@ensure_csrf_cookie
 def entry_list(request):
     """List all journal entries for the current user."""
     entries = Entry.objects.filter(user=request.user)
