@@ -37,7 +37,8 @@
       "Bash(git restore:*)",
       "Bash(while read f)",
       "Bash(do DJANGO_SETTINGS_MODULE=config.settings.development .venv/bin/python -c \"\nfrom django.template import Template, TemplateSyntaxError\nimport sys\ntry:\n    with open\\(''''$f'''', ''''r''''\\) as file:\n        content = file.read\\(\\)\n    # Quick syntax check - just see if Django can parse it\n    Template\\(content\\)\nexcept TemplateSyntaxError as e:\n    print\\(f''''TEMPLATE ERROR in $f: {e}''''\\)\nexcept Exception as e:\n    # Some errors are expected due to missing context\n    pass\n\" 2)",
-      "Bash(1 done)"
+      "Bash(1 done)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.production .venv/bin/python:*)"
     ]
   }
 }
