@@ -18,9 +18,78 @@
 
             <div class="changelog-container">
 
+                <!-- V1.01.2 - January 5, 2026 -->
+                <div class="changelog-version">
+                    <div class="version-header" data-bs-toggle="collapse" data-bs-target="#v1-01-2" aria-expanded="true">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="version-badge">V1.01.2</span>
+                                <span class="version-date">January 5, 2026</span>
+                            </div>
+                            <i class="bi bi-chevron-down collapse-icon"></i>
+                        </div>
+                    </div>
+                    <div class="collapse show" id="v1-01-2">
+                        <div class="version-content">
+                            <div class="change-category">
+                                <h6><i class="bi bi-cloud-sun me-2"></i>Weather Analysis Overhaul</h6>
+                                <ul>
+                                    <li><strong>Historical Weather API:</strong> Implemented Open-Meteo free API for accurate historical weather data</li>
+                                    <li><strong>Bug Fix:</strong> Fixed issue where all entries showed current weather (63°F) instead of actual historical data</li>
+                                    <li><strong>Temperature Fix:</strong> Corrected Celsius to Fahrenheit conversion in temperature range grouping</li>
+                                    <li><strong>Weather Variety:</strong> Now properly shows all weather conditions (clear, clouds, rain, drizzle, snow)</li>
+                                    <li><strong>Accurate Data:</strong> Temperature range now spans 27°F - 91°F (previously all 63°F)</li>
+                                    <li><strong>1,377 Entries Updated:</strong> Backfilled all existing entries with correct historical weather</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <h6><i class="bi bi-layout-three-columns me-2"></i>Dashboard Weather Display</h6>
+                                <ul>
+                                    <li><strong>Horizontal Columns:</strong> Weather impact now displays in 5 horizontal temperature columns</li>
+                                    <li><strong>Temperature Ranges:</strong> &lt;30°, 30-59°, 60-79°, 80-99°, ≥100° (in Fahrenheit)</li>
+                                    <li><strong>All Conditions Shown:</strong> Changed from top 3 to showing all weather conditions per range</li>
+                                    <li><strong>Clickable Conditions:</strong> Click any weather condition to see matching journal entries</li>
+                                    <li><strong>Entry Modals:</strong> Beautiful modal popups showing entry previews with mood, date, temperature, sentiment</li>
+                                    <li><strong>Visual Enhancements:</strong> Hover effects, color-coded sentiments, smooth animations</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <h6><i class="bi bi-calendar-check me-2"></i>Monthly Snapshot Reliability</h6>
+                                <ul>
+                                    <li><strong>Fixed Dashboard Stats:</strong> "This Month's Mood" chart now updates immediately after creating entries</li>
+                                    <li><strong>Synchronous Updates:</strong> Monthly snapshots update in real-time without requiring Celery</li>
+                                    <li><strong>Entry Count Accuracy:</strong> Dashboard always shows correct number of entries for current month</li>
+                                    <li><strong>Mood Distribution Fix:</strong> Mood chart reflects all entries, not stale data</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <h6><i class="bi bi-gear me-2"></i>Analysis Improvements</h6>
+                                <ul>
+                                    <li><strong>Complete Sync Analysis:</strong> Synchronous analysis now includes moon phase, weather, and zodiac data</li>
+                                    <li><strong>Historical Weather for New Entries:</strong> All new entries automatically get accurate historical weather</li>
+                                    <li><strong>Immediate Updates:</strong> Dashboard statistics update instantly when entries are created or edited</li>
+                                    <li><strong>Works Offline:</strong> Analysis and updates work whether Celery is running or not</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <h6><i class="bi bi-link-45deg me-2"></i>API Endpoints</h6>
+                                <ul>
+                                    <li><strong>New Endpoint:</strong> <code>/api/weather/&lt;temp_range&gt;/&lt;condition&gt;/entries/</code> for filtered weather entries</li>
+                                    <li><strong>Entry Filtering:</strong> Get entries by both temperature range and weather condition</li>
+                                    <li><strong>Modal Integration:</strong> Backend support for interactive weather condition modals</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- V1.01.1 - January 5, 2026 -->
                 <div class="changelog-version">
-                    <div class="version-header" data-bs-toggle="collapse" data-bs-target="#v1-01-1" aria-expanded="true">
+                    <div class="version-header collapsed" data-bs-toggle="collapse" data-bs-target="#v1-01-1" aria-expanded="false">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="version-badge">V1.01.1</span>

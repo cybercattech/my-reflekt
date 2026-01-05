@@ -29,7 +29,7 @@ def analyze_entry(entry_id: int):
         extract_keywords,
     )
     from apps.analytics.services.moon import calculate_moon_phase
-    from apps.analytics.services.weather import get_weather_data
+    from apps.analytics.services.weather import get_historical_weather
     from apps.analytics.services.horoscope import get_zodiac_sign
     from apps.journal.services.encryption import (
         UserEncryptionService,
@@ -88,7 +88,8 @@ def analyze_entry(entry_id: int):
         country_code = entry.country_code or profile.country_code or 'US'
 
         if city:
-            weather_data = get_weather_data(city, country_code)
+            # Fetch HISTORICAL weather for the entry's date (not current weather)
+            weather_data = get_historical_weather(city, entry.entry_date, country_code)
             if weather_data:
                 weather_condition = weather_data.get('condition', '')
                 weather_description = weather_data.get('description', '')

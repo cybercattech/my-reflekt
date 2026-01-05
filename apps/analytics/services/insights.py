@@ -202,7 +202,7 @@ def generate_weather_correlation(user: User, days: int = 90) -> Dict:
     """
     Correlate mood with weather conditions over the specified period.
 
-    Returns aggregated sentiment and mood counts by weather condition.
+    Returns aggregated sentiment by temperature range and weather condition.
     """
     from apps.journal.models import Entry
     from datetime import timedelta
@@ -217,14 +217,25 @@ def generate_weather_correlation(user: User, days: int = 90) -> Dict:
         is_analyzed=True
     ).select_related('analysis').exclude(
         analysis__weather_condition=''
+    ).exclude(
+        analysis__temperature__isnull=True
     )
 
-    # Aggregate by weather condition
-    weather_data = defaultdict(lambda: {
+    # Define temperature ranges (in Fahrenheit)
+    temp_ranges = [
+        ('cold', 0, 30, '<30°'),
+        ('cool', 30, 60, '30-59°'),
+        ('mild', 60, 80, '60-79°'),
+        ('warm', 80, 100, '80-99°'),
+        ('hot', 100, 200, '≥100°'),
+    ]
+
+    # Aggregate by temperature range and weather condition
+    weather_temp_data = defaultdict(lambda: {
         'count': 0,
         'total_sentiment': 0.0,
-        'total_temp': 0.0,
         'moods': defaultdict(int),
+        'conditions': defaultdict(int),
     })
 
     for entry in entries:
@@ -232,69 +243,94 @@ def generate_weather_correlation(user: User, days: int = 90) -> Dict:
             continue
 
         condition = entry.analysis.weather_condition
-        if not condition:
+        temp_celsius = entry.analysis.temperature
+
+        if not condition or temp_celsius is None:
             continue
 
-        weather_data[condition]['count'] += 1
-        weather_data[condition]['total_sentiment'] += entry.analysis.sentiment_score
-        if entry.analysis.temperature:
-            weather_data[condition]['total_temp'] += entry.analysis.temperature
-        weather_data[condition]['moods'][entry.analysis.detected_mood] += 1
+        # Convert Celsius to Fahrenheit
+        temp = (temp_celsius * 9/5) + 32
 
-    # Calculate averages and format results
-    results = []
-    for condition, data in weather_data.items():
+        # Determine temperature range
+        temp_range_key = None
+        for key, min_temp, max_temp, label in temp_ranges:
+            if min_temp <= temp < max_temp:
+                temp_range_key = key
+                break
+
+        if not temp_range_key:
+            continue
+
+        weather_temp_data[temp_range_key]['count'] += 1
+        weather_temp_data[temp_range_key]['total_sentiment'] += entry.analysis.sentiment_score
+        weather_temp_data[temp_range_key]['moods'][entry.analysis.detected_mood] += 1
+        weather_temp_data[temp_range_key]['conditions'][condition] += 1
+
+    # Format results by temperature range
+    temp_range_results = []
+    for range_key, min_temp, max_temp, label in temp_ranges:
+        if range_key not in weather_temp_data:
+            continue
+
+        data = weather_temp_data[range_key]
         if data['count'] == 0:
             continue
 
         avg_sentiment = data['total_sentiment'] / data['count']
-        avg_temp = data['total_temp'] / data['count'] if data['total_temp'] else None
         dominant_mood = max(data['moods'].items(), key=lambda x: x[1])[0] if data['moods'] else ''
 
-        results.append({
-            'condition': condition,
-            'display_name': WEATHER_DISPLAY.get(condition, condition.title()),
-            'icon': get_weather_icon(condition),
+        # Get ALL conditions for this temperature range (sorted by frequency)
+        condition_breakdown = []
+        sorted_conditions = sorted(data['conditions'].items(), key=lambda x: x[1], reverse=True)
+        for condition, count in sorted_conditions:
+            condition_breakdown.append({
+                'condition': condition,
+                'display_name': WEATHER_DISPLAY.get(condition, condition.title()),
+                'icon': get_weather_icon(condition),
+                'count': count,
+            })
+
+        temp_range_results.append({
+            'range_key': range_key,
+            'range_label': label,
+            'min_temp': min_temp,
+            'max_temp': max_temp,
             'count': data['count'],
             'avg_sentiment': round(avg_sentiment, 3),
-            'avg_temperature': round(avg_temp, 1) if avg_temp else None,
             'sentiment_label': 'positive' if avg_sentiment > 0.05 else ('negative' if avg_sentiment < -0.05 else 'neutral'),
             'dominant_mood': dominant_mood,
+            'conditions': condition_breakdown,
         })
 
-    # Sort by count (most common first)
-    results.sort(key=lambda x: x['count'], reverse=True)
+    # Sort by temperature range (coldest to hottest)
+    temp_range_results.sort(key=lambda x: x['min_temp'])
 
     # Generate insights
     insights = []
-    if results:
-        # Find most positive weather
-        most_positive = max(results, key=lambda x: x['avg_sentiment'])
-        if most_positive['avg_sentiment'] > 0.1:
+    if temp_range_results:
+        # Find temperature range with best mood
+        best_range = max(temp_range_results, key=lambda x: x['avg_sentiment'])
+        if best_range['avg_sentiment'] > 0.1:
             insights.append(
-                f"You tend to be happiest on {most_positive['display_name'].lower()} days"
+                f"You're happiest in {best_range['range_label'].lower()} weather"
             )
 
-        # Check if rainy days are notably different
-        rain_data = next((r for r in results if r['condition'] in ['rain', 'drizzle']), None)
-        clear_data = next((r for r in results if r['condition'] == 'clear'), None)
+        # Check for temperature extremes
+        if len(temp_range_results) >= 3:
+            coldest = min(temp_range_results, key=lambda x: x['min_temp'])
+            warmest = max(temp_range_results, key=lambda x: x['max_temp'])
 
-        if rain_data and clear_data:
-            diff = clear_data['avg_sentiment'] - rain_data['avg_sentiment']
-            if diff > 0.15:
-                insights.append(
-                    "Sunny days seem to boost your mood compared to rainy ones"
-                )
-            elif diff < -0.1:
-                insights.append(
-                    "Interestingly, rainy days don't seem to dampen your spirits!"
-                )
+            if abs(coldest['avg_sentiment'] - warmest['avg_sentiment']) > 0.2:
+                if coldest['avg_sentiment'] > warmest['avg_sentiment']:
+                    insights.append("Cold weather seems to suit you better than heat")
+                else:
+                    insights.append("Warm weather tends to improve your mood")
 
     return {
-        'conditions': results,
+        'temp_ranges': temp_range_results,
         'insights': insights,
         'period_days': days,
-        'total_entries': sum(r['count'] for r in results),
+        'total_entries': sum(r['count'] for r in temp_range_results),
     }
 
 

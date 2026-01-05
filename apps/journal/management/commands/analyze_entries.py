@@ -87,3 +87,4 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f"\nDone! Analyzed {analyzed} entries, {errors} errors.")
         )
+        self.stdout.write("Monthly snapshots updated automatically.")

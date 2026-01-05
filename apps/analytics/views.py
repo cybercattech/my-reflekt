@@ -1489,3 +1489,98 @@ def weather_condition_entries(request, condition):
         'count': len(entries_data),
         'entries': entries_data,
     })
+
+
+@login_required
+@require_http_methods(["GET"])
+def weather_temp_range_entries(request, temp_range, condition):
+    """Get entries for a specific temperature range and weather condition."""
+    from apps.journal.models import Entry
+    from apps.analytics.services.weather import WEATHER_DISPLAY
+
+    user = request.user
+    days = int(request.GET.get('days', 180))
+    start_date = timezone.now().date() - timedelta(days=days)
+
+    # Valid temperature ranges (in Fahrenheit)
+    temp_ranges = {
+        'cold': (0, 30),
+        'cool': (30, 60),
+        'mild': (60, 80),
+        'warm': (80, 100),
+        'hot': (100, 200),
+    }
+
+    if temp_range not in temp_ranges:
+        return JsonResponse({'error': 'Invalid temperature range'}, status=400)
+
+    # Valid weather conditions
+    valid_conditions = ['clear', 'clouds', 'rain', 'drizzle', 'thunderstorm',
+                        'snow', 'mist', 'fog', 'haze']
+    if condition not in valid_conditions:
+        return JsonResponse({'error': 'Invalid weather condition'}, status=400)
+
+    min_temp_f, max_temp_f = temp_ranges[temp_range]
+
+    # Get entries for this temperature range and weather condition
+    # Need to filter in Python since we need to convert Celsius to Fahrenheit
+    all_entries = Entry.objects.filter(
+        user=user,
+        entry_date__gte=start_date,
+        is_analyzed=True,
+        analysis__weather_condition=condition
+    ).select_related('analysis').exclude(
+        analysis__temperature__isnull=True
+    ).order_by('-entry_date')
+
+    # Filter by temperature range
+    entries = []
+    for entry in all_entries:
+        if hasattr(entry, 'analysis') and entry.analysis.temperature is not None:
+            temp_c = entry.analysis.temperature
+            temp_f = (temp_c * 9/5) + 32
+            if min_temp_f <= temp_f < max_temp_f:
+                entries.append(entry)
+
+    # Format entries for response
+    entries_data = []
+    for entry in entries:
+        temp = None
+        if hasattr(entry, 'analysis') and entry.analysis.temperature is not None:
+            # Convert to user's preferred unit
+            temp_c = entry.analysis.temperature
+            if user.profile.temperature_unit == 'F':
+                temp = round((temp_c * 9/5) + 32)
+            else:
+                temp = round(temp_c)
+
+        entries_data.append({
+            'id': entry.pk,
+            'date': entry.entry_date.strftime('%b %d, %Y'),
+            'title': entry.title or entry.entry_date.strftime('%A, %B %d'),
+            'preview': entry.preview[:150] + '...' if len(entry.preview) > 150 else entry.preview,
+            'mood': entry.analysis.detected_mood if hasattr(entry, 'analysis') else '',
+            'mood_emoji': get_mood_emoji(entry.analysis.detected_mood) if hasattr(entry, 'analysis') else '',
+            'sentiment': round(entry.analysis.sentiment_score, 2) if hasattr(entry, 'analysis') else 0,
+            'temperature': temp,
+            'temp_unit': user.profile.temperature_unit,
+            'url': f'/journal/{entry.pk}/',
+        })
+
+    # Generate temp range label
+    temp_range_labels = {
+        'cold': '<30°',
+        'cool': '30-59°',
+        'mild': '60-79°',
+        'warm': '80-99°',
+        'hot': '≥100°',
+    }
+
+    return JsonResponse({
+        'temp_range': temp_range,
+        'temp_range_label': temp_range_labels.get(temp_range, temp_range),
+        'condition': condition,
+        'display_name': WEATHER_DISPLAY.get(condition, condition.title()),
+        'count': len(entries_data),
+        'entries': entries_data,
+    })

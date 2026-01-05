@@ -597,6 +597,96 @@
     border-bottom: none;
 }
 
+/* Weather Temperature Columns */
+.temp-column {
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 100%;
+    transition: all 0.2s ease;
+}
+
+.temp-column:hover {
+    background: rgba(255,255,255,0.12);
+    transform: translateY(-2px);
+}
+
+.temp-column-header {
+    background: rgba(255,255,255,0.15);
+    padding: 0.75rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.temp-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.temp-sentiment {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.temp-sentiment.positive {
+    color: #4ade80;
+}
+
+.temp-sentiment.negative {
+    color: #f87171;
+}
+
+.temp-sentiment.neutral {
+    color: #94a3b8;
+}
+
+.temp-count {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.temp-column-body {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.weather-condition-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    background: rgba(255,255,255,0.08);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.weather-condition-row:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.weather-condition-row.clickable:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateX(3px);
+}
+
+.weather-condition-row .condition-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.weather-condition-row .condition-count {
+    opacity: 0.7;
+    font-size: 0.75rem;
+}
+
 /* Zodiac Display */
 .zodiac-symbol {
     font-size: 4rem;
@@ -991,34 +1081,42 @@
 
         <!-- Weather Impact (requires at least 5 entries for meaningful data) -->
         {% if weather_correlation.total_entries >= 5 %}
-        <div class="col-md-6 col-lg-4">
-            <div class="env-card weather-card h-100 position-relative {% if user|user_is_free %}premium-locked{% endif %}">
+        <div class="col-12">
+            <div class="env-card weather-card position-relative {% if user|user_is_free %}premium-locked{% endif %}">
                 <div class="env-card-header">
-                    <i class="bi bi-cloud-sun me-2"></i>Weather Impact
+                    <i class="bi bi-cloud-sun me-2"></i>Temperature & Weather Impact
+                    <small class="ms-2" style="opacity: 0.8; font-weight: normal;">{{ weather_correlation.total_entries }} entries analyzed</small>
                 </div>
                 <div class="env-card-body">
-                    <p class="small mb-3" style="opacity: 0.8;">How weather affects your mood</p>
-                    <div class="weather-conditions">
-                        {% for condition in weather_correlation.conditions|slice:":4" %}
-                        <div class="weather-condition-item"
-                             onclick="showWeatherEntries('{{ condition.condition }}', '{{ condition.display_name }}', '{{ condition.icon }}')"
-                             style="cursor: pointer;" title="Click to see entries">
-                            <div class="condition-info">
-                                <i class="{{ condition.icon }} me-1"></i>
-                                <span>{{ condition.display_name }}</span>
-                                {% if condition.avg_temperature %}<small style="opacity: 0.7;">({{ condition.avg_temperature|temperature:user.profile.temperature_unit }})</small>{% endif %}
-                            </div>
-                            <div class="condition-stats">
-                                <span class="sentiment-badge {% if condition.sentiment_label == 'positive' %}positive{% elif condition.sentiment_label == 'negative' %}negative{% else %}neutral{% endif %}">
-                                    {% if condition.avg_sentiment > 0 %}+{% endif %}{{ condition.avg_sentiment|floatformat:2 }}
-                                </span>
-                                <small style="opacity: 0.6;">({{ condition.count }})</small>
+                    <p class="small mb-4" style="opacity: 0.8;">How temperature & weather conditions affect your mood</p>
+                    <div class="row g-3">
+                        {% for range in weather_correlation.temp_ranges %}
+                        <div class="col-md-6 col-lg">
+                            <div class="temp-column">
+                                <div class="temp-column-header">
+                                    <div class="temp-label">{{ range.range_label }}</div>
+                                    <div class="temp-sentiment {% if range.sentiment_label == 'positive' %}positive{% elif range.sentiment_label == 'negative' %}negative{% else %}neutral{% endif %}">
+                                        {% if range.avg_sentiment > 0 %}+{% endif %}{{ range.avg_sentiment|floatformat:2 }}
+                                    </div>
+                                    <div class="temp-count">{{ range.count }} entries</div>
+                                </div>
+                                <div class="temp-column-body">
+                                    {% for condition in range.conditions %}
+                                    <div class="weather-condition-row clickable"
+                                         onclick="showWeatherTempRangeEntries('{{ range.range_key }}', '{{ range.range_label }}', '{{ condition.condition }}', '{{ condition.display_name }}', '{{ condition.icon }}')"
+                                         style="cursor: pointer;">
+                                        <i class="{{ condition.icon }}" style="font-size: 1rem; opacity: 0.9;"></i>
+                                        <span class="condition-name">{{ condition.display_name }}</span>
+                                        <span class="condition-count">({{ condition.count }})</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                     {% if weather_correlation.insights %}
-                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div class="mt-4 pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
                         {% for insight in weather_correlation.insights %}
                         <div class="small mb-1" style="opacity: 0.9;"><i class="bi bi-lightbulb me-1"></i>{{ insight }}</div>
                         {% endfor %}
@@ -1620,6 +1718,88 @@ function showWeatherEntries(condition, displayName, iconClass) {
 
     // Fetch entries
     fetch(`/dashboard/api/weather/${condition}/entries/`)
+        .then(response => response.json())
+        .then(data => {
+            loadingEl.classList.add('d-none');
+
+            if (data.entries && data.entries.length > 0) {
+                entriesEl.classList.remove('d-none');
+                countEl.textContent = `${data.count} entries in the last 180 days`;
+
+                // Calculate mood summary
+                const moodCounts = {};
+                data.entries.forEach(entry => {
+                    if (entry.mood) {
+                        moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+                    }
+                });
+
+                // Display mood summary
+                moodSummaryEl.innerHTML = Object.entries(moodCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([mood, count]) => {
+                        const colors = {
+                            'ecstatic': '#22c55e',
+                            'happy': '#84cc16',
+                            'neutral': '#94a3b8',
+                            'sad': '#f59e0b',
+                            'angry': '#ef4444'
+                        };
+                        return `<span class="badge" style="background: ${colors[mood] || '#94a3b8'};">${mood}: ${count}</span>`;
+                    }).join('');
+
+                // Display entries
+                listEl.innerHTML = data.entries.map(entry => `
+                    <a href="${entry.url}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2" style="font-size: 1.25rem;">${entry.mood_emoji}</span>
+                                    <h6 class="mb-0">${entry.title}</h6>
+                                </div>
+                                <p class="mb-1 text-muted small">${entry.preview}</p>
+                            </div>
+                            <div class="text-end ms-3">
+                                <small class="text-muted d-block">${entry.date}</small>
+                                ${entry.temperature ? `<small class="text-muted d-block">${entry.temperature}°${entry.temp_unit}</small>` : ''}
+                                <span class="badge ${entry.sentiment >= 0 ? 'bg-success' : 'bg-danger'}">${entry.sentiment >= 0 ? '+' : ''}${entry.sentiment}</span>
+                            </div>
+                        </div>
+                    </a>
+                `).join('');
+            } else {
+                emptyEl.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching weather entries:', error);
+            loadingEl.classList.add('d-none');
+            emptyEl.classList.remove('d-none');
+        });
+}
+
+function showWeatherTempRangeEntries(tempRange, tempRangeLabel, condition, displayName, iconClass) {
+    const modal = new bootstrap.Modal(document.getElementById('weatherModal'));
+    const loadingEl = document.getElementById('weatherLoading');
+    const entriesEl = document.getElementById('weatherEntries');
+    const emptyEl = document.getElementById('weatherEmpty');
+    const listEl = document.getElementById('weatherEntriesList');
+    const countEl = document.getElementById('weatherCount');
+    const moodSummaryEl = document.getElementById('weatherMoodSummary');
+
+    // Set header
+    document.getElementById('weatherIcon').className = iconClass + ' me-2';
+    document.getElementById('weatherName').textContent = `${displayName} (${tempRangeLabel})`;
+
+    // Show loading, hide others
+    loadingEl.classList.remove('d-none');
+    entriesEl.classList.add('d-none');
+    emptyEl.classList.add('d-none');
+
+    modal.show();
+
+    // Fetch entries
+    fetch(`/dashboard/api/weather/${tempRange}/${condition}/entries/`)
         .then(response => response.json())
         .then(data => {
             loadingEl.classList.add('d-none');

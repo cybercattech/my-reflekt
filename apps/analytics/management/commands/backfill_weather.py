@@ -49,15 +49,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Import weather module directly
-        import importlib.util
-        spec = importlib.util.spec_from_file_location(
-            "weather_module",
-            "/Users/sfetter/Documents/CyberCat/Sandbox/reflekt/apps/analytics/services/weather.py"
-        )
-        weather_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(weather_module)
-        get_weather_data = weather_module.get_weather_data
+        # Import weather service functions
+        from apps.analytics.services.weather import get_historical_weather
 
         user_email = options.get('user')
         override_city = options.get('city')
@@ -128,8 +121,8 @@ class Command(BaseCommand):
                         self.stdout.write(f"  [{i}/{total}] Skipped (no location): {entry.entry_date}")
                     continue
 
-                # Fetch weather
-                weather_data = get_weather_data(city, country_code)
+                # Fetch HISTORICAL weather for the entry's date
+                weather_data = get_historical_weather(city, entry.entry_date, country_code)
 
                 if not weather_data:
                     skipped += 1

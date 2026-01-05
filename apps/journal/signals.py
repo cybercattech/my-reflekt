@@ -34,6 +34,80 @@ def is_celery_available():
     return _celery_available
 
 
+def update_monthly_snapshot_sync(user_id, year, month):
+    """
+    Update monthly snapshot synchronously (fallback when Celery unavailable).
+
+    Recalculates monthly aggregates for a user's entries.
+    """
+    from django.contrib.auth.models import User
+    from apps.analytics.models import EntryAnalysis, MonthlySnapshot
+    from collections import Counter
+
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        logger.error(f"User {user_id} not found for monthly snapshot update")
+        return
+
+    # Get all analyzed entries for this month
+    entries = Entry.objects.filter(
+        user=user,
+        entry_date__year=year,
+        entry_date__month=month,
+        is_analyzed=True
+    ).select_related('analysis')
+
+    if not entries.exists():
+        logger.info(f"No analyzed entries for {user.username} {year}/{month}")
+        return
+
+    # Calculate aggregates
+    entry_count = entries.count()
+    total_words = sum(e.word_count for e in entries)
+
+    # Sentiment
+    sentiments = [e.analysis.sentiment_score for e in entries if hasattr(e, 'analysis')]
+    avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0.0
+
+    # Mood distribution
+    moods = [e.analysis.detected_mood for e in entries if hasattr(e, 'analysis')]
+    mood_counts = dict(Counter(moods))
+    dominant_mood = Counter(moods).most_common(1)[0][0] if moods else ''
+
+    # Theme aggregation
+    all_themes = []
+    for e in entries:
+        if hasattr(e, 'analysis'):
+            all_themes.extend(e.analysis.themes)
+    top_themes = [theme for theme, _ in Counter(all_themes).most_common(5)]
+
+    # Find best and worst days
+    best_entry = max(entries, key=lambda e: e.analysis.sentiment_score if hasattr(e, 'analysis') else -2)
+    worst_entry = min(entries, key=lambda e: e.analysis.sentiment_score if hasattr(e, 'analysis') else 2)
+
+    # Create or update snapshot
+    MonthlySnapshot.objects.update_or_create(
+        user=user,
+        year=year,
+        month=month,
+        defaults={
+            'entry_count': entry_count,
+            'total_words': total_words,
+            'avg_sentiment': avg_sentiment,
+            'dominant_mood': dominant_mood,
+            'mood_distribution': mood_counts,
+            'top_themes': top_themes,
+            'best_day_id': best_entry.id,
+            'best_day_sentiment': best_entry.analysis.sentiment_score if hasattr(best_entry, 'analysis') else None,
+            'worst_day_id': worst_entry.id,
+            'worst_day_sentiment': worst_entry.analysis.sentiment_score if hasattr(worst_entry, 'analysis') else None,
+        }
+    )
+
+    logger.info(f"Updated monthly snapshot for {user.username} {year}/{month}: {entry_count} entries")
+
+
 def run_sync_analysis(entry):
     """
     Run entry analysis synchronously (fallback when Redis unavailable).
@@ -46,6 +120,9 @@ def run_sync_analysis(entry):
         extract_themes,
         extract_keywords,
     )
+    from apps.analytics.services.moon import calculate_moon_phase
+    from apps.analytics.services.weather import get_historical_weather
+    from apps.analytics.services.horoscope import get_zodiac_sign
 
     # Get plaintext content (stored before encryption by UserEncryptedTextField.pre_save)
     # Falls back to entry.content if _plaintext_fields not available
@@ -70,6 +147,36 @@ def run_sync_analysis(entry):
     # Generate simple summary from plaintext
     summary = content[:150] + '...' if len(content) > 150 else content
 
+    # Calculate moon phase for entry date
+    moon_phase, moon_illumination = calculate_moon_phase(entry.entry_date)
+
+    # Fetch historical weather data
+    weather_condition = ''
+    weather_description = ''
+    weather_location = ''
+    temperature = None
+    humidity = None
+    weather_icon = ''
+
+    profile = entry.user.profile
+    city = entry.city or profile.city
+    country_code = entry.country_code or profile.country_code or 'US'
+
+    if city:
+        weather_data = get_historical_weather(city, entry.entry_date, country_code)
+        if weather_data:
+            weather_condition = weather_data.get('condition', '')
+            weather_description = weather_data.get('description', '')
+            temperature = weather_data.get('temperature')
+            humidity = weather_data.get('humidity')
+            weather_icon = weather_data.get('icon_code', '')
+            weather_location = f"{city}, {country_code}"
+
+    # Get zodiac sign if user has birthday and horoscope enabled
+    zodiac_sign = ''
+    if profile.horoscope_enabled and profile.birthday:
+        zodiac_sign = get_zodiac_sign(profile.birthday) or ''
+
     # Create or update analysis
     with transaction.atomic():
         analysis, created = EntryAnalysis.objects.update_or_create(
@@ -82,11 +189,26 @@ def run_sync_analysis(entry):
                 'keywords': keywords,
                 'themes': themes,
                 'summary': summary,
+                # Moon phase data
+                'moon_phase': moon_phase,
+                'moon_illumination': moon_illumination,
+                # Weather data
+                'weather_location': weather_location,
+                'weather_condition': weather_condition,
+                'weather_description': weather_description,
+                'temperature': temperature,
+                'humidity': humidity,
+                'weather_icon': weather_icon,
+                # Zodiac data
+                'zodiac_sign': zodiac_sign,
             }
         )
 
         # Mark entry as analyzed
         Entry.objects.filter(pk=entry.pk).update(is_analyzed=True)
+
+    # Update monthly snapshot synchronously
+    update_monthly_snapshot_sync(entry.user.id, entry.entry_date.year, entry.entry_date.month)
 
     logger.info(f"Analyzed entry {entry.id}: {detected_mood} ({sentiment_score:.2f})")
 

@@ -43,4 +43,7 @@ urlpatterns = [
 
     # Weather condition entries API
     path('api/weather/<str:condition>/entries/', views.weather_condition_entries, name='weather_condition_entries'),
+
+    # Weather temperature range + condition entries API
+    path('api/weather/<str:temp_range>/<str:condition>/entries/', views.weather_temp_range_entries, name='weather_temp_range_entries'),
 ]
