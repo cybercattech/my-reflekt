@@ -1,6 +1,13 @@
 <!-- Footer - Sticky Bottom -->
 <footer class="site-footer bg-light py-3">
     <div class="container text-center text-muted">
-        <p class="mb-0 small">&copy; 2026 Reflekt. Your writing, understood over time.</p>
+        <p class="mb-1 small">&copy; 2026 Reflekt. Your writing, understood over time.</p>
+        <p class="mb-0 small">
+            <a href="{% url 'accounts:privacy' %}" class="text-muted text-decoration-none">Privacy</a>
+            <span class="mx-2">|</span>
+            <a href="{% url 'accounts:terms' %}" class="text-muted text-decoration-none">Terms</a>
+            <span class="mx-2">|</span>
+            <a href="{% url 'accounts:changelog' %}" class="text-muted text-decoration-none">Changelog</a>
+        </p>
     </div>
 </footer>

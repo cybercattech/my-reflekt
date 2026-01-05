@@ -96,4 +96,7 @@ urlpatterns = [
     # Tutorial
     path('tutorial/complete/', views.complete_tutorial, name='complete_tutorial'),
     path('tutorial/reset/', views.reset_tutorial, name='reset_tutorial'),
+
+    # Public pages
+    path('changelog/', views.changelog, name='changelog'),
 ]

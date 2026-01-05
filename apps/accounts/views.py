@@ -1298,3 +1298,8 @@ def reset_tutorial(request):
     request.user.profile.tutorial_completed = False
     request.user.profile.save(update_fields=['tutorial_completed'])
     return JsonResponse({'success': True})
+
+
+def changelog(request):
+    """Public changelog/version history page."""
+    return render(request, 'accounts/changelog.html')

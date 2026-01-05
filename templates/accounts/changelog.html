@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Changelog - Reflekt{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/pages/changelog.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold"><i class="bi bi-journal-code me-2"></i>Changelog</h1>
+                <p class="text-muted lead">Version history and release notes for Reflekt</p>
+            </div>
+
+            <div class="changelog-container">
+
+                <!-- V1.01 - January 4, 2026 -->
+                <div class="changelog-version">
+                    <div class="version-header" data-bs-toggle="collapse" data-bs-target="#v1-01" aria-expanded="true">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="version-badge">V1.01</span>
+                                <span class="version-date">January 4, 2026</span>
+                            </div>
+                            <i class="bi bi-chevron-down collapse-icon"></i>
+                        </div>
+                    </div>
+                    <div class="collapse show" id="v1-01">
+                        <div class="version-content">
+                            <div class="change-category">
+                                <h6><i class="bi bi-chat-square-quote me-2"></i>POV (Point of View) Sharing</h6>
+                                <ul>
+                                    <li><strong>Approval Workflow:</strong> Recipients can now approve POVs before adding to their journal</li>
+                                    <li><strong>Flexible Adding:</strong> Choose to add POV to existing entry or create new entry for that date</li>
+                                    <li><strong>Delete POVs:</strong> Added ability to permanently delete POVs (with confirmation)</li>
+                                    <li><strong>Badge Fix:</strong> Sidebar badge now clears after dismissing or approving POVs</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <h6><i class="bi bi-youtube me-2"></i>YouTube Embedding</h6>
+                                <ul>
+                                    <li><strong>New {figure} directive:</strong> Embed YouTube videos in journal entries</li>
+                                    <li>Supports all YouTube URL formats (watch, youtu.be, embed)</li>
+                                    <li>Optional captions with <code>{figure} URL | caption {/figure}</code></li>
+                                    <li>Responsive 16:9 aspect ratio</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <h6><i class="bi bi-bug me-2"></i>Bug Fixes</h6>
+                                <ul>
+                                    <li><strong>Duplicate Entries:</strong> Fixed auto-save creating duplicate entries for the same date</li>
+                                    <li><strong>Quick Save:</strong> Fixed JavaScript function using wrong API endpoint</li>
+                                    <li><strong>Date Deduplication:</strong> Server now checks for existing entries before creating new ones</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <h6><i class="bi bi-shield-check me-2"></i>Admin Features</h6>
+                                <ul>
+                                    <li><strong>Email Verification:</strong> Manually verify user email addresses</li>
+                                    <li><strong>Password Reset:</strong> Send password reset emails or generate temporary passwords</li>
+                                    <li><strong>Prompt Management:</strong> Full CRUD for prompt categories with background images</li>
+                                </ul>
+                            </div>
+
+                            <div class="change-category">
+                                <h6><i class="bi bi-envelope me-2"></i>Password Reset Flow</h6>
+                                <ul>
+                                    <li>Custom branded email templates for password reset</li>
+                                    <li>Custom confirmation pages matching site design</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- V1.00 - Initial Release -->
+                <div class="changelog-version">
+                    <div class="version-header collapsed" data-bs-toggle="collapse" data-bs-target="#v1-00" aria-expanded="false">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="version-badge">V1.00</span>
+                                <span class="version-date">January 2026</span>
+                            </div>
+                            <i class="bi bi-chevron-down collapse-icon"></i>
+                        </div>
+                    </div>
+                    <div class="collapse" id="v1-00">
+                        <div class="version-content">
+                            <div class="change-category">
+                                <h6><i class="bi bi-rocket-takeoff me-2"></i>Initial Release</h6>
+                                <ul>
+                                    <li>Journal entries with rich text (Quill) and Markdown (EasyMDE) editors</li>
+                                    <li>Daily prompts with customizable categories</li>
+                                    <li>Challenges system with multi-day journaling prompts</li>
+                                    <li>Goals and Habits tracking</li>
+                                    <li>Analytics dashboard with insights</li>
+                                    <li>Friend system with POV sharing</li>
+                                    <li>Captures: places, workouts, meals, mood tracking</li>
+                                    <li>Yearly and monthly calendar views</li>
+                                    <li>Premium subscriptions via Stripe</li>
+                                    <li>Multi-tenant architecture with data isolation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

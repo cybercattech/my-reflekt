@@ -30,6 +30,7 @@ ALLOWED_TAGS = [
     'div', 'span',
     'sup', 'sub',
     'figure', 'figcaption',  # For {image} blocks
+    'iframe',  # For {figure} YouTube embeds
 ]
 
 ALLOWED_ATTRIBUTES = {
@@ -43,6 +44,7 @@ ALLOWED_ATTRIBUTES = {
     'td': ['align'],
     'figure': ['class'],
     'figcaption': ['class'],
+    'iframe': ['src', 'title', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen'],
 }
 
 # MyST directive styles
@@ -399,6 +401,68 @@ def process_image_blocks(text, attachments=None):
     return text
 
 
+def process_figure_blocks(text):
+    """
+    Convert {figure} blocks to embedded media (YouTube videos, etc).
+
+    Supported formats:
+    - {figure} https://www.youtube.com/watch?v=VIDEO_ID {/figure}
+    - {figure} https://youtu.be/VIDEO_ID {/figure}
+    - {figure} https://www.youtube.com/embed/VIDEO_ID {/figure}
+
+    Also supports optional caption:
+    - {figure} https://youtube.com/watch?v=ID | My video caption {/figure}
+    """
+    figure_pattern = r'\{figure\}\s*(.*?)\s*\{/figure\}'
+
+    def replace_figure(match):
+        content = match.group(1).strip()
+
+        # Check for caption (separated by |)
+        caption = ''
+        if '|' in content:
+            parts = content.split('|', 1)
+            content = parts[0].strip()
+            caption = parts[1].strip()
+
+        # Extract YouTube video ID from various URL formats
+        youtube_id = None
+
+        # Format: youtube.com/watch?v=VIDEO_ID
+        yt_watch = re.search(r'(?:youtube\.com/watch\?v=|youtube\.com/watch\?.*&v=)([a-zA-Z0-9_-]{11})', content)
+        if yt_watch:
+            youtube_id = yt_watch.group(1)
+
+        # Format: youtu.be/VIDEO_ID
+        if not youtube_id:
+            yt_short = re.search(r'youtu\.be/([a-zA-Z0-9_-]{11})', content)
+            if yt_short:
+                youtube_id = yt_short.group(1)
+
+        # Format: youtube.com/embed/VIDEO_ID
+        if not youtube_id:
+            yt_embed = re.search(r'youtube\.com/embed/([a-zA-Z0-9_-]{11})', content)
+            if yt_embed:
+                youtube_id = yt_embed.group(1)
+
+        if youtube_id:
+            # Build responsive YouTube embed
+            caption_html = f'<figcaption class="text-muted small mt-2">{caption}</figcaption>' if caption else ''
+            return f'''<figure class="video-figure my-3">
+<div class="ratio ratio-16x9">
+<iframe src="https://www.youtube.com/embed/{youtube_id}" title="{caption or 'YouTube video'}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+{caption_html}
+</figure>'''
+
+        # Not a recognized video URL - render as a simple figure with link
+        return f'<figure class="my-3"><a href="{content}" target="_blank" rel="noopener">{content}</a></figure>'
+
+    text = re.sub(figure_pattern, replace_figure, text, flags=re.DOTALL | re.IGNORECASE)
+
+    return text
+
+
 def process_wellness_blocks(text):
     """
     Convert {dream} and {gratitude} blocks to styled admonitions.
@@ -520,6 +584,9 @@ def render_markdown(value):
 
     # Process wellness blocks ({dream}, {gratitude}) as admonitions
     value = process_wellness_blocks(value)
+
+    # Process figure blocks ({figure} for YouTube embeds, etc.)
+    value = process_figure_blocks(value)
 
     # Then, process MyST directives before markdown conversion
     value = process_myst_directives(value)
@@ -730,6 +797,9 @@ def render_entry_content(entry):
 
     # Process wellness blocks ({dream}, {gratitude}) as admonitions
     value = process_wellness_blocks(value)
+
+    # Process figure blocks ({figure} for YouTube embeds, etc.)
+    value = process_figure_blocks(value)
 
     # Process image blocks with attachments
     value = process_image_blocks(value, attachments)
