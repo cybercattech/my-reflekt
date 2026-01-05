@@ -1219,6 +1219,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const quill = new Quill('#quill-editor', {
         theme: 'snow',
         placeholder: 'Start writing your thoughts...',
+        scrollingContainer: '.ql-container',
         modules: {
             toolbar: {
                 container: '#quill-toolbar',
@@ -1237,7 +1238,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Dream button - insert dream block
     document.getElementById('btn-dream').addEventListener('click', function() {
-        const range = quill.getSelection(true);
+        quill.focus();
+        const range = quill.getSelection();
         const index = range ? range.index : quill.getLength();
         quill.insertText(index, '\n');
         quill.insertText(index + 1, '{dream}\nDescribe your dream here...\n{/dream}');
@@ -1247,7 +1249,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Gratitude button - insert gratitude block
     document.getElementById('btn-gratitude').addEventListener('click', function() {
-        const range = quill.getSelection(true);
+        quill.focus();
+        const range = quill.getSelection();
         const index = range ? range.index : quill.getLength();
         quill.insertText(index, '\n');
         quill.insertText(index + 1, '{gratitude}\nWhat are you grateful for today?\n{/gratitude}');
@@ -1257,9 +1260,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Quill-specific: Define how to insert captures into editor
     insertCaptureIntoEditor = function(emoji, text) {
-        const range = quill.getSelection(true);
-        const index = range ? range.index : quill.getLength();
+        const range = quill.getSelection() || { index: quill.getLength() };
+        const index = range.index;
         quill.insertText(index, `${emoji} ${text} `);
+        quill.setSelection(index + emoji.length + text.length + 2);
         quill.focus();
     };
 
@@ -1401,18 +1405,67 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function selectPickerItem(id, name) {
+    async function selectPickerItem(id, name) {
         const config = quickPickerConfig[currentPickerType];
         quickPickerModal.hide();
 
-        // Insert into Quill with link formatting
-        const range = quill.getSelection(true);
-        const index = range ? range.index : quill.getLength();
-        quill.insertText(index, `@${name} `, { 'link': `${config.linkPath}${id}/` });
+        // Get emoji for this picker type
+        const emoji = unifiedCaptureIcons[currentPickerType]?.emoji || '👤';
+
+        // Insert into Quill with emoji
+        const range = quill.getSelection() || { index: quill.getLength() };
+        const index = range.index;
+        quill.insertText(index, `${emoji} ${name} `);
+        quill.setSelection(index + emoji.length + name.length + 2);
         quill.focus();
+
+        // Create capture for this item
+        await createCaptureForPickerItem(id, name, currentPickerType);
 
         if (config.mentionUrl) {
             trackMentionInBackground(config.mentionUrl, id);
+        }
+    }
+
+    async function createCaptureForPickerItem(id, name, pickerType) {
+        try {
+            // Ensure entry is saved first
+            let pk = entryPk;
+            if (!pk) {
+                pk = await quickSaveEntryForCapture();
+                if (pk) entryPk = pk;
+            }
+            if (!pk) {
+                console.error('Could not save entry for capture');
+                return;
+            }
+
+            // Create capture data based on type
+            const captureData = { name: name };
+
+            // Save the capture
+            const response = await fetch('/journal/api/capture/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    entry_pk: pk,
+                    capture_type: pickerType,
+                    data: captureData
+                })
+            });
+
+            const data = await response.json();
+            if (data.success && data.capture) {
+                // Add capture to visual pill list
+                addCaptureToList(data.capture);
+            } else {
+                console.error('Failed to create capture:', data.error);
+            }
+        } catch (err) {
+            console.error('Error creating capture:', err);
         }
     }
 
@@ -1563,9 +1616,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    const range = quill.getSelection(true);
-                    const index = range ? range.index : quill.getLength();
-                    quill.insertText(index, `🎯 ${title} `, { 'link': `/goals/${id}/` });
+                    const range = quill.getSelection() || { index: quill.getLength() };
+                    const index = range.index;
+                    quill.insertText(index, `🎯 ${title} `);
+                    quill.setSelection(index + 2 + title.length + 1);
                     quill.focus();
                 } else {
                     alert(data.error || 'Failed to link goal');
@@ -1649,10 +1703,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    const range = quill.getSelection(true);
-                    const index = range ? range.index : quill.getLength();
+                    const range = quill.getSelection() || { index: quill.getLength() };
+                    const index = range.index;
                     const text = data.checkin_created ? `✅ ${name} (checked in!) ` : `✅ ${name} `;
                     quill.insertText(index, text);
+                    quill.setSelection(index + text.length);
                     quill.focus();
                 } else {
                     alert(data.error || 'Failed to link habit');
@@ -1737,10 +1792,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Insert POV block into Quill
-                const range = quill.getSelection(true);
-                const index = range ? range.index : quill.getLength();
+                const range = quill.getSelection() || { index: quill.getLength() };
+                const index = range.index;
                 const friendName = friendSelect.options[friendSelect.selectedIndex].text;
-                quill.insertText(index, `\n{pov} @${friendName}\n${message}\n{/pov}\n`);
+                const povText = `\n{pov} @${friendName}\n${message}\n{/pov}\n`;
+                quill.insertText(index, povText);
+                quill.setSelection(index + povText.length);
 
                 bootstrap.Modal.getInstance(existingModal).hide();
                 quill.focus();
@@ -1779,9 +1836,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data.success && data.url) {
                 // Insert image at cursor position
-                const range = quill.getSelection(true);
+                const range = quill.getSelection() || { index: quill.getLength() };
                 quill.insertEmbed(range.index, 'image', data.url);
                 quill.setSelection(range.index + 1);
+                quill.focus();
             } else {
                 alert('Failed to upload image: ' + (data.error || 'Unknown error'));
             }
@@ -1970,6 +2028,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Override Quill's scrollIntoView to provide smoother scrolling with better cursor visibility
+    const originalScrollIntoView = quill.scrollingContainer.scrollIntoView;
+    quill.scrollingContainer.scrollIntoView = function(alignToTop) {
+        // Don't use the default behavior
+    };
+
+    // Custom scroll handler to keep cursor visible while typing
+    quill.on('selection-change', function(range, oldRange, source) {
+        if (!range || source !== 'user') return;
+
+        const bounds = quill.getBounds(range.index);
+        const scrollContainer = quill.root.parentElement;
+        const containerHeight = scrollContainer.clientHeight;
+        const scrollTop = scrollContainer.scrollTop;
+
+        // Define comfortable padding zones (cursor should stay within this area)
+        const topPadding = 100;
+        const bottomPadding = 150; // Extra padding at bottom for better visibility while typing
+
+        // Calculate cursor position relative to visible area
+        const cursorTop = bounds.top;
+        const cursorBottom = bounds.bottom;
+
+        // Only scroll if cursor is outside comfortable zone
+        if (cursorTop < topPadding) {
+            // Cursor too close to top - scroll up
+            scrollContainer.scrollTop = scrollTop + cursorTop - topPadding;
+        } else if (cursorBottom > containerHeight - bottomPadding) {
+            // Cursor too close to bottom - scroll down
+            scrollContainer.scrollTop = scrollTop + cursorBottom - (containerHeight - bottomPadding);
+        }
+    });
+
     // Sync to hidden textarea
     quill.on('text-change', function() {
         const content = quill.root.innerHTML;
@@ -2148,7 +2239,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         placeholder: 'Start writing in Markdown...\n\nTip: Paste or drag images directly into the editor!',
         minHeight: '500px',
-        maxHeight: undefined,
+        maxHeight: 'calc(100vh - 260px)',
         toolbar: [
             'bold', 'italic', 'heading', '|',
             'quote', 'unordered-list', 'ordered-list', '|',
@@ -2173,10 +2264,33 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Word count and auto-save
-    easyMDE.codemirror.on('change', function() {
+    easyMDE.codemirror.on('change', function(cm, changeObj) {
         const content = easyMDE.value();
         updateWordCount(content);
         autoSave(content);
+
+        // Gentle auto-scroll ONLY when typing (not when scrolling or navigating)
+        // This keeps cursor visible while typing but allows free manual scrolling
+        if (changeObj.origin === '+input' || changeObj.origin === '+delete') {
+            requestAnimationFrame(() => {
+                const cursor = cm.getCursor();
+                const scrollInfo = cm.getScrollInfo();
+
+                // Get cursor position using 'div' coordinates (relative to editor, not content)
+                const cursorCoords = cm.cursorCoords(cursor, 'div');
+                const scroller = cm.getScrollerElement();
+                const scrollerHeight = scroller.clientHeight;
+
+                // Calculate how far the cursor is from the bottom of the VISIBLE viewport
+                const spaceBelow = scrollerHeight - cursorCoords.bottom;
+
+                // If cursor is within 200px of bottom of visible area, scroll down
+                if (spaceBelow < 200) {
+                    const scrollNeeded = 200 - spaceBelow;
+                    cm.scrollTo(null, scrollInfo.top + scrollNeeded);
+                }
+            });
+        }
     });
 
     // Initial word count
@@ -2522,21 +2636,69 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function selectPickerItem(id, name) {
+    async function selectPickerItem(id, name) {
         const config = quickPickerConfig[currentPickerType];
-        const link = `[${name}](${config.linkPath}${id}/)`;
 
-        // Insert link into EasyMDE
+        // Get emoji for this picker type
+        const emoji = unifiedCaptureIcons[currentPickerType]?.emoji || '👤';
+        const text = `${emoji} ${name}`;
+
+        // Insert text with emoji into EasyMDE
         const cm = easyMDE.codemirror;
         const cursor = cm.getCursor();
-        cm.replaceRange(link, cursor);
+        cm.replaceRange(text, cursor);
 
         // Hide modal
         quickPickerModal.hide();
 
+        // Create capture for this item
+        await createCaptureForPickerItem(id, name, currentPickerType);
+
         // Track mention in background if this picker type supports it (e.g., person)
         if (config.mentionUrl) {
             trackMentionInBackground(config.mentionUrl, id);
+        }
+    }
+
+    async function createCaptureForPickerItem(id, name, pickerType) {
+        try {
+            // Ensure entry is saved first
+            let pk = entryPk;
+            if (!pk) {
+                pk = await quickSaveEntryForCapture();
+                if (pk) entryPk = pk;
+            }
+            if (!pk) {
+                console.error('Could not save entry for capture');
+                return;
+            }
+
+            // Create capture data based on type
+            const captureData = { name: name };
+
+            // Save the capture
+            const response = await fetch('/journal/api/capture/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    entry_pk: pk,
+                    capture_type: pickerType,
+                    data: captureData
+                })
+            });
+
+            const data = await response.json();
+            if (data.success && data.capture) {
+                // Add capture to visual pill list
+                addCaptureToList(data.capture);
+            } else {
+                console.error('Failed to create capture:', data.error);
+            }
+        } catch (err) {
+            console.error('Error creating capture:', err);
         }
     }
 
@@ -2834,10 +2996,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    // Insert MyST-style markup into EasyMDE
+                    // Insert emoji format into EasyMDE
                     const cm = easyMDE.codemirror;
                     const cursor = cm.getCursor();
-                    const text = `\n{goal} [${title}](/goals/${id}/) {/goal}\n`;
+                    const text = `🎯 ${title} `;
                     cm.replaceRange(text, cursor);
                 } else {
                     alert(data.error || 'Failed to link goal');
@@ -2940,13 +3102,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    // Insert MyST-style markup into EasyMDE
+                    // Insert emoji format into EasyMDE
                     const cm = easyMDE.codemirror;
                     const cursor = cm.getCursor();
-                    let text = `\n{habit} [${name}](/habits/${id}/) {/habit}\n`;
-                    if (data.checkin_created) {
-                        text = `\n{habit} [${name}](/habits/${id}/) - Checked in! {/habit}\n`;
-                    }
+                    const text = data.checkin_created ? `✅ ${name} (checked in!) ` : `✅ ${name} `;
                     cm.replaceRange(text, cursor);
                 } else {
                     alert(data.error || 'Failed to link habit');

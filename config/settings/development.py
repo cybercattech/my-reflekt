@@ -10,6 +10,14 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 
 DEBUG = True
 
+# CSRF Configuration for development
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://localhost',
+    'http://127.0.0.1',
+])
+
 # Use SQLite for development if no DATABASE_URL is set
 DATABASES = {
     'default': env.db('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3'),

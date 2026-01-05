@@ -5,6 +5,13 @@ from .base import *
 
 DEBUG = False
 
+# CSRF Configuration
+# Add your production domain(s) here
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
+    'https://myreflekt.net',
+    'https://www.myreflekt.net',
+])
+
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True

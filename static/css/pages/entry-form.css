@@ -190,6 +190,8 @@ body.no-scroll .alert {
     flex: 1;
     overflow-y: auto;
     min-height: 350px;
+    scroll-padding-top: 100px;
+    scroll-padding-bottom: 100px;
 }
 
 .ql-editor {
@@ -388,7 +390,7 @@ textarea#editor {
     max-height: none !important;
     min-height: 0 !important;
     position: relative !important;
-    padding-bottom: 150px !important; /* Extra space at bottom for scrolling */
+    padding-bottom: 50vh !important; /* Half viewport height padding at bottom */
 }
 
 .EasyMDEContainer .CodeMirror-vscrollbar {
@@ -399,11 +401,10 @@ textarea#editor {
 .EasyMDEContainer .CodeMirror-sizer {
     min-height: 100% !important;
     border-right: 0 !important;
-    margin-bottom: 150px !important; /* Ensure content at bottom is visible */
 }
 
 .EasyMDEContainer .CodeMirror-lines {
-    padding: 1rem 1.5rem !important;
+    padding: 1rem 1.5rem 50vh 1.5rem !important; /* Extra bottom padding for comfortable scrolling */
 }
 
 .EasyMDEContainer .CodeMirror pre.CodeMirror-line,
