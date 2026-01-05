@@ -553,8 +553,18 @@ class SharedPOVRecipient(models.Model):
     """
     Links a SharedPOV to a specific recipient.
 
-    Tracks read status and notification delivery per recipient.
+    Tracks read status, approval status, and notification delivery per recipient.
+    Recipients must approve POVs before they're added to their journal.
     """
+    APPROVAL_PENDING = 'pending'
+    APPROVAL_APPROVED = 'approved'
+    APPROVAL_REJECTED = 'rejected'
+    APPROVAL_CHOICES = [
+        (APPROVAL_PENDING, 'Pending'),
+        (APPROVAL_APPROVED, 'Approved'),
+        (APPROVAL_REJECTED, 'Rejected'),
+    ]
+
     pov = models.ForeignKey(
         SharedPOV,
         on_delete=models.CASCADE,
@@ -568,6 +578,23 @@ class SharedPOVRecipient(models.Model):
     is_read = models.BooleanField(default=False)
     read_at = models.DateTimeField(null=True, blank=True)
 
+    # Approval workflow
+    approval_status = models.CharField(
+        max_length=20,
+        choices=APPROVAL_CHOICES,
+        default=APPROVAL_PENDING,
+        help_text="Whether recipient has approved adding this POV to their journal"
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    added_to_entry = models.ForeignKey(
+        'Entry',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pov_additions',
+        help_text="The entry this POV was added to (if approved)"
+    )
+
     email_sent = models.BooleanField(default=False)
     email_sent_at = models.DateTimeField(null=True, blank=True)
 
@@ -577,10 +604,23 @@ class SharedPOVRecipient(models.Model):
         unique_together = ['pov', 'user']
         indexes = [
             models.Index(fields=['user', 'is_read', 'created_at']),
+            models.Index(fields=['user', 'approval_status']),
         ]
 
     def __str__(self):
         return f"POV for {self.user.email}"
+
+    @property
+    def is_pending(self):
+        return self.approval_status == self.APPROVAL_PENDING
+
+    @property
+    def is_approved(self):
+        return self.approval_status == self.APPROVAL_APPROVED
+
+    @property
+    def is_rejected(self):
+        return self.approval_status == self.APPROVAL_REJECTED
 
 
 class POVReply(models.Model):

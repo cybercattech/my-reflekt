@@ -1,0 +1,33 @@
+/* POV (Point of View) Sharing Styles */
+
+.pov-card {
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.pov-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.pov-pending {
+    border-left: 4px solid #f59e0b;
+    background: #fffbeb;
+}
+
+.pov-approved {
+    border-left: 4px solid #22c55e;
+}
+
+.pov-rejected {
+    border-left: 4px solid #9ca3af;
+    opacity: 0.7;
+}
+
+.pov-content-preview {
+    color: #374151;
+    font-style: italic;
+}
+
+.approval-buttons .btn {
+    padding: 0.5rem 1rem;
+}

@@ -882,6 +882,8 @@ def entry_create(request):
 @login_required
 def entry_detail(request, pk):
     """View a single journal entry."""
+    from .models import SharedPOVRecipient
+
     entry = get_object_or_404(Entry, pk=pk, user=request.user)
 
     # Find other entries on the same day (month/day) in different years
@@ -891,9 +893,16 @@ def entry_detail(request, pk):
         entry_date__day=entry.entry_date.day
     ).exclude(pk=entry.pk).order_by('-entry_date')
 
+    # Get POVs shared to this user for this date
+    shared_povs = SharedPOVRecipient.objects.filter(
+        user=request.user,
+        pov__entry__entry_date=entry.entry_date
+    ).select_related('pov', 'pov__author', 'pov__author__profile').order_by('-pov__created_at')
+
     context = {
         'entry': entry,
         'same_day_entries': same_day_entries,
+        'shared_povs': shared_povs,
     }
     context.update(get_sidebar_context(request.user))
 
@@ -1412,15 +1421,35 @@ def entry_quick_save(request):
         entry.is_analyzed = False  # Re-analyze on edit
         entry.save()
     else:
-        # Create new entry
-        entry = Entry.objects.create(
+        # Check if an entry already exists for this date to prevent duplicates
+        existing_entry = Entry.objects.filter(
             user=request.user,
-            title=title or 'Untitled',
-            content=content,
-            entry_date=entry_date,
-            mood=mood,
-            energy=energy,
-        )
+            entry_date=entry_date
+        ).first()
+
+        if existing_entry:
+            # Update the existing entry instead of creating a duplicate
+            existing_entry.title = title or existing_entry.title
+            # Only update content if it's longer (prevent overwriting with shorter auto-save)
+            if len(content) >= len(existing_entry.content or ''):
+                existing_entry.content = content
+            if mood:
+                existing_entry.mood = mood
+            if energy:
+                existing_entry.energy = energy
+            existing_entry.is_analyzed = False
+            existing_entry.save()
+            entry = existing_entry
+        else:
+            # Create new entry
+            entry = Entry.objects.create(
+                user=request.user,
+                title=title or 'Untitled',
+                content=content,
+                entry_date=entry_date,
+                mood=mood,
+                energy=energy,
+            )
 
     return JsonResponse({
         'success': True,
@@ -2774,6 +2803,133 @@ def pov_delete_recipient(request, pov_id):
         messages.error(request, "Could not delete POV. You may not be a recipient.")
 
     return redirect('journal:shared_povs_list')
+
+
+@login_required
+@require_POST
+def pov_approve(request, pov_id):
+    """
+    Approve or reject a POV and optionally add it to the user's journal.
+
+    POST params:
+    - action: 'add_existing', 'create_new', or 'reject'
+    """
+    from .models import SharedPOVRecipient, Entry
+    from django.utils import timezone
+
+    recipient = get_object_or_404(
+        SharedPOVRecipient,
+        pov_id=pov_id,
+        user=request.user
+    )
+
+    action = request.POST.get('action', '')
+    pov = recipient.pov
+    entry_date = pov.entry.entry_date
+    author_username = pov.author.profile.username or pov.author.email.split('@')[0]
+
+    if action == 'reject':
+        # Reject the POV
+        recipient.approval_status = SharedPOVRecipient.APPROVAL_REJECTED
+        recipient.approved_at = timezone.now()
+        recipient.is_read = True
+        recipient.read_at = timezone.now()
+        recipient.save()
+        messages.info(request, "POV dismissed.")
+        return redirect('journal:shared_povs_list')
+
+    elif action == 'delete':
+        # Fully delete the POV recipient record
+        recipient.delete()
+        messages.success(request, "POV deleted.")
+        return redirect('journal:shared_povs_list')
+
+    elif action in ('add_existing', 'create_new'):
+        # Format POV content for journal entry
+        pov_block = f"\n\n---\n\n**Shared by @{author_username}** ({pov.created_at.strftime('%b %d, %Y')})\n\n> {pov.content}\n\n---\n"
+
+        if action == 'add_existing':
+            # Find existing entry for that date
+            try:
+                entry = Entry.objects.get(user=request.user, entry_date=entry_date)
+                # Append POV content
+                entry.content = (entry.content or '') + pov_block
+                entry.is_analyzed = False  # Re-analyze with new content
+                entry.save()
+                messages.success(
+                    request,
+                    f"POV added to your entry for {entry_date.strftime('%B %d, %Y')}."
+                )
+            except Entry.DoesNotExist:
+                # No entry exists, create one instead
+                entry = Entry.objects.create(
+                    user=request.user,
+                    entry_date=entry_date,
+                    title='',
+                    content=pov_block.strip(),
+                )
+                messages.success(
+                    request,
+                    f"Created new entry for {entry_date.strftime('%B %d, %Y')} with the POV."
+                )
+
+        else:  # create_new
+            # Create new entry for that date
+            entry = Entry.objects.create(
+                user=request.user,
+                entry_date=entry_date,
+                title='',
+                content=pov_block.strip(),
+            )
+            messages.success(
+                request,
+                f"Created new entry for {entry_date.strftime('%B %d, %Y')} with the POV."
+            )
+
+        # Mark as approved and read
+        recipient.approval_status = SharedPOVRecipient.APPROVAL_APPROVED
+        recipient.approved_at = timezone.now()
+        recipient.added_to_entry = entry
+        recipient.is_read = True
+        recipient.read_at = timezone.now()
+        recipient.save()
+
+        return redirect('journal:entry_detail', pk=entry.pk)
+
+    else:
+        messages.error(request, "Invalid action.")
+        return redirect('journal:shared_povs_list')
+
+
+@login_required
+def pov_approval_check(request, pov_id):
+    """
+    AJAX endpoint to check if user has an existing entry for the POV date.
+    Returns info to help user decide add_existing vs create_new.
+    """
+    from .models import SharedPOVRecipient, Entry
+
+    recipient = get_object_or_404(
+        SharedPOVRecipient,
+        pov_id=pov_id,
+        user=request.user
+    )
+
+    pov = recipient.pov
+    entry_date = pov.entry.entry_date
+
+    # Check for existing entry
+    existing_entry = Entry.objects.filter(
+        user=request.user,
+        entry_date=entry_date
+    ).first()
+
+    return JsonResponse({
+        'has_existing_entry': existing_entry is not None,
+        'entry_date': entry_date.strftime('%B %d, %Y'),
+        'entry_preview': existing_entry.preview[:100] if existing_entry else None,
+        'entry_id': existing_entry.pk if existing_entry else None,
+    })
 
 
 # =============================================================================

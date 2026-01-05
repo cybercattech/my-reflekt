@@ -61,6 +61,8 @@ urlpatterns = [
     path('shared/<int:pk>/view/', views.pov_view_and_redirect, name='pov_view_and_redirect'),
     path('api/pov/<int:pov_id>/reply/', views.pov_reply_create, name='pov_reply_create'),
     path('api/pov/<int:pov_id>/delete/', views.pov_delete_recipient, name='pov_delete_recipient'),
+    path('api/pov/<int:pov_id>/approve/', views.pov_approve, name='pov_approve'),
+    path('api/pov/<int:pov_id>/approval-check/', views.pov_approval_check, name='pov_approval_check'),
     path('api/pov/unread-count/', views.unread_povs_count, name='unread_povs_count'),
 
     # Prompt Preferences

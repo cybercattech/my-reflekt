@@ -12,6 +12,7 @@ from django.contrib import messages
 from datetime import timedelta
 from .models import Profile, Payment, SubscriptionHistory, Feedback
 from django.contrib.auth.hashers import make_password
+from allauth.account.models import EmailAddress
 import secrets
 import string
 
@@ -158,8 +159,13 @@ def user_detail(request, user_id):
     """View and edit user details."""
     user = get_object_or_404(User.objects.select_related('profile'), pk=user_id)
 
+    # Check email verification status
+    email_address = EmailAddress.objects.filter(user=user, email=user.email).first()
+    email_verified = email_address.verified if email_address else False
+
     context = {
         'user_obj': user,
+        'email_verified': email_verified,
         'title': f'User: {user.email}',
         'active_page': 'users',
     }
@@ -703,3 +709,87 @@ def feedback_update_status(request, feedback_id):
     if 'detail' in request.META.get('HTTP_REFERER', ''):
         return redirect('accounts:admin_feedback_detail', feedback_id=feedback_id)
     return redirect('accounts:admin_feedback_list')
+
+
+# =============================================================================
+# User Email Verification & Password Reset
+# =============================================================================
+
+@staff_member_required
+@require_POST
+def verify_user_email(request, user_id):
+    """Manually verify a user's email address."""
+    user = get_object_or_404(User, pk=user_id)
+
+    # Get or create EmailAddress for this user
+    email_address, created = EmailAddress.objects.get_or_create(
+        user=user,
+        email=user.email,
+        defaults={'verified': False, 'primary': True}
+    )
+
+    if email_address.verified:
+        messages.info(request, f'Email for {user.email} is already verified.')
+    else:
+        email_address.verified = True
+        email_address.save()
+        messages.success(request, f'Email for {user.email} has been verified.')
+
+    return redirect('accounts:admin_user_detail', user_id=user_id)
+
+
+@staff_member_required
+@require_POST
+def unverify_user_email(request, user_id):
+    """Unverify a user's email address (useful for testing)."""
+    user = get_object_or_404(User, pk=user_id)
+
+    email_address = EmailAddress.objects.filter(user=user, email=user.email).first()
+
+    if email_address:
+        email_address.verified = False
+        email_address.save()
+        messages.success(request, f'Email for {user.email} has been unverified.')
+    else:
+        messages.warning(request, f'No email address record found for {user.email}.')
+
+    return redirect('accounts:admin_user_detail', user_id=user_id)
+
+
+@staff_member_required
+@require_POST
+def reset_user_password(request, user_id):
+    """Reset user's password - either generate new or send reset email."""
+    user = get_object_or_404(User, pk=user_id)
+    action = request.POST.get('action', 'generate')
+
+    if action == 'generate':
+        # Generate a new random password
+        new_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(16))
+        user.set_password(new_password)
+        user.save()
+
+        messages.success(
+            request,
+            f'Password reset for {user.email}. New temporary password: {new_password}'
+        )
+
+    elif action == 'send_email':
+        # Send password reset email using allauth
+        from allauth.account.forms import ResetPasswordForm
+        from django.contrib.sites.shortcuts import get_current_site
+
+        try:
+            form = ResetPasswordForm(data={'email': user.email})
+            if form.is_valid():
+                form.save(request)
+                messages.success(
+                    request,
+                    f'Password reset email sent to {user.email}.'
+                )
+            else:
+                messages.error(request, 'Could not send password reset email.')
+        except Exception as e:
+            messages.error(request, f'Error sending reset email: {str(e)}')
+
+    return redirect('accounts:admin_user_detail', user_id=user_id)

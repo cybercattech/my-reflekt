@@ -136,7 +136,7 @@ def generate_content_hash(content: str, usernames: list) -> str:
 
 
 @transaction.atomic
-def process_entry_povs(entry) -> dict:
+def process_entry_povs(entry, plaintext_content=None) -> dict:
     """
     Process all POV blocks in an entry.
 
@@ -144,6 +144,11 @@ def process_entry_povs(entry) -> dict:
     1. Validates recipients are friends
     2. Injects the POV content into each recipient's journal entry for that date
     3. Tracks what was shared to prevent duplicates
+
+    Args:
+        entry: The Entry instance
+        plaintext_content: Optional plaintext content (before encryption).
+                          If not provided, uses entry.content which may be encrypted.
 
     Returns:
     - created: number of new POVs injected
@@ -160,8 +165,11 @@ def process_entry_povs(entry) -> dict:
         'errors': [],
     }
 
+    # Use plaintext content if provided, otherwise fall back to entry.content
+    content_to_parse = plaintext_content if plaintext_content is not None else (entry.content or '')
+
     # Parse POV blocks from content
-    blocks = parse_pov_blocks(entry.content or '')
+    blocks = parse_pov_blocks(content_to_parse)
 
     # Get existing POVs for this entry
     existing_povs = {pov.content_hash: pov for pov in entry.shared_povs.all()}
@@ -270,42 +278,23 @@ def _remove_pov_blocks_from_entry(entry, blocks):
 
 def _inject_pov_into_journal(recipient, author, author_username: str, content: str, entry_date, pov):
     """
-    Inject POV content into recipient's journal entry for the given date.
+    Register POV for display in recipient's journal for the given date.
 
-    Creates a new entry if none exists, or appends to existing entry.
-    Uses ```pov @username format which renders as a styled block.
-    Note: We use 'pov' without braces to avoid matching the {pov}...{/pov} parsing regex.
+    NOTE: We do NOT inject POV content directly into the recipient's entry because:
+    1. Entries are encrypted with per-user keys
+    2. The author doesn't have access to the recipient's encryption key
+    3. Mixing encrypted content from different users would cause decryption failures
+
+    Instead, POVs are stored in the SharedPOV model (unencrypted, as they're meant
+    to be shared) and displayed alongside entries via the SharedPOVRecipient relation.
+
+    The entry_detail view queries for POVs shared to the user for that date and
+    renders them separately.
     """
-    from ..models import Entry
+    # POV is already stored in SharedPOV model and linked via SharedPOVRecipient
+    # No injection into entry content needed - POVs are displayed from SharedPOV
 
-    # Format the POV block for injection
-    # IMPORTANT: Use 'pov' without braces to avoid the {pov} regex pattern matching it
-    pov_block = f"\n\n```pov @{author_username}\n{content}\n```\n"
-
-    # Find or create recipient's entry for this date
-    recipient_entry, created = Entry.objects.get_or_create(
-        user=recipient,
-        entry_date=entry_date,
-        defaults={
-            'title': '',
-            'content': pov_block.strip(),
-        }
-    )
-
-    if not created:
-        # Append to existing entry (if not already there)
-        # Use a marker to prevent duplicate injection
-        marker = f"<!-- pov:{pov.content_hash} -->"
-
-        if marker not in recipient_entry.content:
-            recipient_entry.content = (recipient_entry.content or '') + pov_block + marker
-            # Save without triggering signals to avoid recursion
-            Entry.objects.filter(pk=recipient_entry.pk).update(
-                content=recipient_entry.content,
-                word_count=len(recipient_entry.content.split())
-            )
-
-    logger.info(f"Injected POV from {author.email} into {recipient.email}'s entry for {entry_date}")
+    logger.info(f"POV from {author.email} registered for {recipient.email} on {entry_date}")
 
 
 def _queue_pov_notifications(pov):
@@ -334,7 +323,8 @@ def get_shared_povs_for_user(user: User, unread_only: bool = False):
         'pov',
         'pov__entry',
         'pov__author',
-        'pov__author__profile'
+        'pov__author__profile',
+        'added_to_entry'
     ).order_by('-pov__created_at')
 
     if unread_only:
@@ -344,12 +334,12 @@ def get_shared_povs_for_user(user: User, unread_only: bool = False):
 
 
 def get_unread_pov_count(user: User) -> int:
-    """Get count of unread POVs for a user."""
+    """Get count of pending POVs for a user (unread AND still pending approval)."""
     from ..models import SharedPOVRecipient
 
     return SharedPOVRecipient.objects.filter(
         user=user,
-        is_read=False
+        approval_status=SharedPOVRecipient.APPROVAL_PENDING
     ).count()
 
 

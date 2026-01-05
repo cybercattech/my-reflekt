@@ -165,10 +165,24 @@ def trigger_pov_processing(sender, instance, created, **kwargs):
     Process POV blocks after an entry is saved.
 
     Parses {pov} @username content {/pov} blocks and creates SharedPOV records.
+    Uses plaintext content from _plaintext_fields (before encryption).
     """
     try:
         from .services.pov import process_entry_povs
-        result = process_entry_povs(instance)
+
+        # Get plaintext content (stored before encryption by UserEncryptedTextField.pre_save)
+        if hasattr(instance, '_plaintext_fields') and 'content' in instance._plaintext_fields:
+            plaintext_content = instance._plaintext_fields['content']
+        else:
+            # Fallback - content might already be decrypted or not encrypted
+            plaintext_content = instance.content
+
+        # Skip if content looks encrypted (Fernet tokens start with gAAAA)
+        if plaintext_content and plaintext_content.startswith('gAAAAA'):
+            logger.warning(f"Skipping POV processing for entry {instance.id}: content is encrypted")
+            return
+
+        result = process_entry_povs(instance, plaintext_content=plaintext_content)
 
         if result['created'] or result['updated'] or result['deleted']:
             logger.info(

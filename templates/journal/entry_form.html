@@ -1134,24 +1134,27 @@ document.addEventListener('DOMContentLoaded', function() {
             content = easyMDE.value();
         }
 
+        const formData = new FormData();
+        formData.append('title', titleInput.value || 'Untitled');
+        formData.append('entry_date', dateInput.value);
+        formData.append('content', content);
+        if (entryPk) {
+            formData.append('entry_pk', entryPk);
+        }
+
         try {
-            const response = await fetch('/journal/entry/new/', {
+            const response = await fetch('/journal/api/quick-save/', {
                 method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    title: titleInput.value || 'Untitled Entry',
-                    content: content,
-                    entry_date: dateInput.value,
-                    is_quick_save: 'true'
-                })
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: formData
             });
 
             if (response.ok) {
                 const data = await response.json();
-                return data.pk;
+                if (data.success) {
+                    entryPk = data.entry_pk;
+                    return data.entry_pk;
+                }
             }
         } catch (err) {
             console.error('Quick save failed:', err);
