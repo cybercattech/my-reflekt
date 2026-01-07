@@ -16,7 +16,28 @@ from django.conf import settings
 from .models import Entry, Attachment, EntryCapture, PromptCategory, UserPromptPreference
 from .forms import EntryForm
 from .prompts import get_daily_prompt, get_prompt_for_user
+from .services.pov import parse_pov_blocks, validate_pov_recipients
 from apps.analytics.services.mood import MOOD_EMOJIS
+
+
+def _check_pov_recipients(user, content):
+    """
+    Check POV blocks in content and return warning messages for invalid recipients.
+    Returns list of warning message strings.
+    """
+    warnings = []
+    if not content:
+        return warnings
+
+    blocks = parse_pov_blocks(content)
+    for block in blocks:
+        valid_users, invalid_usernames = validate_pov_recipients(user, block['usernames'])
+        for username in invalid_usernames:
+            warnings.append(
+                f'POV not sent to @{username} — they are not in your friends list. '
+                f'<a href="/accounts/friends/?search={username}">Send friend request</a>'
+            )
+    return warnings
 
 
 def home(request):
@@ -784,6 +805,8 @@ def get_sidebar_context(user):
     # Daily prompt (personalized based on user's preferences)
     daily_prompt = get_prompt_for_user(user)
 
+    # Note: pending_friend_requests is provided by context processor
+
     return {
         'calendar_months': calendar_months,
         'cal_year': cal_year,
@@ -840,6 +863,11 @@ def entry_create(request):
                     }
                 )
 
+            # Check for POV blocks with invalid recipients
+            pov_warnings = _check_pov_recipients(request.user, form.cleaned_data.get('content', ''))
+            if pov_warnings:
+                request.session['pov_warnings'] = pov_warnings
+
             messages.success(request, 'Entry saved successfully.')
             return redirect('journal:entry_detail', pk=entry.pk)
     else:
@@ -893,16 +921,24 @@ def entry_detail(request, pk):
         entry_date__day=entry.entry_date.day
     ).exclude(pk=entry.pk).order_by('-entry_date')
 
-    # Get POVs shared to this user for this date
+    # Get POVs shared to this user for this date (exclude ones already added to this entry)
     shared_povs = SharedPOVRecipient.objects.filter(
         user=request.user,
         pov__entry__entry_date=entry.entry_date
+    ).exclude(
+        # Exclude POVs that were approved and added to this specific entry
+        approval_status='approved',
+        added_to_entry=entry
     ).select_related('pov', 'pov__author', 'pov__author__profile').order_by('-pov__created_at')
+
+    # Get and clear any POV warnings from session (shown after save)
+    pov_warnings = request.session.pop('pov_warnings', None)
 
     context = {
         'entry': entry,
         'same_day_entries': same_day_entries,
         'shared_povs': shared_povs,
+        'pov_warnings': pov_warnings,
     }
     context.update(get_sidebar_context(request.user))
 
@@ -921,6 +957,12 @@ def entry_edit(request, pk):
             entry = form.save(commit=False)
             entry.is_analyzed = False
             entry.save()
+
+            # Check for POV blocks with invalid recipients
+            pov_warnings = _check_pov_recipients(request.user, form.cleaned_data.get('content', ''))
+            if pov_warnings:
+                request.session['pov_warnings'] = pov_warnings
+
             messages.success(request, 'Entry updated successfully.')
             return redirect('journal:entry_detail', pk=entry.pk)
     else:
@@ -2845,8 +2887,9 @@ def pov_approve(request, pov_id):
         return redirect('journal:shared_povs_list')
 
     elif action in ('add_existing', 'create_new'):
-        # Format POV content for journal entry
-        pov_block = f"\n\n---\n\n**Shared by @{author_username}** ({pov.created_at.strftime('%b %d, %Y')})\n\n> {pov.content}\n\n---\n"
+        # Format POV content for journal entry using {pov} block syntax
+        # This will be properly rendered by the markdown processor
+        pov_block = f"\n\n```pov @{author_username}\n{pov.content}\n```\n"
 
         if action == 'add_existing':
             # Find existing entry for that date

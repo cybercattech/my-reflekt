@@ -316,12 +316,18 @@
             <button class="sidebar-section-toggle" data-section="settings" data-tooltip="Settings">
                 <i class="bi bi-gear"></i>
                 <span>Settings</span>
+                {% if pending_friend_requests_count %}<span class="badge bg-danger rounded-pill ms-auto me-2" style="font-size: 0.6rem;">{{ pending_friend_requests_count }}</span>{% endif %}
                 <i class="bi bi-chevron-right toggle-icon"></i>
             </button>
             <div class="sidebar-section-content" id="section-settings">
                 <a href="{% url 'accounts:profile' %}" class="sidebar-link {% if active_page == 'profile' or active_page == 'settings' %}active{% endif %}" data-tooltip="Profile">
                     <span class="link-dot blue"></span>
                     <span>Profile</span>
+                </a>
+                <a href="{% url 'accounts:profile' %}#friends" class="sidebar-link" data-tooltip="Friends">
+                    <span class="link-dot purple"></span>
+                    <span>Friends</span>
+                    {% if pending_friend_requests_count %}<span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.65rem;">{{ pending_friend_requests_count }}</span>{% endif %}
                 </a>
                 <a href="{% url 'features' %}" class="sidebar-link {% if active_page == 'features' %}active{% endif %}" data-tooltip="How It Works">
                     <span class="link-dot green"></span>

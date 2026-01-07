@@ -127,6 +127,26 @@ def process_inline_markdown(content):
     return content
 
 
+def process_block_content(content):
+    """
+    Process block content preserving paragraphs and line breaks.
+    Used for multi-line content in admonition blocks (POV, dreams, gratitude).
+    """
+    # First apply inline markdown
+    content = process_inline_markdown(content)
+
+    # Convert double newlines to paragraph breaks
+    paragraphs = re.split(r'\n\s*\n', content)
+    if len(paragraphs) > 1:
+        # Wrap each paragraph in <p> tags
+        content = ''.join(f'<p>{p.strip()}</p>' for p in paragraphs if p.strip())
+    else:
+        # Single paragraph - just convert single newlines to <br>
+        content = content.replace('\n', '<br>')
+
+    return content
+
+
 def process_myst_directives(text):
     """
     Convert MyST-style directives to HTML admonitions.
@@ -138,7 +158,7 @@ def process_myst_directives(text):
 
     def replace_directive(match):
         directive_type = match.group(1).lower()
-        content = process_inline_markdown(match.group(2).strip())
+        content = process_block_content(match.group(2).strip())
 
         if directive_type in DIRECTIVE_STYLES:
             style, icon, title = DIRECTIVE_STYLES[directive_type]
@@ -167,7 +187,7 @@ def process_pov_blocks(text):
     """
     def replace_injected_pov(match):
         username = match.group(1)
-        content = process_inline_markdown(match.group(2).strip())
+        content = process_block_content(match.group(2).strip())
         return f'''<div class="admonition admonition-pov alert alert-pov">
 <div class="admonition-title"><i class="bi bi-chat-square-quote me-2"></i>@{username} shared</div>
 <div class="admonition-content">{content}</div>
@@ -188,7 +208,7 @@ def process_pov_blocks(text):
 
     def replace_author_pov(match):
         usernames_str = match.group(1).strip()
-        content = process_inline_markdown(match.group(2).strip())
+        content = process_block_content(match.group(2).strip())
         # Extract usernames (with or without @ prefix)
         usernames = re.findall(r'@?([\w]+)', usernames_str)
         recipients = ', '.join(f'@{u}' for u in usernames)
@@ -476,7 +496,7 @@ def process_wellness_blocks(text):
     dream_pattern = r'\{dream\}\s*(.*?)\s*\{/dream\}'
 
     def replace_dream(match):
-        content = process_inline_markdown(match.group(1).strip())
+        content = process_block_content(match.group(1).strip())
         return f'''<div class="admonition admonition-dream">
 <div class="admonition-title"><i class="bi bi-cloud-moon me-2"></i>Dream Journal</div>
 <div class="admonition-content">{content}</div>
@@ -488,7 +508,7 @@ def process_wellness_blocks(text):
     gratitude_pattern = r'\{gratitude\}\s*(.*?)\s*\{/gratitude\}'
 
     def replace_gratitude(match):
-        content = process_inline_markdown(match.group(1).strip())
+        content = process_block_content(match.group(1).strip())
         return f'''<div class="admonition admonition-gratitude">
 <div class="admonition-title"><i class="bi bi-heart me-2"></i>Gratitude</div>
 <div class="admonition-content">{content}</div>

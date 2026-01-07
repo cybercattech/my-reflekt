@@ -182,8 +182,8 @@
     {% if messages %}
     <div class="toast-container">
         {% for message in messages %}
-        <div class="toast-alert alert-{{ message.tags }} d-flex align-items-center justify-content-between" role="alert">
-            <span><i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>{{ message }}</span>
+        <div class="toast-alert alert-{{ message.tags|cut:' safe' }} d-flex align-items-center justify-content-between" role="alert">
+            <span><i class="bi bi-{% if 'success' in message.tags %}check-circle{% elif 'error' in message.tags or 'danger' in message.tags %}exclamation-circle{% elif 'warning' in message.tags %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</span>
             <button type="button" class="btn-close ms-2" onclick="this.parentElement.remove()"></button>
         </div>
         {% endfor %}
@@ -221,6 +221,108 @@
     <!-- Tutorial Walkthrough (authenticated users only) -->
     {% if user.is_authenticated %}
     {% include "partials/_tutorial.html" %}
+    {% endif %}
+
+    <!-- Friend Request Notification Modal -->
+    {% if pending_friend_requests_count %}
+    <div class="modal fade" id="friendRequestModal" tabindex="-1" aria-labelledby="friendRequestModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="friendRequestModalLabel">
+                        <i class="bi bi-person-plus-fill text-primary me-2"></i>
+                        Friend Request{{ pending_friend_requests_count|pluralize }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        You have {{ pending_friend_requests_count }} pending friend request{{ pending_friend_requests_count|pluralize }}.
+                        Friends can share POV entries with you!
+                    </p>
+                    {% for req in pending_friend_requests %}
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 {% if not forloop.last %}mb-2{% endif %}">
+                        <div>
+                            <strong>@{{ req.sender.profile.username|default:req.sender.email }}</strong>
+                            {% if req.message %}
+                            <p class="text-muted small mb-0 mt-1">{{ req.message }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="btn-group">
+                            <a href="{% url 'accounts:accept_friend_request' req.id %}" class="btn btn-sm btn-success">
+                                <i class="bi bi-check-lg"></i> Accept
+                            </a>
+                            <a href="{% url 'accounts:deny_friend_request' req.id %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <a href="{% url 'accounts:profile' %}#friends" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-people me-1"></i>Manage Friends
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show modal if there are pending requests and user hasn't dismissed recently
+            const lastDismissed = localStorage.getItem('friendRequestModalDismissed');
+            const now = Date.now();
+            // Show again after 24 hours
+            if (!lastDismissed || (now - parseInt(lastDismissed)) > 86400000) {
+                const modal = new bootstrap.Modal(document.getElementById('friendRequestModal'));
+                modal.show();
+            }
+            // Track when modal is dismissed
+            document.getElementById('friendRequestModal').addEventListener('hidden.bs.modal', function() {
+                localStorage.setItem('friendRequestModalDismissed', Date.now().toString());
+            });
+        });
+    </script>
+    {% endif %}
+
+    <!-- POV Warning Modal (shown when POV recipients are not friends) -->
+    {% if pov_warnings %}
+    <div class="modal fade" id="povWarningModal" tabindex="-1" aria-labelledby="povWarningModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 bg-warning-subtle">
+                    <h5 class="modal-title" id="povWarningModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                        POV Not Sent
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">Your entry was saved, but the following POV{{ pov_warnings|length|pluralize }} could not be sent:</p>
+                    {% for warning in pov_warnings %}
+                    <div class="alert alert-warning d-flex align-items-start mb-2">
+                        <i class="bi bi-person-x me-2 mt-1"></i>
+                        <div>{{ warning|safe }}</div>
+                    </div>
+                    {% endfor %}
+                    <p class="text-muted small mb-0 mt-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        You can only share POVs with people in your friends list.
+                    </p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="bi bi-check-lg me-1"></i>Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = new bootstrap.Modal(document.getElementById('povWarningModal'));
+            modal.show();
+        });
+    </script>
     {% endif %}
 
     <!-- Footer (from partial) -->
