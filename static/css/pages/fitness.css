@@ -1,0 +1,824 @@
+/* ==========================================================================
+   BODY FITNESS TRACKING STYLES
+   ========================================================================== */
+
+/* ==========================================================================
+   FITNESS DASHBOARD
+   ========================================================================== */
+
+/* Stats Cards Row */
+.fitness-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+    .fitness-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .fitness-stats-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Fitness Stat Card */
+.fitness-stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.fitness-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.fitness-stat-card .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.fitness-stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.fitness-stat-card .stat-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.fitness-stat-card .stat-change {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.fitness-stat-card .stat-change.positive {
+    color: #059669;
+}
+
+.fitness-stat-card .stat-change.negative {
+    color: #dc2626;
+}
+
+/* Stat Card Color Variants */
+.fitness-stat-card.weight .stat-icon {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #4f46e5;
+}
+
+.fitness-stat-card.cardio .stat-icon {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #059669;
+}
+
+.fitness-stat-card.measurement .stat-icon {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #d97706;
+}
+
+.fitness-stat-card.goal .stat-icon {
+    background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+    color: #db2777;
+}
+
+/* ==========================================================================
+   QUICK LOG BUTTONS
+   ========================================================================== */
+
+.quick-log-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.quick-log-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.quick-log-btn.weight {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+}
+
+.quick-log-btn.weight:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+    transform: translateY(-1px);
+}
+
+.quick-log-btn.cardio {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+}
+
+.quick-log-btn.cardio:hover {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%);
+    transform: translateY(-1px);
+}
+
+.quick-log-btn.measurement {
+    background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+    color: white;
+}
+
+.quick-log-btn.measurement:hover {
+    background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+    transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   FITNESS GOALS SECTION
+   ========================================================================== */
+
+.fitness-goals-section {
+    margin-bottom: 2rem;
+}
+
+.fitness-goals-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 992px) {
+    .fitness-goals-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Goal Card */
+.fitness-goal-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s;
+}
+
+.fitness-goal-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.fitness-goal-card .goal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.fitness-goal-card .goal-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #1f2937;
+    margin: 0;
+}
+
+.fitness-goal-card .goal-type {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.fitness-goal-card .goal-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #4f46e5;
+}
+
+/* Progress Bar */
+.fitness-goal-card .progress-section {
+    margin-bottom: 1rem;
+}
+
+.fitness-goal-card .progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+}
+
+.fitness-goal-card .progress-current {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.fitness-goal-card .progress-target {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.fitness-goal-card .progress-bar-container {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.fitness-goal-card .progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.fitness-goal-card .progress-bar.on-track {
+    background: linear-gradient(90deg, #059669 0%, #10b981 100%);
+}
+
+.fitness-goal-card .progress-bar.behind {
+    background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+}
+
+.fitness-goal-card .progress-bar.ahead {
+    background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+/* Schedule Status */
+.fitness-goal-card .schedule-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+}
+
+.fitness-goal-card .schedule-status.ahead {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.fitness-goal-card .schedule-status.behind {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.fitness-goal-card .schedule-status.on-track {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.fitness-goal-card .schedule-status.unknown {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.fitness-goal-card .schedule-status i {
+    font-size: 1rem;
+}
+
+/* Goal Footer */
+.fitness-goal-card .goal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f3f4f6;
+    margin-top: 0.75rem;
+}
+
+.fitness-goal-card .days-remaining {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.fitness-goal-card .goal-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.fitness-goal-card .goal-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.fitness-goal-card .goal-action-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* ==========================================================================
+   BODY METRICS SECTION
+   ========================================================================== */
+
+.body-metrics-section {
+    margin-bottom: 2rem;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 992px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.metric-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.metric-card .metric-label {
+    font-size: 0.8rem;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.metric-card .metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.metric-card .metric-unit {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin-left: 0.25rem;
+}
+
+.metric-card .metric-change {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.metric-card .metric-change.up {
+    color: #dc2626;
+}
+
+.metric-card .metric-change.down {
+    color: #059669;
+}
+
+.metric-card .metric-change.neutral {
+    color: #6b7280;
+}
+
+/* ==========================================================================
+   CARDIO LOG SECTION
+   ========================================================================== */
+
+.cardio-log-section {
+    margin-bottom: 2rem;
+}
+
+.cardio-history {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.cardio-entry {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.15s;
+}
+
+.cardio-entry:last-child {
+    border-bottom: none;
+}
+
+.cardio-entry:hover {
+    background: #f9fafb;
+}
+
+.cardio-entry .activity-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-right: 1rem;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #059669;
+}
+
+.cardio-entry .activity-details {
+    flex: 1;
+}
+
+.cardio-entry .activity-type {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.95rem;
+}
+
+.cardio-entry .activity-date {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.cardio-entry .activity-stats {
+    display: flex;
+    gap: 1.5rem;
+    text-align: right;
+}
+
+.cardio-entry .stat-item {
+    min-width: 60px;
+}
+
+.cardio-entry .stat-item .stat-value {
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 1rem;
+}
+
+.cardio-entry .stat-item .stat-label {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+}
+
+/* ==========================================================================
+   CHARTS SECTION
+   ========================================================================== */
+
+.chart-container {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.chart-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #1f2937;
+    margin: 0;
+}
+
+.chart-period-selector {
+    display: flex;
+    gap: 0.25rem;
+    background: #f3f4f6;
+    border-radius: 8px;
+    padding: 0.25rem;
+}
+
+.chart-period-btn {
+    padding: 0.35rem 0.75rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6b7280;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.chart-period-btn:hover {
+    color: #374151;
+}
+
+.chart-period-btn.active {
+    background: white;
+    color: #4f46e5;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.chart-canvas-wrapper {
+    position: relative;
+    height: 250px;
+}
+
+/* ==========================================================================
+   FORMS
+   ========================================================================== */
+
+.fitness-form-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.fitness-form-card .form-section {
+    margin-bottom: 1.5rem;
+}
+
+.fitness-form-card .form-section:last-child {
+    margin-bottom: 0;
+}
+
+.fitness-form-card .section-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #374151;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fitness-form-card .section-title i {
+    color: #6b7280;
+}
+
+.fitness-form-card .form-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .fitness-form-card .form-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .fitness-form-card .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fitness-form-card .input-group-text {
+    font-size: 0.85rem;
+    background: #f9fafb;
+    border-color: #e5e7eb;
+}
+
+/* Duration Input */
+.duration-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.duration-input input {
+    width: 70px;
+    text-align: center;
+}
+
+.duration-input .duration-separator {
+    font-weight: 600;
+    color: #6b7280;
+}
+
+/* ==========================================================================
+   EMPTY STATES
+   ========================================================================== */
+
+.fitness-empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: #f9fafb;
+    border-radius: 16px;
+    border: 2px dashed #e5e7eb;
+}
+
+.fitness-empty-state .empty-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: #4f46e5;
+}
+
+.fitness-empty-state .empty-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.fitness-empty-state .empty-text {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+}
+
+/* ==========================================================================
+   GOAL DETAIL PAGE
+   ========================================================================== */
+
+.goal-detail-header {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+.goal-detail-header .goal-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.goal-detail-header .goal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.goal-detail-header .goal-subtitle {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.goal-detail-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .goal-detail-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.goal-detail-stats .detail-stat {
+    text-align: center;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.goal-detail-stats .detail-stat .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.goal-detail-stats .detail-stat .stat-label {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* Progress History Table */
+.progress-history-table {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.progress-history-table table {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.progress-history-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #6b7280;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.progress-history-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.progress-history-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* ==========================================================================
+   MODALS
+   ========================================================================== */
+
+.fitness-modal .modal-header {
+    border-bottom: 1px solid #f3f4f6;
+    padding: 1.25rem;
+}
+
+.fitness-modal .modal-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fitness-modal .modal-body {
+    padding: 1.5rem;
+}
+
+.fitness-modal .modal-footer {
+    border-top: 1px solid #f3f4f6;
+    padding: 1rem 1.25rem;
+}
+
+/* ==========================================================================
+   RESPONSIVE ADJUSTMENTS
+   ========================================================================== */
+
+@media (max-width: 576px) {
+    .fitness-stat-card {
+        padding: 1rem;
+    }
+
+    .fitness-stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .quick-log-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .cardio-entry {
+        flex-wrap: wrap;
+    }
+
+    .cardio-entry .activity-stats {
+        width: 100%;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #f3f4f6;
+        justify-content: space-around;
+        text-align: center;
+    }
+}

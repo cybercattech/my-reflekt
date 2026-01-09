@@ -1,0 +1,221 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block dashboard_css %}
+<link href="{% static 'css/pages/fitness.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <a href="{% url 'wellness:fitness_goals' %}" class="text-muted text-decoration-none small">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Goals
+                </a>
+                <h1 class="mb-0 mt-2"><i class="bi bi-flag me-2"></i>{{ title }}</h1>
+            </div>
+
+            <div class="fitness-form-card">
+                <form method="post" id="goalForm">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger mb-4">
+                        <strong>Please correct the errors below:</strong>
+                        <ul class="mb-0 mt-2">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Goal Title -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="bi bi-pencil"></i> Goal Details
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Goal Title</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">{{ form.title.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Goal Type -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="bi bi-bullseye"></i> Goal Type
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">What type of goal?</label>
+                            {{ form.goal_type }}
+                            {% if form.goal_type.errors %}
+                            <div class="invalid-feedback d-block">{{ form.goal_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Conditional fields based on goal type -->
+                        <div id="measurementFields" class="mb-3" style="display: none;">
+                            <label class="form-label">Measurement Type</label>
+                            {{ form.measurement_type }}
+                            {% if form.measurement_type.errors %}
+                            <div class="invalid-feedback d-block">{{ form.measurement_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div id="cardioFields" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">Activity Type</label>
+                                {{ form.activity_type }}
+                                {% if form.activity_type.errors %}
+                                <div class="invalid-feedback d-block">{{ form.activity_type.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3" id="targetDistanceField">
+                                <label class="form-label">Target Distance (miles)</label>
+                                {{ form.target_distance }}
+                                <small class="text-muted">e.g., 3.0 miles</small>
+                                {% if form.target_distance.errors %}
+                                <div class="invalid-feedback d-block">{{ form.target_distance.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3" id="targetTimeFields">
+                                <label class="form-label">Target Time</label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        {{ form.target_time_minutes }}
+                                        <small class="text-muted">Minutes</small>
+                                        {% if form.target_time_minutes.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.target_time_minutes.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-6">
+                                        {{ form.target_time_seconds }}
+                                        <small class="text-muted">Seconds</small>
+                                        {% if form.target_time_seconds.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.target_time_seconds.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <small class="text-muted">e.g., 26 min 0 sec for a 3-mile run</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Values -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="bi bi-graph-up"></i> Target Values
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Starting Value</label>
+                                {{ form.start_value }}
+                                <small class="text-muted">Current/starting point</small>
+                                {% if form.start_value.errors %}
+                                <div class="invalid-feedback d-block">{{ form.start_value.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Target Value</label>
+                                {{ form.target_value }}
+                                <small class="text-muted">Goal to achieve</small>
+                                {% if form.target_value.errors %}
+                                <div class="invalid-feedback d-block">{{ form.target_value.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Unit</label>
+                                {{ form.unit }}
+                                <small class="text-muted">e.g., lbs, inches, min</small>
+                                {% if form.unit.errors %}
+                                <div class="invalid-feedback d-block">{{ form.unit.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="bi bi-calendar"></i> Timeline
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Date</label>
+                                {{ form.start_date }}
+                                {% if form.start_date.errors %}
+                                <div class="invalid-feedback d-block">{{ form.start_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Target Date</label>
+                                {{ form.target_date }}
+                                {% if form.target_date.errors %}
+                                <div class="invalid-feedback d-block">{{ form.target_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-section">
+                        <label class="form-label">Notes (optional)</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>
+                            {% if goal %}Update Goal{% else %}Create Goal{% endif %}
+                        </button>
+                        <a href="{% url 'wellness:fitness_goals' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const goalTypeSelect = document.getElementById('id_goal_type');
+    const measurementFields = document.getElementById('measurementFields');
+    const cardioFields = document.getElementById('cardioFields');
+
+    function updateFields() {
+        const goalType = goalTypeSelect.value;
+
+        // Hide all conditional fields
+        measurementFields.style.display = 'none';
+        cardioFields.style.display = 'none';
+
+        // Show relevant fields
+        if (goalType === 'weight' || goalType === 'measurement') {
+            measurementFields.style.display = 'block';
+        } else if (goalType === 'cardio' || goalType === 'cardio_time' || goalType === 'cardio_distance') {
+            cardioFields.style.display = 'block';
+        }
+    }
+
+    goalTypeSelect.addEventListener('change', updateFields);
+
+    // Initialize on page load
+    updateFields();
+});
+</script>
+{% endblock %}

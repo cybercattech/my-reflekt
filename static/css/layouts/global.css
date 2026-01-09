@@ -232,6 +232,11 @@ body.no-footer .site-footer {
     .has-sidebar-right .new-entry-btn-container {
         right: 20px;
     }
+
+    /* Stack above feedback FAB on mobile */
+    .new-entry-btn-container {
+        bottom: 144px; /* Above feedback FAB (80px + 64px button height) */
+    }
 }
 
 /* ==========================================================================

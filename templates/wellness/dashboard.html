@@ -1,195 +1,10 @@
 {% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
 
 {% block title %}Wellness{% endblock %}
 
 {% block dashboard_css %}
-<style>
-    /* Wellness Stats Grid - Dynamic based on enabled features */
-    .wellness-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    @media (max-width: 768px) {
-        .wellness-stats {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .wellness-card {
-        border-radius: 16px;
-        padding: 1.5rem;
-        color: white;
-        position: relative;
-        overflow: hidden;
-        text-decoration: none;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .wellness-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        color: white;
-    }
-
-    .wellness-card.pain {
-        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-    }
-
-    .wellness-card.intimacy {
-        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-    }
-
-    .wellness-card.cycle {
-        background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
-    }
-
-    .wellness-card .card-icon {
-        font-size: 3rem;
-        opacity: 0.3;
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-    }
-
-    .wellness-card .card-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .wellness-card .card-stat {
-        font-size: 2.5rem;
-        font-weight: 700;
-        line-height: 1;
-    }
-
-    .wellness-card .card-sub {
-        font-size: 0.85rem;
-        opacity: 0.8;
-        margin-top: 0.5rem;
-    }
-
-    /* Quick Actions */
-    .quick-actions {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-    }
-
-    .quick-action-btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: 12px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.2s ease;
-    }
-
-    .quick-action-btn.pain {
-        background: #fef2f2;
-        color: #dc2626;
-        border: 1px solid #fecaca;
-    }
-
-    .quick-action-btn.pain:hover {
-        background: #fee2e2;
-        border-color: #fca5a5;
-    }
-
-    .quick-action-btn.intimacy {
-        background: #ecfdf5;
-        color: #059669;
-        border: 1px solid #a7f3d0;
-    }
-
-    .quick-action-btn.intimacy:hover {
-        background: #d1fae5;
-        border-color: #6ee7b7;
-    }
-
-    .quick-action-btn.cycle {
-        background: #fdf2f8;
-        color: #db2777;
-        border: 1px solid #fbcfe8;
-    }
-
-    .quick-action-btn.cycle:hover {
-        background: #fce7f3;
-        border-color: #f9a8d4;
-    }
-
-    /* Recent Activity */
-    .activity-list {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        overflow: hidden;
-    }
-
-    .activity-list .list-header {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        padding: 1rem 1.25rem;
-        font-weight: 600;
-        color: #374151;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .activity-item {
-        display: flex;
-        align-items: center;
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .activity-item:last-child {
-        border-bottom: none;
-    }
-
-    .activity-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 1rem;
-        font-size: 1.25rem;
-    }
-
-    .activity-icon.pain {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-
-    .activity-icon.intimacy {
-        background: #ecfdf5;
-        color: #059669;
-    }
-
-    .activity-icon.cycle {
-        background: #fdf2f8;
-        color: #db2777;
-    }
-
-    .activity-content {
-        flex: 1;
-    }
-
-    .activity-title {
-        font-weight: 500;
-        color: #374151;
-    }
-
-    .activity-time {
-        font-size: 0.8rem;
-        color: #9ca3af;
-    }
-</style>
+<link href="{% static 'css/pages/wellness.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block dashboard_content %}
@@ -203,9 +18,12 @@
         <a href="{% url 'wellness:pain_log' %}" class="quick-action-btn pain">
             <i class="bi bi-bandaid"></i> Log Pain
         </a>
+        <a href="{% url 'wellness:fitness_dashboard' %}" class="quick-action-btn fitness">
+            <i class="bi bi-heart-pulse"></i> Body Fitness
+        </a>
         {% if enable_intimacy %}
         <button class="quick-action-btn intimacy" onclick="logIntimacy()">
-            <span style="font-size: 1.1rem;">🍀</span> Log Moment
+            <span style="font-size: 1.1rem;">&#x1F340;</span> Log Moment
         </button>
         {% endif %}
         {% if enable_cycle %}
@@ -217,29 +35,51 @@
 
     <!-- Stats Cards -->
     <div class="wellness-stats">
+        <!-- Pain Card -->
         <a href="{% url 'wellness:pain' %}" class="wellness-card pain">
             <i class="bi bi-bandaid card-icon"></i>
             <div class="card-title">Pain Tracking</div>
             <div class="card-stat">{{ pain_this_month }}</div>
             <div class="card-sub">
                 episodes this month
-                {% if avg_pain_intensity %}· avg {{ avg_pain_intensity }}/10{% endif %}
+                {% if avg_pain_intensity %}&#183; avg {{ avg_pain_intensity }}/10{% endif %}
+            </div>
+        </a>
+
+        <!-- Fitness Card -->
+        <a href="{% url 'wellness:fitness_dashboard' %}" class="wellness-card fitness">
+            <i class="bi bi-heart-pulse card-icon"></i>
+            <div class="card-title">Body Fitness</div>
+            <div class="card-stat">
+                {% if latest_metric and latest_metric.weight %}
+                    {{ latest_metric.weight }}
+                {% else %}
+                    --
+                {% endif %}
+            </div>
+            <div class="card-sub">
+                {% if latest_metric %}{{ latest_metric.weight_unit }}{% else %}lbs{% endif %}
+                {% if weight_change %}
+                    &#183; {% if weight_change > 0 %}+{% endif %}{{ weight_change|floatformat:1 }} since last
+                {% endif %}
             </div>
         </a>
 
         {% if enable_intimacy %}
+        <!-- Intimacy Card -->
         <a href="{% url 'wellness:intimacy' %}" class="wellness-card intimacy">
-            <span class="card-icon">🍀</span>
+            <span class="card-icon">&#x1F340;</span>
             <div class="card-title">Special Moments</div>
             <div class="card-stat">{{ intimacy_this_month }}</div>
             <div class="card-sub">
                 this month
-                {% if last_intimacy %}· last {{ last_intimacy.logged_at|timesince }} ago{% endif %}
+                {% if last_intimacy %}&#183; last {{ last_intimacy.logged_at|timesince }} ago{% endif %}
             </div>
         </a>
         {% endif %}
 
         {% if enable_cycle %}
+        <!-- Cycle Card -->
         <a href="{% url 'wellness:cycle' %}" class="wellness-card cycle">
             <i class="bi bi-calendar-heart card-icon"></i>
             <div class="card-title">Cycle Tracking</div>
@@ -248,7 +88,7 @@
             </div>
             <div class="card-sub">
                 {% if cycle_prediction %}
-                    day avg cycle · next {{ cycle_prediction.predicted_start|date:"M j" }}
+                    day avg cycle &#183; next {{ cycle_prediction.predicted_start|date:"M j" }}
                 {% else %}
                     Start tracking to see predictions
                 {% endif %}
@@ -257,8 +97,8 @@
         {% endif %}
     </div>
 
-    <!-- Recent Activity -->
     <div class="row">
+        <!-- Recent Activity -->
         <div class="col-lg-8">
             <div class="activity-list">
                 <div class="list-header">
@@ -279,29 +119,73 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-heart-pulse" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p class="mt-2 mb-0">No recent wellness logs</p>
-                        <p class="small">Start tracking to see your activity here</p>
+                    <div class="wellness-empty-state">
+                        <div class="empty-icon">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <p>No recent wellness logs</p>
+                        <p class="small text-muted">Start tracking to see your activity here</p>
                     </div>
                 {% endif %}
             </div>
+
+            <!-- Fitness Goals Preview -->
+            {% if active_fitness_goals %}
+            <div class="fitness-goals-preview">
+                <div class="preview-header">
+                    <span><i class="bi bi-flag me-2"></i>Active Fitness Goals</span>
+                    <a href="{% url 'wellness:fitness_goals' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                {% for goal in active_fitness_goals %}
+                <div class="fitness-goal-mini">
+                    <div class="goal-name">
+                        {{ goal.title }}
+                        {% if goal.is_cardio_combo %}
+                            <span class="text-muted small">- {{ goal.target_distance }} mi in {{ goal.target_time_display }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="goal-progress">
+                        <div class="progress-bar-mini">
+                            <div class="progress-fill {{ goal.on_track_status|default:'unknown' }}"
+                                 style="width: {{ goal.progress_percentage }}%"></div>
+                        </div>
+                        <span class="progress-text">{{ goal.progress_percentage|floatformat:0 }}%</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
 
+        <!-- Sidebar -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
-                <div class="card-body">
-                    <h6 class="text-muted mb-3"><i class="bi bi-lightbulb me-2"></i>Insights</h6>
-                    <p class="text-muted small">
-                        Track your wellness data regularly to discover patterns and correlations
-                        between pain, mood, weather, and other factors.
-                    </p>
-                    <hr>
-                    <p class="small mb-0">
-                        <i class="bi bi-shield-lock me-2 text-success"></i>
-                        Your wellness data is private and encrypted.
-                    </p>
+            <!-- Cardio Summary -->
+            <div class="insights-card mb-3">
+                <h6><i class="bi bi-activity me-2"></i>Cardio This Month</h6>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="h3 mb-0">{{ total_distance }}</div>
+                        <small class="text-muted">miles total</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="h3 mb-0">{{ cardio_count }}</div>
+                        <small class="text-muted">workouts</small>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Insights -->
+            <div class="insights-card">
+                <h6><i class="bi bi-lightbulb me-2"></i>Insights</h6>
+                <p class="text-muted small">
+                    Track your wellness data regularly to discover patterns and correlations
+                    between pain, mood, fitness, and other factors.
+                </p>
+                <hr>
+                <p class="small mb-0">
+                    <i class="bi bi-shield-lock me-2 text-success"></i>
+                    Your wellness data is private and encrypted.
+                </p>
             </div>
         </div>
     </div>
@@ -313,7 +197,7 @@
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content" style="border-radius: 16px;">
             <div class="modal-header border-0" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white;">
-                <h5 class="modal-title"><span style="font-size: 1.25rem;">🍀</span> Log Moment</h5>
+                <h5 class="modal-title"><span style="font-size: 1.25rem;">&#x1F340;</span> Log Moment</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">

@@ -241,6 +241,8 @@
     padding: 0.75rem 0 6.5rem 0; /* Extra bottom padding for tutorial link + collapse button */
     /* Ensure scrolling works - calculate height minus toggle button area */
     max-height: calc(100vh - 56px - 60px); /* viewport - navbar - collapse button area */
+    /* iOS smooth scrolling */
+    -webkit-overflow-scrolling: touch;
 }
 
 .sidebar-content::-webkit-scrollbar {
@@ -540,6 +542,40 @@ body.sidebar-collapsed .footer-with-sidebar {
 
     .app-sidebar.show {
         transform: translateX(0);
+    }
+
+    /* Hide collapse toggle on mobile - we use slide-in overlay instead */
+    .sidebar-collapse-toggle {
+        display: none;
+    }
+
+    /* Ensure collapsed state doesn't apply on mobile */
+    .app-sidebar.collapsed {
+        width: 280px;
+    }
+
+    /* Show all sidebar text on mobile even if collapsed class is present */
+    .app-sidebar.collapsed .sidebar-section-toggle span,
+    .app-sidebar.collapsed .sidebar-link span,
+    .app-sidebar.collapsed .toggle-icon,
+    .app-sidebar.collapsed .sidebar-link .badge {
+        display: inline;
+    }
+
+    .app-sidebar.collapsed .sidebar-section-toggle {
+        justify-content: flex-start;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .app-sidebar.collapsed .sidebar-link {
+        justify-content: flex-start;
+        padding: 0.5rem 1.25rem;
+        margin: 2px 0.5rem 2px 0;
+    }
+
+    .app-sidebar.collapsed .sidebar-section-content {
+        padding-left: 1rem;
+        display: block;
     }
 
     .main-content-with-sidebar {

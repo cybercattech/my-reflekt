@@ -942,7 +942,7 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 99999;
+    z-index: 1060; /* Above Bootstrap modals (1050) but reasonable */
     justify-content: center;
     align-items: center;
 }

@@ -3,9 +3,10 @@ POV (Point of View) Sharing Service.
 
 Handles parsing, validation, and management of shared POV blocks.
 
-Supports two syntax formats:
+Supports multiple syntax formats:
 1. {pov} @username content here {/pov}  - with explicit closing tag
 2. {pov} @username content here          - without closing tag (ends at blank line or next {pov})
+3. <p>{pov} @username</p><p>content</p><p>{/pov}</p>  - HTML-wrapped (from Quill editor)
 """
 import re
 import hashlib
@@ -18,17 +19,24 @@ from apps.accounts.models import Friendship, Profile
 
 logger = logging.getLogger(__name__)
 
+# Regex pattern for HTML-wrapped POV blocks (from Quill editor)
+# Matches: <p>{pov} @username</p>...<p>{/pov}</p>
+POV_PATTERN_HTML = re.compile(
+    r'(?:<p[^>]*>)?\s*\{pov\}\s*@?([\w,\s@]+?)(?:</p>|<br\s*/?>|\n)\s*(.*?)\s*(?:<p[^>]*>)?\s*\{/pov\}\s*(?:</p>)?',
+    re.DOTALL | re.IGNORECASE
+)
+
 # Regex pattern for POV blocks with closing tag: {pov} @user1 @user2 content {/pov}
 # Usernames should be on first line (with or without @ prefix), content starts after newline
 POV_PATTERN_CLOSED = re.compile(
-    r'\{pov\}\s*([^\n]+?)\s*\n(.*?)\{/pov\}',
+    r'\{pov\}\s*@?([\w,\s@]+?)\s*[\n<](.*?)\{/pov\}',
     re.DOTALL | re.IGNORECASE
 )
 
 # Regex pattern for POV blocks without closing tag: {pov} @user content (until blank line or end)
 # Usernames should be on first line, content starts after newline
 POV_PATTERN_OPEN = re.compile(
-    r'\{pov\}\s*([^\n]+?)\s*\n([^\n]*(?:\n(?!\n|\{pov\})[^\n]*)*)',
+    r'\{pov\}\s*@?([\w,\s@]+?)\s*\n([^\n]*(?:\n(?!\n|\{pov\})[^\n]*)*)',
     re.IGNORECASE
 )
 
@@ -37,17 +45,31 @@ POV_PATTERN_OPEN = re.compile(
 USERNAME_PATTERN = re.compile(r'@?([\w]+)')
 
 
+def strip_html_tags(text: str) -> str:
+    """Strip HTML tags from text, converting <br> and </p> to newlines."""
+    if not text:
+        return ''
+    # Convert block-ending tags to newlines
+    text = re.sub(r'</p>|<br\s*/?>', '\n', text, flags=re.IGNORECASE)
+    # Remove all remaining HTML tags
+    text = re.sub(r'<[^>]+>', '', text)
+    # Clean up excessive whitespace
+    text = re.sub(r'\n\s*\n', '\n\n', text)
+    return text.strip()
+
+
 def parse_pov_blocks(content: str) -> list:
     """
     Parse all POV blocks from entry content.
 
-    Supports two formats:
-    1. {pov} @user content {/pov}  - explicit closing
+    Supports multiple formats:
+    1. {pov} @user content {/pov}  - explicit closing (plain text)
     2. {pov} @user content         - ends at blank line or next {pov}
+    3. <p>{pov} @user</p>...<p>{/pov}</p>  - HTML-wrapped (from Quill editor)
 
     Returns list of dicts with:
     - usernames: list of mentioned usernames
-    - content: the POV content
+    - content: the POV content (with HTML stripped)
     - start: start position in original text
     - end: end position in original text
     - raw: the full raw match
@@ -55,24 +77,25 @@ def parse_pov_blocks(content: str) -> list:
     blocks = []
     processed_ranges = []
 
-    # First, find all blocks with closing tags (higher priority)
-    for match in POV_PATTERN_CLOSED.finditer(content):
+    # First, try HTML-wrapped pattern (from Quill editor) - highest priority
+    for match in POV_PATTERN_HTML.finditer(content):
         username_str = match.group(1)
-        pov_content = match.group(2).strip()
+        pov_content = strip_html_tags(match.group(2).strip())
         usernames = USERNAME_PATTERN.findall(username_str)
 
-        blocks.append({
-            'usernames': [u.lower() for u in usernames],
-            'content': pov_content,
-            'start': match.start(),
-            'end': match.end(),
-            'raw': match.group(0),
-        })
-        processed_ranges.append((match.start(), match.end()))
+        if usernames and pov_content:
+            blocks.append({
+                'usernames': [u.lower() for u in usernames],
+                'content': pov_content,
+                'start': match.start(),
+                'end': match.end(),
+                'raw': match.group(0),
+            })
+            processed_ranges.append((match.start(), match.end()))
 
-    # Then find blocks without closing tags (skip if overlaps with closed blocks)
-    for match in POV_PATTERN_OPEN.finditer(content):
-        # Skip if this range overlaps with an already-processed closed block
+    # Then, find all blocks with closing tags
+    for match in POV_PATTERN_CLOSED.finditer(content):
+        # Skip if this range overlaps with an already-processed block
         start, end = match.start(), match.end()
         overlaps = any(
             (start >= r[0] and start < r[1]) or (end > r[0] and end <= r[1])
@@ -82,7 +105,32 @@ def parse_pov_blocks(content: str) -> list:
             continue
 
         username_str = match.group(1)
-        pov_content = match.group(2).strip()
+        pov_content = strip_html_tags(match.group(2).strip())
+        usernames = USERNAME_PATTERN.findall(username_str)
+
+        if usernames:
+            blocks.append({
+                'usernames': [u.lower() for u in usernames],
+                'content': pov_content,
+                'start': match.start(),
+                'end': match.end(),
+                'raw': match.group(0),
+            })
+            processed_ranges.append((match.start(), match.end()))
+
+    # Finally, find blocks without closing tags (skip if overlaps)
+    for match in POV_PATTERN_OPEN.finditer(content):
+        # Skip if this range overlaps with an already-processed block
+        start, end = match.start(), match.end()
+        overlaps = any(
+            (start >= r[0] and start < r[1]) or (end > r[0] and end <= r[1])
+            for r in processed_ranges
+        )
+        if overlaps:
+            continue
+
+        username_str = match.group(1)
+        pov_content = strip_html_tags(match.group(2).strip())
         usernames = USERNAME_PATTERN.findall(username_str)
 
         # Only add if we found valid usernames and content

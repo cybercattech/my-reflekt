@@ -1,0 +1,41 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Delete Goal{% endblock %}
+
+{% block dashboard_css %}
+<link href="{% static 'css/pages/fitness.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="fitness-form-card text-center">
+                <div class="mb-4">
+                    <i class="bi bi-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+                </div>
+
+                <h3 class="mb-3">Delete Goal?</h3>
+
+                <p class="text-muted mb-4">
+                    Are you sure you want to delete <strong>"{{ goal.title }}"</strong>?
+                    This will also delete all progress history for this goal.
+                </p>
+
+                <div class="d-flex gap-2 justify-content-center">
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i> Yes, Delete
+                        </button>
+                    </form>
+                    <a href="{% url 'wellness:fitness_goals' %}" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}

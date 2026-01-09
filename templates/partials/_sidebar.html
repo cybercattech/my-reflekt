@@ -261,6 +261,10 @@
                     <span>Cycle Tracking</span>
                 </a>
                 {% endif %}
+                <a href="{% url 'wellness:fitness_dashboard' %}" class="sidebar-link {% if active_page == 'body_fitness' %}active{% endif %}" data-tooltip="Body Fitness">
+                    <span class="link-dot green"></span>
+                    <span>Body Fitness</span>
+                </a>
                 {% else %}
                 <a href="{% url 'accounts:upgrade' %}" class="sidebar-link" data-tooltip="Wellness">
                     <span class="link-dot"></span>
@@ -487,9 +491,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Sidebar collapse toggle
     const collapseToggle = document.getElementById('sidebarCollapseToggle');
     if (collapseToggle && sidebar) {
-        // Restore collapsed state
+        // Restore collapsed state ONLY on desktop (>= 992px)
+        // On mobile/tablet, we use slide-in overlay instead of collapsed state
         const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-        if (isCollapsed) {
+        if (isCollapsed && window.innerWidth >= 992) {
             sidebar.classList.add('collapsed');
             document.body.classList.add('sidebar-collapsed');
             // Close all sections when starting collapsed
@@ -551,44 +556,71 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Hover to expand collapsed sidebar
-    if (sidebar) {
-        sidebar.onmouseenter = function() {
-            if (this.classList.contains('collapsed')) {
-                this.classList.add('hover-expanded');
-                // Restore sections when hovering
-                const savedSections = localStorage.getItem('sidebarSectionsBeforeCollapse');
-                if (savedSections) {
-                    const sections = JSON.parse(savedSections);
-                    sections.forEach(function(section) {
-                        const toggle = document.querySelector('[data-section="' + section + '"]');
-                        const content = document.getElementById('section-' + section);
-                        if (toggle && content) {
-                            toggle.classList.add('active');
-                            content.classList.add('show');
-                        }
-                    });
+    // Expand collapsed sidebar function
+    function expandCollapsedSidebar() {
+        if (!sidebar.classList.contains('collapsed')) return;
+
+        sidebar.classList.add('hover-expanded');
+        // Restore sections when hovering/touching
+        const savedSections = localStorage.getItem('sidebarSectionsBeforeCollapse');
+        if (savedSections) {
+            const sections = JSON.parse(savedSections);
+            sections.forEach(function(section) {
+                const toggle = document.querySelector('[data-section="' + section + '"]');
+                const content = document.getElementById('section-' + section);
+                if (toggle && content) {
+                    toggle.classList.add('active');
+                    content.classList.add('show');
                 }
-                // Also ensure active page section is open
-                document.querySelectorAll('.sidebar-link.active').forEach(function(link) {
-                    const content = link.closest('.sidebar-section-content');
-                    if (content) {
-                        content.classList.add('show');
-                        const toggle = content.previousElementSibling;
-                        if (toggle && toggle.classList.contains('sidebar-section-toggle')) {
-                            toggle.classList.add('active');
-                        }
-                    }
-                });
+            });
+        }
+        // Also ensure active page section is open
+        document.querySelectorAll('.sidebar-link.active').forEach(function(link) {
+            const content = link.closest('.sidebar-section-content');
+            if (content) {
+                content.classList.add('show');
+                const toggle = content.previousElementSibling;
+                if (toggle && toggle.classList.contains('sidebar-section-toggle')) {
+                    toggle.classList.add('active');
+                }
             }
-        };
-        sidebar.onmouseleave = function() {
-            if (this.classList.contains('collapsed')) {
-                this.classList.remove('hover-expanded');
-                // Close sections again when mouse leaves
-                closeAllSections();
+        });
+    }
+
+    function collapseCollapsedSidebar() {
+        if (!sidebar.classList.contains('collapsed')) return;
+
+        sidebar.classList.remove('hover-expanded');
+        closeAllSections();
+    }
+
+    // Hover to expand collapsed sidebar (desktop)
+    if (sidebar) {
+        sidebar.onmouseenter = expandCollapsedSidebar;
+        sidebar.onmouseleave = collapseCollapsedSidebar;
+
+        // Touch support for collapsed sidebar (tablets in desktop mode only)
+        // Only activate on larger screens where collapsed sidebar is used
+        sidebar.addEventListener('touchstart', function(e) {
+            // Only handle collapsed sidebar expansion on larger screens (>= 992px)
+            // On mobile/tablet, we use the slide-in overlay instead
+            if (window.innerWidth >= 992 &&
+                this.classList.contains('collapsed') &&
+                !this.classList.contains('hover-expanded')) {
+                e.preventDefault();
+                expandCollapsedSidebar();
             }
-        };
+        }, { passive: false });
+
+        // Close expanded sidebar when touching outside (desktop/large tablets only)
+        document.addEventListener('touchstart', function(e) {
+            if (window.innerWidth >= 992 &&
+                sidebar.classList.contains('collapsed') &&
+                sidebar.classList.contains('hover-expanded') &&
+                !sidebar.contains(e.target)) {
+                collapseCollapsedSidebar();
+            }
+        });
     }
 });
 </script>

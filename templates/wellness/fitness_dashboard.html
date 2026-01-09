@@ -1,0 +1,486 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Body Fitness{% endblock %}
+
+{% block dashboard_css %}
+<link href="{% static 'css/pages/fitness.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0"><i class="bi bi-heart-pulse-fill me-2"></i>Body Fitness</h1>
+        <a href="{% url 'wellness:create_fitness_goal' %}" class="btn btn-primary rounded-pill">
+            <i class="bi bi-plus-lg me-1"></i> New Goal
+        </a>
+    </div>
+
+    <!-- Quick Log Buttons -->
+    <div class="quick-log-buttons">
+        <button class="quick-log-btn weight" data-bs-toggle="modal" data-bs-target="#weightModal">
+            <i class="bi bi-speedometer"></i> Log Weight
+        </button>
+        <button class="quick-log-btn cardio" data-bs-toggle="modal" data-bs-target="#cardioModal">
+            <i class="bi bi-stopwatch"></i> Log Cardio
+        </button>
+        <a href="{% url 'wellness:body_metrics' %}" class="quick-log-btn measurement">
+            <i class="bi bi-rulers"></i> Log Measurements
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="fitness-stats-row">
+        <div class="fitness-stat-card weight">
+            <div class="stat-icon">
+                <i class="bi bi-speedometer"></i>
+            </div>
+            <div class="stat-value">
+                {% if latest_metric and latest_metric.weight %}
+                    {{ latest_metric.weight }}
+                {% else %}
+                    --
+                {% endif %}
+            </div>
+            <div class="stat-label">
+                {% if latest_metric %}{{ latest_metric.weight_unit }}{% else %}lbs{% endif %}
+            </div>
+            {% if weight_change %}
+            <div class="stat-change {% if weight_change < 0 %}positive{% else %}negative{% endif %}">
+                {% if weight_change > 0 %}+{% endif %}{{ weight_change|floatformat:1 }} since last
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="fitness-stat-card cardio">
+            <div class="stat-icon">
+                <i class="bi bi-bicycle"></i>
+            </div>
+            <div class="stat-value">{{ total_distance }}</div>
+            <div class="stat-label">miles this month</div>
+            <div class="stat-change">{{ cardio_count }} workouts</div>
+        </div>
+
+        <div class="fitness-stat-card goal">
+            <div class="stat-icon">
+                <i class="bi bi-bullseye"></i>
+            </div>
+            <div class="stat-value">{{ active_goals|length }}</div>
+            <div class="stat-label">active goals</div>
+            <div class="stat-change">{{ completed_goals_count }} completed</div>
+        </div>
+
+        <div class="fitness-stat-card measurement">
+            <div class="stat-icon">
+                <i class="bi bi-rulers"></i>
+            </div>
+            <div class="stat-value">
+                {% if latest_metric and latest_metric.body_fat %}
+                    {{ latest_metric.body_fat }}%
+                {% else %}
+                    --
+                {% endif %}
+            </div>
+            <div class="stat-label">body fat</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Active Goals -->
+        <div class="col-lg-8">
+            <div class="fitness-goals-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-flag me-2"></i>Active Goals</h5>
+                    <a href="{% url 'wellness:fitness_goals' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                </div>
+
+                {% if active_goals %}
+                <div class="fitness-goals-grid">
+                    {% for goal in active_goals %}
+                    <div class="fitness-goal-card">
+                        <div class="goal-header">
+                            <div>
+                                <h6 class="goal-title">{{ goal.title }}</h6>
+                                <div class="goal-type">
+                                    {{ goal.get_goal_type_display }}
+                                    {% if goal.is_cardio_combo %}
+                                        <span class="text-muted">- {{ goal.target_distance }} mi in {{ goal.target_time_display }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="goal-icon">
+                                <i class="{{ goal.icon }}"></i>
+                            </div>
+                        </div>
+
+                        <div class="progress-section">
+                            <div class="progress-info">
+                                <span class="progress-current">
+                                    {% if goal.current_value %}{{ goal.current_value|floatformat:1 }}{% else %}--{% endif %}
+                                </span>
+                                <span class="progress-target">/ {{ goal.target_value|floatformat:1 }} {{ goal.unit }}</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar {{ goal.on_track_status }}"
+                                     style="width: {{ goal.progress_percentage }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="schedule-status {{ goal.on_track_status }}">
+                            {% if goal.on_track_status == 'ahead' %}
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Ahead of schedule ({{ goal.variance_display }})</span>
+                            {% elif goal.on_track_status == 'behind' %}
+                                <i class="bi bi-exclamation-circle-fill"></i>
+                                <span>Behind schedule ({{ goal.variance_display }})</span>
+                            {% elif goal.on_track_status == 'on_track' %}
+                                <i class="bi bi-check-circle"></i>
+                                <span>On track</span>
+                            {% else %}
+                                <i class="bi bi-question-circle"></i>
+                                <span>Log progress to track</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="goal-footer">
+                            <span class="days-remaining">
+                                {% if goal.days_remaining %}{{ goal.days_remaining }} days left{% else %}--{% endif %}
+                            </span>
+                            <div class="goal-actions">
+                                <a href="{% url 'wellness:fitness_goal_detail' goal.pk %}" class="goal-action-btn" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="fitness-empty-state">
+                    <div class="empty-icon">
+                        <i class="bi bi-flag"></i>
+                    </div>
+                    <div class="empty-title">No active goals</div>
+                    <div class="empty-text">Set fitness goals to track your progress</div>
+                    <a href="{% url 'wellness:create_fitness_goal' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Create Goal
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Weight Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h5 class="chart-title"><i class="bi bi-graph-up me-2"></i>Weight Trend</h5>
+                    <div class="chart-period-selector">
+                        <button class="chart-period-btn active" data-days="30">30D</button>
+                        <button class="chart-period-btn" data-days="90">90D</button>
+                        <button class="chart-period-btn" data-days="180">6M</button>
+                    </div>
+                </div>
+                <div class="chart-canvas-wrapper">
+                    <canvas id="weightChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Cardio -->
+        <div class="col-lg-4">
+            <div class="cardio-log-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-activity me-2"></i>Recent Cardio</h5>
+                    <a href="{% url 'wellness:cardio_log' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                </div>
+
+                {% if recent_cardio %}
+                <div class="cardio-history">
+                    {% for log in recent_cardio %}
+                    <div class="cardio-entry">
+                        <div class="activity-icon">
+                            <i class="{{ log.icon }}"></i>
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-type">{{ log.activity_display }}</div>
+                            <div class="activity-date">{{ log.logged_at|date:"M j" }}</div>
+                        </div>
+                        <div class="activity-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">{{ log.distance }}</div>
+                                <div class="stat-label">mi</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ log.duration_display }}</div>
+                                <div class="stat-label">time</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ log.pace_display }}</div>
+                                <div class="stat-label">pace</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="fitness-empty-state">
+                    <div class="empty-icon">
+                        <i class="bi bi-bicycle"></i>
+                    </div>
+                    <div class="empty-title">No cardio logged</div>
+                    <div class="empty-text">Track your runs, walks, and more</div>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#cardioModal">
+                        <i class="bi bi-plus-lg me-1"></i> Log Cardio
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Weight Log Modal -->
+<div class="modal fade fitness-modal" id="weightModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-speedometer me-2"></i>Log Weight
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Weight</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control form-control-lg" id="quickWeight"
+                               step="0.1" placeholder="Enter weight" autofocus>
+                        <select class="form-select" id="quickWeightUnit" style="max-width: 100px;">
+                            <option value="lbs" selected>lbs</option>
+                            <option value="kg">kg</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveQuickWeight()">
+                    <i class="bi bi-check-lg me-1"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cardio Log Modal -->
+<div class="modal fade fitness-modal" id="cardioModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-stopwatch me-2"></i>Log Cardio
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Activity</label>
+                    <select class="form-select" id="cardioActivity">
+                        <option value="run">Running</option>
+                        <option value="walk">Walking</option>
+                        <option value="bike">Cycling</option>
+                        <option value="swim">Swimming</option>
+                        <option value="elliptical">Elliptical</option>
+                        <option value="rowing">Rowing</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Distance (miles)</label>
+                    <input type="number" class="form-control" id="cardioDistance"
+                           step="0.01" placeholder="0.00">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Duration</label>
+                    <div class="duration-input">
+                        <input type="number" class="form-control" id="cardioMinutes"
+                               placeholder="min" min="0">
+                        <span class="duration-separator">:</span>
+                        <input type="number" class="form-control" id="cardioSeconds"
+                               placeholder="sec" min="0" max="59">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Notes (optional)</label>
+                    <textarea class="form-control" id="cardioNotes" rows="2"
+                              placeholder="How did it feel?"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="saveCardio()">
+                    <i class="bi bi-check-lg me-1"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}
+
+{% block dashboard_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Weight chart data from server
+const weightChartData = {{ weight_chart_data|safe }};
+let weightChart = null;
+
+// Initialize weight chart
+function initWeightChart() {
+    const ctx = document.getElementById('weightChart').getContext('2d');
+
+    if (weightChartData.length === 0) {
+        // Show empty state
+        ctx.font = '14px system-ui';
+        ctx.fillStyle = '#6b7280';
+        ctx.textAlign = 'center';
+        ctx.fillText('No weight data yet. Start logging!', ctx.canvas.width / 2, ctx.canvas.height / 2);
+        return;
+    }
+
+    weightChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: weightChartData.map(d => d.date),
+            datasets: [{
+                label: 'Weight',
+                data: weightChartData.map(d => d.weight),
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        color: '#f3f4f6'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Period selector
+document.querySelectorAll('.chart-period-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.chart-period-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        loadWeightData(this.dataset.days);
+    });
+});
+
+function loadWeightData(days) {
+    fetch(`{% url 'wellness:api_weight_chart' %}?days=${days}`)
+        .then(response => response.json())
+        .then(data => {
+            if (weightChart) {
+                weightChart.data.labels = data.data.map(d => d.date);
+                weightChart.data.datasets[0].data = data.data.map(d => d.weight);
+                weightChart.update();
+            }
+        });
+}
+
+// Quick weight save
+function saveQuickWeight() {
+    const weight = document.getElementById('quickWeight').value;
+    const unit = document.getElementById('quickWeightUnit').value;
+
+    if (!weight) {
+        alert('Please enter a weight');
+        return;
+    }
+
+    fetch('{% url "wellness:api_log_body_metric" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            weight: parseFloat(weight),
+            weight_unit: unit
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('weightModal')).hide();
+            location.reload();
+        } else {
+            alert(data.error || 'Error saving weight');
+        }
+    });
+}
+
+// Cardio save
+function saveCardio() {
+    const activity = document.getElementById('cardioActivity').value;
+    const distance = document.getElementById('cardioDistance').value;
+    const minutes = document.getElementById('cardioMinutes').value;
+    const seconds = document.getElementById('cardioSeconds').value || 0;
+    const notes = document.getElementById('cardioNotes').value;
+
+    if (!distance || !minutes) {
+        alert('Please enter distance and duration');
+        return;
+    }
+
+    fetch('{% url "wellness:api_log_cardio" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            activity_type: activity,
+            distance: parseFloat(distance),
+            duration_minutes: parseInt(minutes),
+            duration_seconds: parseInt(seconds),
+            notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('cardioModal')).hide();
+            location.reload();
+        } else {
+            alert(data.error || 'Error saving cardio');
+        }
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initWeightChart();
+});
+</script>
+{% endblock %}

@@ -184,6 +184,7 @@ def process_pov_blocks(text):
     1. Injected POV (new format): ```pov @username\ncontent\n```
     2. Injected POV (old format): ```{pov} @username\ncontent\n```
     3. Author's POV (in author's journal): {pov} @username content {/pov}
+    4. HTML-wrapped POV (from Quill editor): <p>{pov} @username</p><p>content</p><p>{/pov}</p>
     """
     def replace_injected_pov(match):
         username = match.group(1)
@@ -202,13 +203,13 @@ def process_pov_blocks(text):
     injected_pattern_old = r'```\{pov\}\s*@(\w+)\s*\n(.*?)```'
     text = re.sub(injected_pattern_old, replace_injected_pov, text, flags=re.DOTALL)
 
-    # Pattern 2: Author's POV blocks with closing tag: {pov} username(s)\ncontent\n{/pov}
-    # Usernames can be with or without @ prefix, must be on first line
-    author_pattern_closed = r'\{pov\}\s*([^\n]+?)\s*\n(.*?)\{/pov\}'
-
     def replace_author_pov(match):
         usernames_str = match.group(1).strip()
-        content = process_block_content(match.group(2).strip())
+        content = match.group(2).strip()
+        # Strip HTML tags from content for processing, then re-add paragraph structure
+        content_clean = re.sub(r'<[^>]+>', ' ', content)
+        content_clean = re.sub(r'\s+', ' ', content_clean).strip()
+        content = process_block_content(content_clean) if content_clean else ''
         # Extract usernames (with or without @ prefix)
         usernames = re.findall(r'@?([\w]+)', usernames_str)
         recipients = ', '.join(f'@{u}' for u in usernames)
@@ -217,11 +218,18 @@ def process_pov_blocks(text):
 <div class="admonition-content">{content}</div>
 </div>'''
 
+    # Pattern 2a: HTML-wrapped POV (from Quill): handles <p>{pov}...</p>...<p>{/pov}</p>
+    # This pattern matches POV blocks where tags might be inside HTML elements
+    html_pov_pattern = r'(?:<p[^>]*>)?\s*\{pov\}\s*@?([\w,\s@]+?)(?:</p>|<br\s*/?>|\n)\s*(.*?)\s*(?:<p[^>]*>)?\s*\{/pov\}\s*(?:</p>)?'
+    text = re.sub(html_pov_pattern, replace_author_pov, text, flags=re.DOTALL | re.IGNORECASE)
+
+    # Pattern 2b: Author's POV blocks with closing tag (plain text): {pov} username(s)\ncontent\n{/pov}
+    # Usernames can be with or without @ prefix, must be on first line
+    author_pattern_closed = r'\{pov\}\s*@?([\w,\s@]+?)\s*[\n<](.*?)\{/pov\}'
     text = re.sub(author_pattern_closed, replace_author_pov, text, flags=re.DOTALL | re.IGNORECASE)
 
     # Pattern 3: Author's POV blocks without closing tag: {pov} username(s)\ncontent (until blank line)
-    author_pattern_open = r'\{pov\}\s*([^\n]+?)\s*\n([^\n]*(?:\n(?!\n|\{pov\})[^\n]*)*)'
-
+    author_pattern_open = r'\{pov\}\s*@?([\w,\s@]+?)\s*\n([^\n]*(?:\n(?!\n|\{pov\})[^\n]*)*)'
     text = re.sub(author_pattern_open, replace_author_pov, text, flags=re.IGNORECASE)
 
     return text
@@ -277,18 +285,27 @@ def process_image_blocks(text, attachments=None):
 
     Supports multiple formats:
 
-    MyST directive syntax (fenced):
-    ```{image} https://example.com/photo.jpg
-    :width: 500px
-    :alt: My photo
-    ```
+    1. MyST directive syntax (fenced with backticks):
+       ```{image} https://example.com/photo.jpg
+       :width: 500px
+       :alt: My photo
+       ```
 
-    Inline syntax:
-    - {image} https://example.com/photo.jpg {/image} - Full URL
-    - {image} /media/path/to/image.jpg {/image} - Relative URL
-    - {image} 1 {/image} - Attachment by position (1-indexed)
-    - {image} filename.jpg {/image} - Attachment by filename
-    - {image} photo.jpg | My vacation photo {/image} - With alt text
+    2. Inline syntax with closing tag (recommended):
+       - {image} https://example.com/photo.jpg {/image} - Full URL
+       - {image} /media/path/to/image.jpg {/image} - Relative URL
+       - {image} 1 {/image} - Attachment by position (1-indexed)
+       - {image} filename.jpg {/image} - Attachment by filename
+       - {image} photo.jpg | My vacation photo {/image} - With alt text
+       - {image} photo.jpg
+         :width: 500px
+         :align: center
+         {/image} - With options
+
+    3. Simple MyST-like syntax (requires at least one option):
+       {image} https://example.com/photo.jpg
+       :width: 500px
+       :alt: My photo
     """
     # Build attachment lookup if provided
     attachment_list = list(attachments) if attachments else []
@@ -381,17 +398,45 @@ def process_image_blocks(text, attachments=None):
             return f'<span class="text-muted"><i class="bi bi-image me-1"></i>[Image: {first_line}]</span>'
 
     def replace_inline_image(match):
-        """Handle inline syntax: {image} content {/image}"""
+        """Handle inline syntax: {image} content {/image}
+
+        Supports:
+        - Simple: {image} URL {/image}
+        - With alt: {image} URL | alt text {/image}
+        - With options: {image} URL
+                        :width: 500px
+                        :align: center
+                        {/image}
+        """
         content = match.group(1).strip()
 
-        # Check for alt text (separated by |)
-        if '|' in content:
-            src, alt_text = content.split('|', 1)
+        # Parse options from the content (lines starting with :key:)
+        lines = content.split('\n')
+        src_line = lines[0].strip()
+        options = {}
+
+        for line in lines[1:]:
+            line = line.strip()
+            if line.startswith(':') and ':' in line[1:]:
+                # Format is :key: value
+                key_end = line.index(':', 1)
+                key = line[1:key_end].strip()
+                value = line[key_end + 1:].strip()
+                options[key] = value
+
+        # Check for alt text (separated by |) in the source line
+        if '|' in src_line:
+            src, alt_text = src_line.split('|', 1)
             src = src.strip()
             alt_text = alt_text.strip()
         else:
-            src = content
-            alt_text = ''
+            src = src_line
+            alt_text = options.get('alt', '')
+
+        # Get other options
+        width = options.get('width', None)
+        height = options.get('height', None)
+        align = options.get('align', None)
 
         image_url, filename = resolve_image_url(src)
 
@@ -399,7 +444,7 @@ def process_image_blocks(text, attachments=None):
             alt_text = filename
 
         if image_url:
-            return build_image_html(image_url, alt_text)
+            return build_image_html(image_url, alt_text, width, height, align)
         else:
             return f'<span class="text-muted"><i class="bi bi-image me-1"></i>[Image: {src}]</span>'
 
@@ -408,15 +453,17 @@ def process_image_blocks(text, attachments=None):
     myst_pattern = r'```\{image\}\s*([^\n]+)\n((?::[^\n]+\n?)*)\s*```'
     text = re.sub(myst_pattern, replace_myst_image, text, flags=re.IGNORECASE)
 
-    # Pattern 2: Simple MyST-like syntax without backticks: {image} URL\n:options...
-    # This matches: {image} URL followed by optional :key: value lines
-    # The block ends at a blank line or non-option line
-    simple_myst_pattern = r'\{image\}\s*([^\n]+)\n((?::[^\n]+\n)*)'
-    text = re.sub(simple_myst_pattern, replace_myst_image, text, flags=re.IGNORECASE)
-
-    # Pattern 3: Inline syntax {image} content {/image}
+    # Pattern 2: Inline syntax {image} content {/image}
+    # MUST be processed BEFORE simple MyST pattern to avoid consuming the content
     inline_pattern = r'\{image\}\s*(.*?)\s*\{/image\}'
     text = re.sub(inline_pattern, replace_inline_image, text, flags=re.DOTALL | re.IGNORECASE)
+
+    # Pattern 3: Simple MyST-like syntax without backticks: {image} URL\n:options...
+    # This matches: {image} URL followed by AT LEAST ONE :key: value line
+    # The requirement for options distinguishes this from the inline syntax
+    # Note: This pattern now requires at least one option line to avoid conflicts
+    simple_myst_pattern = r'\{image\}\s*([^\n]+)\n(:[^\n]+\n(?::[^\n]+\n)*)'
+    text = re.sub(simple_myst_pattern, replace_myst_image, text, flags=re.IGNORECASE)
 
     return text
 

@@ -1,0 +1,203 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Fitness Goals{% endblock %}
+
+{% block dashboard_css %}
+<link href="{% static 'css/pages/fitness.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'wellness:fitness_dashboard' %}" class="text-muted text-decoration-none small">
+                <i class="bi bi-arrow-left me-1"></i> Back to Fitness
+            </a>
+            <h1 class="mb-0 mt-2"><i class="bi bi-flag me-2"></i>Fitness Goals</h1>
+        </div>
+        <a href="{% url 'wellness:create_fitness_goal' %}" class="btn btn-primary rounded-pill">
+            <i class="bi bi-plus-lg me-1"></i> New Goal
+        </a>
+    </div>
+
+    <!-- Active Goals -->
+    <div class="fitness-goals-section">
+        <h5 class="mb-3"><i class="bi bi-bullseye me-2"></i>Active Goals</h5>
+
+        {% if active_goals %}
+        <div class="fitness-goals-grid">
+            {% for goal in active_goals %}
+            <div class="fitness-goal-card">
+                <div class="goal-header">
+                    <div>
+                        <h6 class="goal-title">{{ goal.title }}</h6>
+                        <div class="goal-type">
+                            {{ goal.get_goal_type_display }}
+                            {% if goal.is_cardio_combo %}
+                                <span class="text-muted">- {{ goal.target_distance }} mi in {{ goal.target_time_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="goal-icon">
+                        <i class="{{ goal.icon }}"></i>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-info">
+                        <span class="progress-current">
+                            {% if goal.current_value %}{{ goal.current_value|floatformat:1 }}{% else %}--{% endif %}
+                        </span>
+                        <span class="progress-target">/ {{ goal.target_value|floatformat:1 }} {{ goal.unit }}</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar {{ goal.on_track_status }}"
+                             style="width: {{ goal.progress_percentage }}%"></div>
+                    </div>
+                </div>
+
+                <div class="schedule-status {{ goal.on_track_status }}">
+                    {% if goal.on_track_status == 'ahead' %}
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Ahead of schedule ({{ goal.variance_display }})</span>
+                    {% elif goal.on_track_status == 'behind' %}
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        <span>Behind schedule ({{ goal.variance_display }})</span>
+                    {% elif goal.on_track_status == 'on_track' %}
+                        <i class="bi bi-check-circle"></i>
+                        <span>On track</span>
+                    {% else %}
+                        <i class="bi bi-question-circle"></i>
+                        <span>Log progress to track</span>
+                    {% endif %}
+                </div>
+
+                <div class="goal-footer">
+                    <span class="days-remaining">
+                        {% if goal.days_remaining %}{{ goal.days_remaining }} days left{% else %}--{% endif %}
+                    </span>
+                    <div class="goal-actions">
+                        <a href="{% url 'wellness:fitness_goal_detail' goal.pk %}" class="goal-action-btn" title="View Details">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'wellness:edit_fitness_goal' goal.pk %}" class="goal-action-btn" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'wellness:delete_fitness_goal' goal.pk %}" class="goal-action-btn" title="Delete" style="color: #dc2626;">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="fitness-empty-state">
+            <div class="empty-icon">
+                <i class="bi bi-flag"></i>
+            </div>
+            <div class="empty-title">No active goals</div>
+            <div class="empty-text">Set fitness goals to track your progress over time</div>
+            <a href="{% url 'wellness:create_fitness_goal' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i> Create Your First Goal
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Completed Goals -->
+    {% if completed_goals %}
+    <div class="fitness-goals-section mt-5">
+        <h5 class="mb-3 text-success"><i class="bi bi-trophy me-2"></i>Completed Goals</h5>
+
+        <div class="fitness-goals-grid">
+            {% for goal in completed_goals %}
+            <div class="fitness-goal-card" style="opacity: 0.8;">
+                <div class="goal-header">
+                    <div>
+                        <h6 class="goal-title">{{ goal.title }}</h6>
+                        <div class="goal-type text-success">
+                            <i class="bi bi-check-circle-fill me-1"></i>Completed {{ goal.completed_at|date:"M j, Y" }}
+                        </div>
+                    </div>
+                    <div class="goal-icon" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #059669;">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-info">
+                        <span class="progress-current text-success">{{ goal.target_value|floatformat:1 }}</span>
+                        <span class="progress-target">{{ goal.unit }} achieved</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar on-track" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="goal-footer">
+                    <span class="days-remaining text-muted">
+                        Started {{ goal.start_value|floatformat:1 }} {{ goal.unit }}
+                    </span>
+                    <div class="goal-actions">
+                        <a href="{% url 'wellness:fitness_goal_detail' goal.pk %}" class="goal-action-btn" title="View Details">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Inactive Goals -->
+    {% if inactive_goals %}
+    <div class="fitness-goals-section mt-5">
+        <h5 class="mb-3 text-muted"><i class="bi bi-pause-circle me-2"></i>Paused Goals</h5>
+
+        <div class="fitness-goals-grid">
+            {% for goal in inactive_goals %}
+            <div class="fitness-goal-card" style="opacity: 0.6;">
+                <div class="goal-header">
+                    <div>
+                        <h6 class="goal-title">{{ goal.title }}</h6>
+                        <div class="goal-type">{{ goal.get_goal_type_display }} - Paused</div>
+                    </div>
+                    <div class="goal-icon" style="background: #f3f4f6; color: #9ca3af;">
+                        <i class="{{ goal.icon }}"></i>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-info">
+                        <span class="progress-current">
+                            {% if goal.current_value %}{{ goal.current_value|floatformat:1 }}{% else %}--{% endif %}
+                        </span>
+                        <span class="progress-target">/ {{ goal.target_value|floatformat:1 }} {{ goal.unit }}</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: {{ goal.progress_percentage }}%; background: #9ca3af;"></div>
+                    </div>
+                </div>
+
+                <div class="goal-footer">
+                    <span class="days-remaining text-muted">Paused</span>
+                    <div class="goal-actions">
+                        <a href="{% url 'wellness:edit_fitness_goal' goal.pk %}" class="goal-action-btn" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'wellness:delete_fitness_goal' goal.pk %}" class="goal-action-btn" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock dashboard_content %}

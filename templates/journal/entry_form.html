@@ -480,14 +480,20 @@
                 <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-3">
-                <p class="text-muted small mb-3">Share a personal perspective with a friend. They'll see your message in their POV inbox.</p>
+                <p class="text-muted small mb-3">Share a personal perspective with friends. They'll see your message in their POV inbox.</p>
 
-                <!-- Friend Selector -->
+                <!-- Friend Multi-Select List -->
                 <div class="mb-3">
-                    <label class="form-label small fw-medium">Share with</label>
-                    <select class="form-select" id="povFriendSelect">
-                        <option value="">Select a friend...</option>
-                    </select>
+                    <label class="form-label small fw-medium d-flex justify-content-between align-items-center">
+                        <span>Share with</span>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" id="povSelectAll">Select all</button>
+                    </label>
+                    <div class="pov-friends-list border rounded" id="povFriendsList">
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-arrow-repeat spin"></i> Loading friends...
+                        </div>
+                    </div>
+                    <div class="form-text" id="povSelectedCount">0 friends selected</div>
                 </div>
 
                 <!-- POV Message -->
@@ -499,7 +505,7 @@
             </div>
             <div class="modal-footer py-2">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary btn-sm" id="povSubmitBtn">
+                <button type="button" class="btn btn-primary btn-sm" id="povSubmitBtn" disabled>
                     <i class="bi bi-send me-1"></i>Add to Entry
                 </button>
             </div>
@@ -547,6 +553,73 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* POV Friends Multi-Select List */
+.pov-friends-list {
+    max-height: 200px;
+    overflow-y: auto;
+    background: #fff;
+}
+.pov-friend-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.15s;
+}
+.pov-friend-item:hover {
+    background: #f9fafb;
+}
+.pov-friend-item:last-child {
+    border-bottom: none;
+}
+.pov-friend-item.selected {
+    background: #eef2ff;
+}
+.pov-friend-item input[type="checkbox"] {
+    margin-right: 0.75rem;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+.pov-friend-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-right: 0.75rem;
+}
+.pov-friend-info {
+    flex: 1;
+}
+.pov-friend-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #374151;
+}
+.pov-friend-username {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+.pov-friends-empty {
+    padding: 1.5rem;
+    text-align: center;
+    color: #9ca3af;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.spin {
+    animation: spin 1s linear infinite;
 }
 </style>
 
@@ -1754,48 +1827,104 @@ document.addEventListener('DOMContentLoaded', function() {
         return null;
     }
 
-    // POV Modal for Quill
+    // POV Modal for Quill - Multi-select friends
     async function openQuillPovModal() {
         const existingModal = document.getElementById('povModal');
         if (existingModal) {
-            // Use the existing POV modal
-            const friendSelect = document.getElementById('povFriendSelect');
+            const friendsList = document.getElementById('povFriendsList');
             const messageInput = document.getElementById('povMessage');
+            const submitBtn = document.getElementById('povSubmitBtn');
+            const selectAllBtn = document.getElementById('povSelectAll');
+            const selectedCountEl = document.getElementById('povSelectedCount');
 
-            // Fetch friends list
+            // Fetch friends list and render checkboxes
             try {
                 const response = await fetch('/accounts/api/friends/');
                 const data = await response.json();
                 const friends = data.friends || data || [];
 
-                friendSelect.innerHTML = '<option value="">Select a friend...</option>';
-                friends.forEach(friend => {
-                    friendSelect.innerHTML += `<option value="${friend.id}">${friend.display_name || friend.username}</option>`;
-                });
+                if (friends.length === 0) {
+                    friendsList.innerHTML = `
+                        <div class="pov-friends-empty">
+                            <i class="bi bi-people mb-2" style="font-size: 1.5rem;"></i>
+                            <div>No friends yet</div>
+                            <small>Add friends to share POVs with them</small>
+                        </div>`;
+                } else {
+                    friendsList.innerHTML = friends.map(friend => `
+                        <label class="pov-friend-item" data-username="${friend.username}">
+                            <input type="checkbox" value="${friend.username}" data-display="${friend.display_name || friend.username}">
+                            <div class="pov-friend-avatar">${(friend.display_name || friend.username).charAt(0).toUpperCase()}</div>
+                            <div class="pov-friend-info">
+                                <div class="pov-friend-name">${friend.display_name || friend.username}</div>
+                                <div class="pov-friend-username">@${friend.username}</div>
+                            </div>
+                        </label>
+                    `).join('');
+                }
             } catch (error) {
                 console.error('Error fetching friends:', error);
+                friendsList.innerHTML = `<div class="pov-friends-empty text-danger">Error loading friends</div>`;
             }
 
+            // Update selected count and button state
+            function updateSelectedState() {
+                const checked = friendsList.querySelectorAll('input[type="checkbox"]:checked');
+                const count = checked.length;
+                selectedCountEl.textContent = count === 1 ? '1 friend selected' : `${count} friends selected`;
+                submitBtn.disabled = count === 0;
+
+                // Update item highlighting
+                friendsList.querySelectorAll('.pov-friend-item').forEach(item => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    item.classList.toggle('selected', checkbox.checked);
+                });
+            }
+
+            // Handle checkbox changes
+            friendsList.addEventListener('change', updateSelectedState);
+
+            // Handle select all
+            selectAllBtn.onclick = function() {
+                const checkboxes = friendsList.querySelectorAll('input[type="checkbox"]');
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                checkboxes.forEach(cb => cb.checked = !allChecked);
+                selectAllBtn.textContent = allChecked ? 'Select all' : 'Deselect all';
+                updateSelectedState();
+            };
+
+            // Reset state
             messageInput.value = '';
+            submitBtn.disabled = true;
+            selectAllBtn.textContent = 'Select all';
+            updateSelectedState();
+
             const modal = new bootstrap.Modal(existingModal);
             modal.show();
 
             // Override the submit button for Quill
-            const submitBtn = document.getElementById('povSubmitBtn');
             submitBtn.onclick = function() {
-                const friendId = friendSelect.value;
+                const checkedBoxes = friendsList.querySelectorAll('input[type="checkbox"]:checked');
+                const selectedUsernames = Array.from(checkedBoxes).map(cb => cb.value);
                 const message = messageInput.value.trim();
 
-                if (!friendId || !message) {
-                    alert('Please select a friend and write a message');
+                if (selectedUsernames.length === 0) {
+                    alert('Please select at least one friend');
                     return;
                 }
+
+                if (!message) {
+                    alert('Please write a message');
+                    return;
+                }
+
+                // Build the @mentions string
+                const mentions = selectedUsernames.map(u => `@${u}`).join(' ');
 
                 // Insert POV block into Quill
                 const range = quill.getSelection() || { index: quill.getLength() };
                 const index = range.index;
-                const friendName = friendSelect.options[friendSelect.selectedIndex].text;
-                const povText = `\n{pov} @${friendName}\n${message}\n{/pov}\n`;
+                const povText = `\n{pov} ${mentions}\n${message}\n{/pov}\n`;
                 quill.insertText(index, povText);
                 quill.setSelection(index + povText.length);
 
@@ -2028,38 +2157,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Detect iOS/iPad devices - they handle scrolling better natively
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
     // Override Quill's scrollIntoView to provide smoother scrolling with better cursor visibility
-    const originalScrollIntoView = quill.scrollingContainer.scrollIntoView;
-    quill.scrollingContainer.scrollIntoView = function(alignToTop) {
-        // Don't use the default behavior
-    };
+    // Skip on iOS as it handles this well natively
+    if (!isIOS) {
+        quill.scrollingContainer.scrollIntoView = function(alignToTop) {
+            // Don't use the default aggressive behavior on desktop
+        };
 
-    // Custom scroll handler to keep cursor visible while typing
-    quill.on('selection-change', function(range, oldRange, source) {
-        if (!range || source !== 'user') return;
+        // Custom scroll handler to keep cursor visible while typing (desktop only)
+        quill.on('selection-change', function(range, oldRange, source) {
+            if (!range || source !== 'user') return;
 
-        const bounds = quill.getBounds(range.index);
-        const scrollContainer = quill.root.parentElement;
-        const containerHeight = scrollContainer.clientHeight;
-        const scrollTop = scrollContainer.scrollTop;
+            const bounds = quill.getBounds(range.index);
+            const scrollContainer = quill.root.parentElement;
+            const containerHeight = scrollContainer.clientHeight;
+            const scrollTop = scrollContainer.scrollTop;
 
-        // Define comfortable padding zones (cursor should stay within this area)
-        const topPadding = 100;
-        const bottomPadding = 150; // Extra padding at bottom for better visibility while typing
+            // Define comfortable padding zones (cursor should stay within this area)
+            const topPadding = 150;
+            const bottomPadding = 250; // Extra padding at bottom for better visibility while typing
 
-        // Calculate cursor position relative to visible area
-        const cursorTop = bounds.top;
-        const cursorBottom = bounds.bottom;
+            // Calculate cursor position relative to visible area
+            const cursorTop = bounds.top;
+            const cursorBottom = bounds.bottom;
 
-        // Only scroll if cursor is outside comfortable zone
-        if (cursorTop < topPadding) {
-            // Cursor too close to top - scroll up
-            scrollContainer.scrollTop = scrollTop + cursorTop - topPadding;
-        } else if (cursorBottom > containerHeight - bottomPadding) {
-            // Cursor too close to bottom - scroll down
-            scrollContainer.scrollTop = scrollTop + cursorBottom - (containerHeight - bottomPadding);
-        }
-    });
+            // Only scroll if cursor is outside comfortable zone
+            if (cursorTop < topPadding) {
+                // Cursor too close to top - scroll up
+                scrollContainer.scrollTop = scrollTop + cursorTop - topPadding;
+            } else if (cursorBottom > containerHeight - bottomPadding) {
+                // Cursor too close to bottom - scroll down
+                scrollContainer.scrollTop = scrollTop + cursorBottom - (containerHeight - bottomPadding);
+            }
+        });
+    }
 
     // Sync to hidden textarea
     quill.on('text-change', function() {
@@ -2231,6 +2366,17 @@ document.addEventListener('DOMContentLoaded', function() {
         title: 'Share POV with a friend'
     };
 
+    // Calculate available height for editor from the constrained container
+    const getConstrainedEditorHeight = () => {
+        const editorContainer = document.querySelector('.editor-container');
+        if (editorContainer) {
+            const containerRect = editorContainer.getBoundingClientRect();
+            // Account for toolbar (~40px) and bottom bar (~50px)
+            return Math.max(300, containerRect.height - 100);
+        }
+        return 500;
+    };
+
     const easyMDE = new EasyMDE({
         element: document.getElementById('editor'),
         spellChecker: false,
@@ -2238,8 +2384,8 @@ document.addEventListener('DOMContentLoaded', function() {
             enabled: false
         },
         placeholder: 'Start writing in Markdown...\n\nTip: Paste or drag images directly into the editor!',
-        minHeight: '500px',
-        maxHeight: 'calc(100vh - 260px)',
+        minHeight: '300px',
+        maxHeight: '100%',  // Let CSS handle the constraint
         toolbar: [
             'bold', 'italic', 'heading', '|',
             'quote', 'unordered-list', 'ordered-list', '|',
@@ -2255,6 +2401,69 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Safari fix: Force explicit pixel heights through the entire CodeMirror chain
+    // Safari's flex layout doesn't properly constrain child heights
+    let cachedEditorHeight = null;
+
+    const applySafariHeightFix = () => {
+        const editorContainer = document.querySelector('.editor-container');
+        const easyMDEContainer = document.querySelector('.EasyMDEContainer');
+        const codeMirror = document.querySelector('.CodeMirror');
+        const cmScroll = document.querySelector('.CodeMirror-scroll');
+        const toolbar = document.querySelector('.editor-toolbar');
+        const bottomBar = document.querySelector('.editor-bottom-bar');
+
+        if (editorContainer && easyMDEContainer && codeMirror && cmScroll) {
+            const containerRect = editorContainer.getBoundingClientRect();
+            const toolbarHeight = toolbar ? toolbar.getBoundingClientRect().height : 40;
+            const bottomBarHeight = bottomBar ? bottomBar.getBoundingClientRect().height : 50;
+
+            // Calculate the available height for the scroll area
+            const totalAvailable = containerRect.height - toolbarHeight - bottomBarHeight;
+            const availableHeight = Math.max(200, totalAvailable);
+            cachedEditorHeight = availableHeight;
+
+            console.log('[Safari Fix] Container height:', containerRect.height);
+            console.log('[Safari Fix] Toolbar height:', toolbarHeight);
+            console.log('[Safari Fix] Bottom bar height:', bottomBarHeight);
+            console.log('[Safari Fix] Available scroll height:', availableHeight);
+
+            // Set height on entire EasyMDE container
+            const easyMDEHeight = containerRect.height - bottomBarHeight;
+            easyMDEContainer.style.setProperty('height', easyMDEHeight + 'px', 'important');
+            easyMDEContainer.style.setProperty('max-height', easyMDEHeight + 'px', 'important');
+            easyMDEContainer.style.setProperty('overflow', 'hidden', 'important');
+
+            // Set height on CodeMirror wrapper
+            codeMirror.style.setProperty('height', availableHeight + 'px', 'important');
+            codeMirror.style.setProperty('max-height', availableHeight + 'px', 'important');
+            codeMirror.style.setProperty('overflow', 'hidden', 'important');
+
+            // Set height on scroll container
+            cmScroll.style.setProperty('height', availableHeight + 'px', 'important');
+            cmScroll.style.setProperty('max-height', availableHeight + 'px', 'important');
+            cmScroll.style.setProperty('overflow-y', 'scroll', 'important');
+            cmScroll.style.setProperty('overflow-x', 'hidden', 'important');
+
+            // Tell CodeMirror to refresh its dimensions after height changes
+            if (easyMDE && easyMDE.codemirror) {
+                setTimeout(() => {
+                    easyMDE.codemirror.refresh();
+                    console.log('[Safari Fix] CodeMirror refreshed. New clientHeight:', cmScroll.clientHeight);
+                }, 50);
+            }
+        }
+    };
+
+    // Apply fix after DOM settles
+    setTimeout(applySafariHeightFix, 100);
+    setTimeout(applySafariHeightFix, 500); // Reapply after any layout reflow
+
+    // Also reapply on window resize
+    window.addEventListener('resize', () => {
+        setTimeout(applySafariHeightFix, 100);
+    });
+
     // EasyMDE-specific: Define how to insert captures into editor
     insertCaptureIntoEditor = function(emoji, text) {
         const cm = easyMDE.codemirror;
@@ -2263,35 +2472,61 @@ document.addEventListener('DOMContentLoaded', function() {
         cm.focus();
     };
 
+    // Detect iOS/iPad devices - only check userAgent, not maxTouchPoints
+    // (maxTouchPoints > 1 incorrectly matches Macs with trackpads)
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
     // Word count and auto-save
     easyMDE.codemirror.on('change', function(cm, changeObj) {
         const content = easyMDE.value();
         updateWordCount(content);
         autoSave(content);
-
-        // Gentle auto-scroll ONLY when typing (not when scrolling or navigating)
-        // This keeps cursor visible while typing but allows free manual scrolling
-        if (changeObj.origin === '+input' || changeObj.origin === '+delete') {
-            requestAnimationFrame(() => {
-                const cursor = cm.getCursor();
-                const scrollInfo = cm.getScrollInfo();
-
-                // Get cursor position using 'div' coordinates (relative to editor, not content)
-                const cursorCoords = cm.cursorCoords(cursor, 'div');
-                const scroller = cm.getScrollerElement();
-                const scrollerHeight = scroller.clientHeight;
-
-                // Calculate how far the cursor is from the bottom of the VISIBLE viewport
-                const spaceBelow = scrollerHeight - cursorCoords.bottom;
-
-                // If cursor is within 200px of bottom of visible area, scroll down
-                if (spaceBelow < 200) {
-                    const scrollNeeded = 200 - spaceBelow;
-                    cm.scrollTo(null, scrollInfo.top + scrollNeeded);
-                }
-            });
-        }
     });
+
+    // Auto-scroll to keep cursor visible using CodeMirror's native method
+    // This is more reliable than manual scrollTop manipulation across browsers
+    function scrollCursorIntoView(cm) {
+        setTimeout(() => {
+            try {
+                const cursor = cm.getCursor();
+
+                // Use CodeMirror's native scrollIntoView with margin
+                // The margin (80px) ensures cursor isn't right at the edge
+                cm.scrollIntoView({line: cursor.line, ch: cursor.ch}, 80);
+
+                // Debug logging
+                const scrollerEl = cm.getScrollerElement();
+                console.log('[Scroll Debug]', {
+                    cursorLine: cursor.line,
+                    scrollTop: scrollerEl.scrollTop,
+                    scrollHeight: scrollerEl.scrollHeight,
+                    clientHeight: scrollerEl.clientHeight,
+                    cachedHeight: cachedEditorHeight
+                });
+            } catch (e) {
+                console.error('[Scroll Error]', e);
+            }
+        }, 10);
+    }
+
+    // Enable auto-scroll for all devices (Safari needs this too)
+    // Only skip on actual iOS touch devices where native keyboard handles scroll
+    const isTouchIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && 'ontouchstart' in window;
+
+    console.log('[EasyMDE] isTouchIOS:', isTouchIOS, 'userAgent:', navigator.userAgent);
+    if (!isTouchIOS) {
+        console.log('[EasyMDE] Setting up auto-scroll handlers');
+
+        // Primary: cursorActivity fires on any cursor movement
+        easyMDE.codemirror.on('cursorActivity', function(cm) {
+            scrollCursorIntoView(cm);
+        });
+
+        // Also handle changes (for typing)
+        easyMDE.codemirror.on('changes', function(cm) {
+            scrollCursorIntoView(cm);
+        });
+    }
 
     // Initial word count
     updateWordCount(easyMDE.value());
@@ -3359,28 +3594,72 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // =================================================================
-    // POV SHARE (toolbar button)
+    // POV SHARE (toolbar button) - Multi-select friends
     // =================================================================
-    const povModal = new bootstrap.Modal(document.getElementById('povModal'));
-    const povFriendSelect = document.getElementById('povFriendSelect');
+    const povModalEl = document.getElementById('povModal');
+    const povModal = new bootstrap.Modal(povModalEl);
+    const povFriendsList = document.getElementById('povFriendsList');
     const povMessage = document.getElementById('povMessage');
     const povSubmitBtn = document.getElementById('povSubmitBtn');
+    const povSelectAllBtn = document.getElementById('povSelectAll');
+    const povSelectedCountEl = document.getElementById('povSelectedCount');
+
+    // Update selected count and button state
+    function updatePovSelectedState() {
+        const checked = povFriendsList.querySelectorAll('input[type="checkbox"]:checked');
+        const count = checked.length;
+        povSelectedCountEl.textContent = count === 1 ? '1 friend selected' : `${count} friends selected`;
+        povSubmitBtn.disabled = count === 0;
+
+        // Update item highlighting
+        povFriendsList.querySelectorAll('.pov-friend-item').forEach(item => {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            item.classList.toggle('selected', checkbox.checked);
+        });
+    }
 
     // Function to open POV modal (called from toolbar button)
     openPovModal = async function() {
-        // Load friends and populate the select
+        // Load friends and render checkboxes
         const friends = await loadFriendsList();
-        povFriendSelect.innerHTML = '<option value="">Select a friend...</option>';
 
-        friends.forEach(friend => {
-            const option = document.createElement('option');
-            option.value = friend.username;
-            option.textContent = friend.display_name || friend.username;
-            povFriendSelect.appendChild(option);
-        });
+        if (friends.length === 0) {
+            povFriendsList.innerHTML = `
+                <div class="pov-friends-empty">
+                    <i class="bi bi-people mb-2" style="font-size: 1.5rem;"></i>
+                    <div>No friends yet</div>
+                    <small>Add friends to share POVs with them</small>
+                </div>`;
+        } else {
+            povFriendsList.innerHTML = friends.map(friend => `
+                <label class="pov-friend-item" data-username="${friend.username}">
+                    <input type="checkbox" value="${friend.username}" data-display="${friend.display_name || friend.username}">
+                    <div class="pov-friend-avatar">${(friend.display_name || friend.username).charAt(0).toUpperCase()}</div>
+                    <div class="pov-friend-info">
+                        <div class="pov-friend-name">${friend.display_name || friend.username}</div>
+                        <div class="pov-friend-username">@${friend.username}</div>
+                    </div>
+                </label>
+            `).join('');
+        }
 
-        // Clear previous message
+        // Handle checkbox changes
+        povFriendsList.addEventListener('change', updatePovSelectedState);
+
+        // Handle select all
+        povSelectAllBtn.onclick = function() {
+            const checkboxes = povFriendsList.querySelectorAll('input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            povSelectAllBtn.textContent = allChecked ? 'Select all' : 'Deselect all';
+            updatePovSelectedState();
+        };
+
+        // Reset state
         povMessage.value = '';
+        povSubmitBtn.disabled = true;
+        povSelectAllBtn.textContent = 'Select all';
+        updatePovSelectedState();
 
         // Show modal
         povModal.show();
@@ -3388,11 +3667,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle POV submission
     povSubmitBtn.addEventListener('click', function() {
-        const friendUsername = povFriendSelect.value;
+        const checkedBoxes = povFriendsList.querySelectorAll('input[type="checkbox"]:checked');
+        const selectedUsernames = Array.from(checkedBoxes).map(cb => cb.value);
         const message = povMessage.value.trim();
 
-        if (!friendUsername) {
-            alert('Please select a friend to share with.');
+        if (selectedUsernames.length === 0) {
+            alert('Please select at least one friend.');
             return;
         }
 
@@ -3401,12 +3681,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Build the @mentions string
+        const mentions = selectedUsernames.map(u => `@${u}`).join(' ');
+
         // Insert POV block into editor
         const cm = easyMDE.codemirror;
         const cursor = cm.getCursor();
 
-        // Create the POV block with @mention
-        const povBlock = `\n{pov}\n@${friendUsername}\n\n${message}\n{/pov} #pov\n`;
+        // Create the POV block with @mentions
+        const povBlock = `\n{pov} ${mentions}\n${message}\n{/pov}\n`;
 
         // Insert at cursor position
         cm.replaceRange(povBlock, cursor);

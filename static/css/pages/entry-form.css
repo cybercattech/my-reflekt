@@ -17,26 +17,37 @@ body.no-scroll > .main-content {
     overflow: hidden;
     height: calc(100vh - 56px);
     display: flex;
+    display: -webkit-flex;
     flex-direction: column;
+    -webkit-flex-direction: column;
     background-color: #f3f4f6;
 }
 
 /* Container fills main content and uses flex */
 body.no-scroll > .main-content > .container-fluid {
-    flex: 1;
+    flex: 1 1 0%;
+    -webkit-flex: 1 1 0%;
     display: flex;
+    display: -webkit-flex;
     flex-direction: column;
+    -webkit-flex-direction: column;
     overflow: hidden;
     padding: 1.5rem 2rem 1rem 2rem;
+    min-height: 0;  /* Important for Safari flex */
+    max-height: 100%;
 }
 
 /* Form fills remaining space */
 #entry-form {
-    flex: 1;
+    flex: 1 1 0%;
+    -webkit-flex: 1 1 0%;  /* Safari */
     display: flex;
+    display: -webkit-flex;  /* Safari */
     flex-direction: column;
-    overflow: visible;
+    -webkit-flex-direction: column;  /* Safari */
+    overflow: hidden;
     min-height: 0;
+    max-height: 100%;
 }
 
 /* =====================================================
@@ -124,20 +135,28 @@ body.no-scroll .alert {
 
 .editor-layout {
     display: flex;
+    display: -webkit-flex;
     flex-direction: column;
-    flex: 1;
+    -webkit-flex-direction: column;
+    flex: 1 1 0%;
+    -webkit-flex: 1 1 0%;
     min-height: 0;
+    max-height: 100%;
     gap: 0.5rem;
-    overflow: visible;
+    overflow: hidden;
 }
 
 /* Editor column takes remaining space */
 .editor-column {
-    flex: 1;
+    flex: 1 1 0%;
+    -webkit-flex: 1 1 0%;
     min-height: 0;
+    max-height: 100%;
     display: flex;
+    display: -webkit-flex;
     flex-direction: column;
-    overflow: visible;
+    -webkit-flex-direction: column;
+    overflow: hidden;
 }
 
 /* Editor container fills editor column */
@@ -147,9 +166,13 @@ body.no-scroll .alert {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     display: flex;
+    display: -webkit-flex;
     flex-direction: column;
-    flex: 1;
+    -webkit-flex-direction: column;
+    flex: 1 1 0%;
+    -webkit-flex: 1 1 0%;
     min-height: 0;
+    max-height: 100%;
     position: relative;
 }
 
@@ -359,15 +382,21 @@ textarea#editor {
     resize: vertical;
 }
 
+/* EasyMDE container - flex child that fills remaining space */
 .EasyMDEContainer {
     border: none !important;
     display: flex !important;
     flex-direction: column !important;
-    flex: 1 !important;
-    min-height: 0 !important;
+    flex: 1 1 0% !important;  /* Use 0% for better Safari compatibility */
+    min-height: 0 !important;  /* Critical for flex scroll to work */
+    max-height: 100% !important;
     overflow: hidden !important;
+    /* Safari flex fix */
+    -webkit-flex: 1 1 0% !important;
 }
 
+/* CodeMirror wrapper - fills EasyMDE container */
+/* Height is set via JavaScript for Safari compatibility */
 .EasyMDEContainer .CodeMirror,
 .EasyMDEContainer .CodeMirror.cm-s-easymde,
 .EasyMDEContainer .CodeMirror-wrap {
@@ -375,36 +404,51 @@ textarea#editor {
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
     font-size: 1rem;
     line-height: 1.7;
-    flex: 1 !important;
-    min-height: 0 !important;
-    height: 100% !important;
-    max-height: none !important;
+    flex: 1 1 0% !important;
+    -webkit-flex: 1 1 0% !important;  /* Safari */
+    min-height: 200px !important;
+    /* Don't use !important on max-height - let JS override */
+    max-height: 100%;
     background: transparent;
     position: relative !important;
+    overflow: hidden !important;  /* Contain scroll to child element */
 }
 
+/* Scroll container - THIS IS WHERE SCROLLING HAPPENS */
+/* Height is set via JavaScript for Safari compatibility */
 .EasyMDEContainer .CodeMirror-scroll {
-    overflow-y: scroll !important;
+    overflow-y: scroll !important;  /* Force scrollbar */
     overflow-x: hidden !important;
-    height: 100% !important;
-    max-height: none !important;
     min-height: 0 !important;
+    /* Don't use !important on height - let JS override */
+    height: 100%;
+    max-height: 100%;
     position: relative !important;
-    padding-bottom: 50vh !important; /* Half viewport height padding at bottom */
+    padding-bottom: 100px !important;
+    /* Safari/WebKit smooth scrolling */
+    -webkit-overflow-scrolling: touch;
 }
 
+/* Scrollbar visibility */
 .EasyMDEContainer .CodeMirror-vscrollbar {
     display: block !important;
-    overflow-y: scroll !important;
+    overflow-y: auto !important;
 }
 
+.EasyMDEContainer .CodeMirror-hscrollbar {
+    display: none !important;
+}
+
+/* Content sizer */
 .EasyMDEContainer .CodeMirror-sizer {
-    min-height: 100% !important;
     border-right: 0 !important;
+    min-height: auto !important;
 }
 
+/* Lines container - add bottom padding for typing room */
 .EasyMDEContainer .CodeMirror-lines {
-    padding: 1rem 1.5rem 50vh 1.5rem !important; /* Extra bottom padding for comfortable scrolling */
+    padding: 1rem 1.5rem !important;
+    padding-bottom: 50vh !important;  /* Extra space at bottom for cursor visibility */
 }
 
 .EasyMDEContainer .CodeMirror pre.CodeMirror-line,
@@ -414,7 +458,7 @@ textarea#editor {
 }
 
 .EasyMDEContainer .CodeMirror-gutters {
-    min-height: 300px !important;
+    min-height: 200px !important;
 }
 
 .EasyMDEContainer .editor-toolbar {
