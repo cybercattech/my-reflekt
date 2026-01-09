@@ -358,6 +358,127 @@ Common icons:
 
 ---
 
+## EasyMDE / CodeMirror Auto-Scroll Fix
+
+### Problem
+Auto-scroll not working on Safari/iPad/iPhone with EasyMDE editor. Symptoms:
+- Cursor scrolls off-screen while typing
+- Text hides behind top toolbar on small screens
+- Large gap between cursor and bottom of viewport
+- Console shows negative `spaceBelow` values
+
+### What DOESN'T Work (Don't Use These Approaches)
+
+**❌ Approach 1: Manual coordinate calculation with 'div' coordinates**
+```javascript
+// DON'T USE THIS - gives wrong values on Safari
+const cursorCoords = cm.cursorCoords(cursor, 'div');
+const spaceBelow = scrollerHeight - cursorCoords.bottom;
+if (spaceBelow < 200) {
+    cm.scrollTo(null, scrollInfo.top + scrollNeeded);
+}
+```
+- Results: `spaceBelow: -78` (negative values)
+- Problem: 'div' coordinates are relative to entire content, not viewport
+- Cursor position can be 1000px+ for long documents
+
+**❌ Approach 2: Manual coordinate calculation with 'local' coordinates**
+```javascript
+// DON'T USE THIS - still gives huge values
+const cursorCoords = cm.cursorCoords(cursor, 'local');
+const spaceBelow = scrollerHeight - cursorCoords.bottom;
+```
+- Results: `cursorBottom: 1852, spaceBelow: -1552`
+- Problem: 'local' coordinates don't work as expected in Safari with dynamic heights
+
+**❌ Approach 3: Using iOS detection to disable auto-scroll**
+```javascript
+// DON'T USE THIS - defeats the purpose
+const isTouchIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+if (!isTouchIOS) {
+    // Only setup auto-scroll on non-iOS
+}
+```
+- Problem: Disables auto-scroll on the exact devices that need it most
+
+### ✅ Correct Solution: Use CodeMirror's Native scrollIntoView
+
+**Location**: `templates/journal/entry_form.html` (around line 2492)
+
+```javascript
+// Word count and auto-save
+easyMDE.codemirror.on('change', function(cm, changeObj) {
+    const content = easyMDE.value();
+    updateWordCount(content);
+    autoSave(content);
+
+    // Gentle auto-scroll ONLY when typing (not when scrolling or navigating)
+    // This keeps cursor visible while typing but allows free manual scrolling
+    // Works on ALL devices including Safari/iPad/iPhone
+    if (changeObj.origin === '+input' || changeObj.origin === '+delete') {
+        requestAnimationFrame(() => {
+            const cursor = cm.getCursor();
+
+            // Use CodeMirror's built-in scrollIntoView with a small margin (80px from bottom)
+            // This is the most reliable way to keep cursor visible across all browsers
+            cm.scrollIntoView({line: cursor.line, ch: cursor.ch}, 80);
+
+            console.log('[Auto-scroll v3-native] Scrolled to line', cursor.line);
+        });
+    }
+});
+```
+
+### Why This Works
+
+1. **Uses CodeMirror's native method**: `scrollIntoView()` handles all coordinate calculations internally
+2. **Works across all browsers**: Safari, Chrome, Firefox, mobile browsers
+3. **Triggers only on typing**: `changeObj.origin === '+input'` or `'+delete'`
+4. **Respects manual scrolling**: Doesn't interfere when user scrolls manually
+5. **Small margin**: 80px keeps cursor comfortably above bottom without excessive spacing
+6. **No coordinate calculations**: Avoids pixel-based math that breaks across viewports
+
+### Key Parameters
+
+- **Margin**: `80px` - Distance from bottom edge (adjust between 50-150px)
+- **Too large** (200px+): Wastes screen space, especially on mobile
+- **Too small** (20px): Cursor too close to bottom, uncomfortable
+- **Sweet spot**: 80px provides ~3-4 lines of breathing room
+
+### Testing & Verification
+
+**1. Hard refresh Safari to clear cache:**
+- Mac: `Cmd + Shift + R`
+- Or: Safari → Develop → Empty Caches
+
+**2. Check console logs:**
+```
+✅ CORRECT: [Auto-scroll v3-native] Scrolled to line 5
+❌ WRONG: [Auto-scroll v2-local] cursorBottom: 1852 spaceBelow: -1552
+```
+
+**3. Visual test:**
+- Start typing in editor
+- Cursor should stay ~80px from bottom
+- Text should NOT hide behind top toolbar
+- Should work on iPhone, iPad, Safari desktop
+
+### Common Issues
+
+**Issue**: Changes not reflecting in browser
+- **Cause**: Browser/Django template caching
+- **Fix**: Hard refresh (`Cmd + Shift + R`) and clear Safari cache
+
+**Issue**: Auto-scroll too aggressive or not working
+- **Cause**: Wrong `changeObj.origin` check
+- **Fix**: Only trigger on `'+input'` or `'+delete'`, not all changes
+
+**Issue**: Scrolling fights with user's manual scroll
+- **Cause**: Auto-scroll triggering on non-typing events
+- **Fix**: Ensure condition checks `changeObj.origin`
+
+---
+
 ## Forms
 
 ### Standard Form Structure

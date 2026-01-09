@@ -152,7 +152,7 @@
                                     <div id="habitSuggestionsContent" class="mt-2"></div>
                                 </div>
                             </div>
-                            <button type="button" class="btn-close btn-close-sm" onclick="document.getElementById('habitSuggestions').classList.add('d-none')"></button>
+                            <button type="button" class="btn-close btn-close-sm" onclick="dismissAllHabitSuggestions()"></button>
                         </div>
                     </div>
 
@@ -760,6 +760,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     mapped.special = 'hybrid_picker';
                     mapped.captureType = cmd.captureType;
                     mapped.fields = cmd.fields;  // Include fields for "Create New" option
+                } else if (cmd.special === 'pov_modal') {
+                    mapped.special = 'pov_modal';
                 } else if (cmd.special === 'block_insert') {
                     mapped.special = 'block_insert';
                     mapped.blockType = cmd.blockType;
@@ -2288,6 +2290,8 @@ document.addEventListener('DOMContentLoaded', function() {
             showGoalPicker();
         } else if (cmd.special === 'habit_picker') {
             showHabitPicker();
+        } else if (cmd.special === 'pov_modal') {
+            openQuillPovModal();
         } else if (cmd.special === 'capture_form') {
             showUnifiedCaptureForm(cmd);
         } else if (cmd.special === 'block_insert') {
@@ -2481,52 +2485,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const content = easyMDE.value();
         updateWordCount(content);
         autoSave(content);
-    });
 
-    // Auto-scroll to keep cursor visible using CodeMirror's native method
-    // This is more reliable than manual scrollTop manipulation across browsers
-    function scrollCursorIntoView(cm) {
-        setTimeout(() => {
-            try {
+        // Gentle auto-scroll ONLY when typing (not when scrolling or navigating)
+        // This keeps cursor visible while typing but allows free manual scrolling
+        // Works on ALL devices including Safari/iPad/iPhone
+        if (changeObj.origin === '+input' || changeObj.origin === '+delete') {
+            requestAnimationFrame(() => {
                 const cursor = cm.getCursor();
 
-                // Use CodeMirror's native scrollIntoView with margin
-                // The margin (80px) ensures cursor isn't right at the edge
+                // Use CodeMirror's built-in scrollIntoView with a small margin (80px from bottom)
+                // This is the most reliable way to keep cursor visible across all browsers
                 cm.scrollIntoView({line: cursor.line, ch: cursor.ch}, 80);
 
-                // Debug logging
-                const scrollerEl = cm.getScrollerElement();
-                console.log('[Scroll Debug]', {
-                    cursorLine: cursor.line,
-                    scrollTop: scrollerEl.scrollTop,
-                    scrollHeight: scrollerEl.scrollHeight,
-                    clientHeight: scrollerEl.clientHeight,
-                    cachedHeight: cachedEditorHeight
-                });
-            } catch (e) {
-                console.error('[Scroll Error]', e);
-            }
-        }, 10);
-    }
-
-    // Enable auto-scroll for all devices (Safari needs this too)
-    // Only skip on actual iOS touch devices where native keyboard handles scroll
-    const isTouchIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && 'ontouchstart' in window;
-
-    console.log('[EasyMDE] isTouchIOS:', isTouchIOS, 'userAgent:', navigator.userAgent);
-    if (!isTouchIOS) {
-        console.log('[EasyMDE] Setting up auto-scroll handlers');
-
-        // Primary: cursorActivity fires on any cursor movement
-        easyMDE.codemirror.on('cursorActivity', function(cm) {
-            scrollCursorIntoView(cm);
-        });
-
-        // Also handle changes (for typing)
-        easyMDE.codemirror.on('changes', function(cm) {
-            scrollCursorIntoView(cm);
-        });
-    }
+                console.log('[Auto-scroll v3-native] Scrolled to line', cursor.line);
+            });
+        }
+    });
 
     // Initial word count
     updateWordCount(easyMDE.value());
@@ -2764,6 +2738,8 @@ document.addEventListener('DOMContentLoaded', function() {
             showGoalPicker();
         } else if (cmd.special === 'habit_picker') {
             showHabitPicker();
+        } else if (cmd.special === 'pov_modal') {
+            openPovModal();
         } else if (cmd.special === 'capture_form') {
             showUnifiedCaptureForm(cmd);
         } else if (cmd.special === 'block_insert') {
@@ -3376,6 +3352,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let habitDetectionTimeout = null;
     let detectedHabits = [];
+    let dismissedHabits = new Set(); // Track dismissed habits to prevent re-showing
 
     function detectHabitsInContent() {
         const content = easyMDE ? easyMDE.value() : '';
@@ -3405,8 +3382,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('habitSuggestionsContent');
         const banner = document.getElementById('habitSuggestions');
 
+        // Filter out habits that have been dismissed (linked or X-ed out)
+        const habitsToShow = habits.filter(habit => !dismissedHabits.has(habit.id));
+
+        // If no habits to show, hide the banner
+        if (habitsToShow.length === 0) {
+            banner.classList.add('d-none');
+            return;
+        }
+
         let html = '<div class="d-flex flex-wrap gap-2">';
-        habits.forEach(habit => {
+        habitsToShow.forEach(habit => {
             html += `
                 <button type="button" class="btn btn-sm btn-success" onclick="quickLinkHabit(${habit.id}, '${habit.name.replace(/'/g, "\\'")}')">
                     <i class="bi bi-repeat me-1"></i>Link "${habit.name}"
@@ -3420,10 +3406,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.quickLinkHabit = function(id, name) {
+        // Mark this habit as dismissed so it won't show again
+        dismissedHabits.add(id);
         // Close the suggestion banner
         document.getElementById('habitSuggestions').classList.add('d-none');
         // Use the existing selectHabit function
         selectHabit(id, name);
+    };
+
+    window.dismissAllHabitSuggestions = function() {
+        // Mark all currently detected habits as dismissed
+        detectedHabits.forEach(habit => dismissedHabits.add(habit.id));
+        // Hide the banner
+        document.getElementById('habitSuggestions').classList.add('d-none');
     };
 
     // Watch for content changes

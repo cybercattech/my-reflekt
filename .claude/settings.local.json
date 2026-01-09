@@ -40,7 +40,9 @@
       "Bash(1 done)",
       "Bash(DJANGO_SETTINGS_MODULE=config.settings.production .venv/bin/python:*)",
       "Bash(.venv/bin/pip show:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git stash show:*)",
+      "Bash(git cherry-pick:*)"
     ]
   }
 }

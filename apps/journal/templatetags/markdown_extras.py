@@ -205,11 +205,7 @@ def process_pov_blocks(text):
 
     def replace_author_pov(match):
         usernames_str = match.group(1).strip()
-        content = match.group(2).strip()
-        # Strip HTML tags from content for processing, then re-add paragraph structure
-        content_clean = re.sub(r'<[^>]+>', ' ', content)
-        content_clean = re.sub(r'\s+', ' ', content_clean).strip()
-        content = process_block_content(content_clean) if content_clean else ''
+        content = process_block_content(match.group(2).strip())
         # Extract usernames (with or without @ prefix)
         usernames = re.findall(r'@?([\w]+)', usernames_str)
         recipients = ', '.join(f'@{u}' for u in usernames)
