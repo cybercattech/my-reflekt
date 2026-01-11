@@ -1770,8 +1770,8 @@ SLASH_COMMANDS = [
         'command': '/pov',
         'name': 'POV Share',
         'icon': 'bi-people',
-        'description': 'Mark section to share with a friend',
-        'special': 'pov_modal',  # Opens friend picker modal instead of just inserting tags
+        'description': 'Share a message with friends',
+        'special': 'pov_modal',
         'fields': [],
     },
     {

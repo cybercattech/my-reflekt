@@ -238,7 +238,7 @@ def dashboard(request):
             })
 
     # Person correlation - who makes you happy?
-    person_sentiment = defaultdict(lambda: {'positive': 0, 'negative': 0, 'total': 0})
+    person_sentiment = defaultdict(lambda: {'positive': 0, 'negative': 0, 'neutral': 0, 'total': 0})
     person_entries = EntryCapture.objects.filter(
         entry__user=user,
         capture_type='person'
@@ -248,7 +248,8 @@ def dashboard(request):
         person_name = capture.data.get('name', 'Unknown')
         if hasattr(capture.entry, 'analysis') and capture.entry.analysis:
             label = capture.entry.analysis.sentiment_label
-            person_sentiment[person_name][label] += 1
+            if label in person_sentiment[person_name]:
+                person_sentiment[person_name][label] += 1
             person_sentiment[person_name]['total'] += 1
 
     # Find person most correlated with happiness

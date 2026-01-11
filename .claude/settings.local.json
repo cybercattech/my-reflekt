@@ -42,7 +42,8 @@
       "Bash(.venv/bin/pip show:*)",
       "Bash(git commit:*)",
       "Bash(git stash show:*)",
-      "Bash(git cherry-pick:*)"
+      "Bash(git cherry-pick:*)",
+      "Bash(git rebase:*)"
     ]
   }
 }

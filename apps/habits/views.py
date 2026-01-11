@@ -92,8 +92,19 @@ def habit_detail(request, pk):
     )
     checkin_dates = {c.check_date: c.completed for c in checkins}
 
-    # Build calendar data
+    # Build calendar data with proper weekday alignment
     calendar_data = []
+
+    # Add empty cells at the start to align first day to correct weekday
+    # weekday() returns 0=Monday, 1=Tuesday, ... 6=Sunday
+    first_weekday = start_date.weekday()
+    for _ in range(first_weekday):
+        calendar_data.append({
+            'date': None,
+            'is_placeholder': True,
+        })
+
+    # Add the actual 30 days
     for i in range(30):
         date = start_date + timedelta(days=i)
         is_due = habit.is_due_on_date(date)
@@ -103,6 +114,7 @@ def habit_detail(request, pk):
             'is_due': is_due,
             'completed': completed,
             'is_today': date == today,
+            'is_placeholder': False,
         })
 
     # Recent checkins with notes

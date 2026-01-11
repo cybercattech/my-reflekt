@@ -769,6 +769,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (cmd.special === 'quick_picker') {
                     mapped.special = 'quick_picker';
                     mapped.pickerType = cmd.pickerType;
+                } else if (cmd.special === 'pov_modal') {
+                    mapped.special = 'pov_modal';
                 }
                 return mapped;
             });
@@ -2298,6 +2300,8 @@ document.addEventListener('DOMContentLoaded', function() {
             insertQuillBlock(cmd);
         } else if (cmd.special === 'hybrid_picker') {
             showUnifiedHybridPicker(cmd);
+        } else if (cmd.special === 'pov_modal') {
+            openQuillPovModal();
         }
     }
 
@@ -2746,6 +2750,8 @@ document.addEventListener('DOMContentLoaded', function() {
             insertBlock(cmd);
         } else if (cmd.special === 'hybrid_picker') {
             showUnifiedHybridPicker(cmd);
+        } else if (cmd.special === 'pov_modal') {
+            openPovModal();
         }
     }
 
